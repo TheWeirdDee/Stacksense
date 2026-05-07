@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import dynamic from 'next/dynamic'
-
-const ClientProviders = dynamic(() => import('@/lib/providers'), { ssr: false })
+import ClientRoot from './client-root'
 
 export const metadata: Metadata = {
   title: 'StackSense — On-chain Intelligence for Stacks',
@@ -16,9 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <ClientProviders>
+        <ClientRoot>
           {children}
-        </ClientProviders>
+        </ClientRoot>
       </body>
     </html>
   )
