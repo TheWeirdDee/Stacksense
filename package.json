@@ -16,6 +16,9 @@
     "concurrently": "^9.2.1"
   },
   "dependencies": {
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "pino-pretty": "^11.4.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   }
 }

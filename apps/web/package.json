@@ -19,6 +19,7 @@
     "lucide-react": "^1.14.0",
     "next": "15.1.0",
     "pino": "^9.6.0",
+    "pino-pretty": "^11.4.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "tailwind-merge": "^3.5.0",
