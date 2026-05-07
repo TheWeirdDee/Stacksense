@@ -55,7 +55,12 @@ class MemoryClient {
   on(event: string, cb: any) { return this; }
 }
 
-let activeClient: any = createClient({ url: redisUrl });
+let activeClient: any = createClient({ 
+  url: redisUrl,
+  socket: {
+    connectTimeout: 5000
+  }
+});
 
 activeClient.on('error', (err: any) => {
   // Silence initial connection errors as we'll handle them in connectRedis
@@ -66,11 +71,15 @@ export const redisClient = new Proxy({} as any, {
 });
 
 export async function connectRedis() {
+  const timeout = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+  );
+
   try {
-    await activeClient.connect();
+    await Promise.race([activeClient.connect(), timeout]);
     console.log('Connected to Redis');
   } catch (error) {
-    console.error('Failed to connect to Redis. Switching to in-memory fallback.');
+    console.error('Failed to connect to Redis or connection timed out. Switching to in-memory fallback.');
     activeClient = new MemoryClient();
   }
 }

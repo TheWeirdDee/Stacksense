@@ -36,7 +36,8 @@ async function updateSTXPrice() {
       params: {
         ids: 'blockstack',
         vs_currencies: 'usd'
-      }
+      },
+      timeout: 5000
     });
     const price = response.data.blockstack.usd;
     await redisClient.set('stx:price:usd', price.toString(), { EX: 300 }); // 5 min TTL
