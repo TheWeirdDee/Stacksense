@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StackSense
+
+Real-time blockchain intelligence layer for the Stacks blockchain.
+
+## Tech Stack
+- **Backend**: Node.js, Express, WS, Redis, Zod, Axios
+- **Frontend**: Next.js 14 (App Router), TailwindCSS, React Query
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 20 LTS
+- Docker (for Redis)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Setup
+1. Clone the repo
+2. Create `.env` from template
+3. Start Redis: `docker-compose up -d`
+4. Install dependencies: `npm install`
+5. Run API: `npm run dev:api`
+6. Run Web: `npm run dev:web`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Architecture
+StackSense polls the Hiro API for recent Stacks transactions, runs them through a rule-based interpretation engine, and pushes human-readable signals to a live feed via WebSockets.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Signals
+- **Bullish**: Large liquidity additions or swaps.
+- **Neutral**: Standard large transfers or protocol interactions.
+- **Risk**: Significant deleveraging or burns.
+- **Anomaly**: Statistical outliers in transaction value.
