@@ -1,20 +1,14 @@
-'use client';
+'use client'
+import { ReactNode } from 'react'
+import { WalletProvider } from './wallet'
+import { QueryProvider } from '@/components/providers'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
-
-export default function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-      },
-    },
-  }));
-
+export default function ClientProviders({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+    <WalletProvider>
+      <QueryProvider>
+        {children}
+      </QueryProvider>
+    </WalletProvider>
+  )
 }

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { WalletProvider } from '@/lib/wallet'
-import { QueryProvider } from '@/components/providers'
+import dynamic from 'next/dynamic'
+
+const ClientProviders = dynamic(() => import('@/lib/providers'), { ssr: false })
 
 export const metadata: Metadata = {
   title: 'StackSense — On-chain Intelligence for Stacks',
@@ -15,11 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <WalletProvider>
-          <QueryProvider>
-            {children}
-          </QueryProvider>
-        </WalletProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   )
