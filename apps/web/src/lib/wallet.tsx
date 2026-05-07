@@ -3,9 +3,10 @@ import { createContext, useContext, useState, useCallback, ReactNode, useEffect 
 import { connect, isConnected, disconnect, getLocalStorage, AppConfig, UserSession } from '@stacks/connect'
 import { STACKS_MAINNET } from '@stacks/network'
 
-const appConfig = new AppConfig(['store_write', 'publish_data'])
-export const userSession = new UserSession({ appConfig })
 export const network = STACKS_MAINNET
+
+const appConfig = typeof window !== 'undefined' ? new AppConfig(['store_write', 'publish_data']) : null
+export const userSession = typeof window !== 'undefined' ? new UserSession({ appConfig: appConfig! }) : null as any
 
 interface WalletCtx {
   address: string | null
