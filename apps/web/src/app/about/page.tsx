@@ -1,3 +1,4 @@
+'use client'
 import Nav from '@/components/Nav'
 import SignalTag from '@/components/SignalTag'
 
