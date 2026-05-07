@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
@@ -7,7 +7,7 @@ import FeedCard from '@/components/FeedCard'
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
 
-export default function AnalyzePage() {
+function WalletContent() {
   const searchParams = useSearchParams()
   const [address, setAddress] = useState(searchParams?.get('address') ?? '')
   const [input, setInput] = useState(searchParams?.get('address') ?? '')
@@ -39,7 +39,7 @@ export default function AnalyzePage() {
   useEffect(() => {
     const a = searchParams?.get('address')
     if (a) { setInput(a); run(a) }
-  }, [])
+  }, [searchParams])
 
   return (
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh' }}>
@@ -156,5 +156,13 @@ export default function AnalyzePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AnalyzePage() {
+  return (
+    <Suspense>
+      <WalletContent />
+    </Suspense>
   )
 }
