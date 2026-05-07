@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Nav from '@/components/Nav'
+import dynamic from 'next/dynamic'
+const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'

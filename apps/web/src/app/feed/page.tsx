@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Nav from '@/components/Nav'
+import dynamic from 'next/dynamic'
+const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
 import SignalTag from '@/components/SignalTag'
 import { useWallet } from '@/lib/wallet'

@@ -1,5 +1,6 @@
 'use client'
-import Nav from '@/components/Nav'
+import dynamic from 'next/dynamic'
+const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import SignalTag from '@/components/SignalTag'
 
 const SIGNALS = [
