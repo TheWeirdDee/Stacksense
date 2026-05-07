@@ -30,14 +30,6 @@ export default function Nav() {
       {/* LOGO — identical every page */}
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}>
         <img src="/logo.png" alt="StackSense Logo" style={{ width: 28, height: 28, borderRadius: 4 }} />
-        <span style={{
-          fontWeight: 700,
-          fontSize: 15,
-          letterSpacing: '0.06em',
-          color: 'var(--text-primary)',
-        }}>
-          STACKSENSE
-        </span>
       </Link>
 
       {/* NAV LINKS */}
