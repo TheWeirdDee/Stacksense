@@ -28,13 +28,8 @@ export default function Nav() {
       zIndex: 100,
     }}>
       {/* LOGO — identical every page */}
-      <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="2" y="10" width="3" height="8" fill="#E85D04" rx="1"/>
-          <rect x="7" y="6" width="3" height="12" fill="#E85D04" opacity="0.7" rx="1"/>
-          <rect x="12" y="3" width="3" height="15" fill="#E85D04" opacity="0.4" rx="1"/>
-          <rect x="17" y="7" width="3" height="11" fill="#E85D04" opacity="0.6" rx="1"/>
-        </svg>
+      <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}>
+        <img src="/logo.png" alt="StackSense Logo" style={{ width: 28, height: 28, borderRadius: 4 }} />
         <span style={{
           fontWeight: 700,
           fontSize: 15,
