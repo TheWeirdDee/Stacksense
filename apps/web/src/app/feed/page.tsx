@@ -431,105 +431,28 @@ export default function FeedPage() {
           overflowY: 'auto',
           padding: '20px 16px',
         }}>
-          {connected ? (
-            // CONNECTED STATE
-            <div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-                My Wallet
-              </div>
-
-              {/* Address */}
+          {/* Wallet Section */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Account
+            </div>
+            {connected ? (
               <div style={{
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--bg-border)',
                 borderRadius: 8,
                 padding: '12px 14px',
-                marginBottom: 16,
               }}>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>Connected as</div>
                 <div className="mono" style={{ fontSize: 12, color: 'var(--text-primary)', wordBreak: 'break-all' }}>
                   {address?.slice(0, 8)}...{address?.slice(-6)}
                 </div>
               </div>
-
-              {/* Alert threshold */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 8 }}>Whale Alert Threshold</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10 }}>
-                  Get notified when a transaction exceeds this amount.
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input
-                    type="number"
-                    placeholder="10000"
-                    defaultValue={10000}
-                    onChange={(e) => setWhaleThreshold(Number(e.target.value))}
-                    style={{
-                      flex: 1,
-                      padding: '7px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--bg-border)',
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--text-primary)',
-                      fontSize: 12,
-                      fontFamily: 'JetBrains Mono, monospace',
-                    }}
-                  />
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>STX</span>
-                </div>
-              </div>
-
-              <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 16 }} />
-
-              {/* My activity link */}
-              <a
-                href={`/wallet?address=${address}`}
-                style={{
-                  display: 'block',
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--bg-border)',
-                  background: 'var(--bg-surface)',
-                  fontSize: 13,
-                  color: 'var(--text-primary)',
-                  marginBottom: 8,
-                }}
-              >
-                View My Activity →
-              </a>
-
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, marginTop: 16 }}>
-                Tip buttons appear on each feed card when your wallet is connected. Tips are sent as 1 STX transfers.
-              </div>
-            </div>
-          ) : (
-            // GUEST STATE
-            <div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-                Connect Wallet
-              </div>
-
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: 20 }}>
-                Connect your Stacks wallet to access personalized features.
-              </div>
-
-              {[
-                'Tip 1 STX on signals you agree with',
-                'View your own wallet activity in the feed',
-                'Set custom whale alert thresholds',
-                'Vote on signal interpretations',
-              ].map(f => (
-                <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0, marginTop: 5 }} />
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{f}</span>
-                </div>
-              ))}
-
+            ) : (
               <button
                 onClick={connect}
                 style={{
                   width: '100%',
-                  marginTop: 16,
                   padding: '11px',
                   borderRadius: 7,
                   border: 'none',
@@ -543,12 +466,67 @@ export default function FeedPage() {
               >
                 Connect Wallet
               </button>
+            )}
+          </div>
 
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 10, textAlign: 'center', lineHeight: 1.6 }}>
-                Leather or Xverse · Your keys stay yours
-              </div>
+          <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 24 }} />
+
+          {/* Trending Leaderboard */}
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+              On-Chain Sentiment
             </div>
-          )}
+            
+            {!stats?.trending_signals || stats.trending_signals.length === 0 ? (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                No community signals yet.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {stats.trending_signals.map((sig: any) => {
+                  const totalVotes = sig.bullish + sig.bearish;
+                  const bullPercent = totalVotes > 0 ? (sig.bullish / totalVotes) * 100 : 50;
+                  
+                  return (
+                    <div key={sig.id} style={{ 
+                      background: 'var(--bg-surface)', 
+                      border: '1px solid var(--bg-border)', 
+                      borderRadius: 10, 
+                      padding: '14px',
+                      transition: 'transform 0.15s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {sig.title}
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 11, color: 'var(--bull)' }}>▲ {sig.bullish}</span>
+                          <span style={{ fontSize: 11, color: 'var(--anom)' }}>▼ {sig.bearish}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          💎 <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{sig.tips}</span> tips
+                        </div>
+                      </div>
+
+                      {/* Sentiment bar */}
+                      <div style={{ height: 3, background: 'var(--anom)', borderRadius: 1.5, display: 'flex', overflow: 'hidden' }}>
+                        <div style={{ width: `${bullPercent}%`, background: 'var(--bull)', height: '100%' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, marginTop: 24, fontStyle: 'italic' }}>
+            Community sentiment is pulled directly from the Clarity contract. Tip 1 STX to boost a signal.
+          </div>
         </div>
 
       </div>
