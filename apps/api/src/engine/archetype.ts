@@ -9,73 +9,107 @@ const HIRO_API_BASE = process.env.HIRO_API_BASE || 'https://api.hiro.so';
 
 export type Archetype = 'Whale Wallet' | 'LP Farmer' | 'New Wallet' | 'DeFi User' | 'Unclassified Wallet';
 
+export interface WalletDetails {
+  archetype: Archetype;
+  scores: {
+    diamond_hands: number;
+    defi_degens: number;
+  };
+  protocols: { name: string; value: number }[];
+  activity_summary: string;
+}
+
 export async function getArchetype(address: string): Promise<Archetype> {
   const cacheKey = `archetype:${address}`;
   const cached = await redisClient.get(cacheKey);
   if (cached) return cached as Archetype;
   
-  const archetype = await classifyWallet(address);
-  await redisClient.set(cacheKey, archetype, { EX: 21600 }); // 6 hours
-  return archetype;
+  const details = await analyzeWallet(address);
+  await redisClient.set(cacheKey, details.archetype, { EX: 21600 });
+  return details.archetype;
 }
 
-async function classifyWallet(address: string): Promise<Archetype> {
+export async function getDetailedArchetype(address: string): Promise<WalletDetails> {
+  const cacheKey = `details:${address}`;
+  const cached = await redisClient.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+  
+  const details = await analyzeWallet(address);
+  await redisClient.set(cacheKey, JSON.stringify(details), { EX: 3600 });
+  return details;
+}
+
+async function analyzeWallet(address: string): Promise<WalletDetails> {
   try {
     const url = `${HIRO_API_BASE}/extended/v1/address/${address}/transactions`;
     const response = await axios.get(url, { params: { limit: 50 } });
     const transactions = response.data.results;
     
-    if (transactions.length === 0) return 'New Wallet';
+    if (transactions.length === 0) {
+      return {
+        archetype: 'New Wallet',
+        scores: { diamond_hands: 50, defi_degens: 0 },
+        protocols: [],
+        activity_summary: 'No activity found.'
+      };
+    }
     
-    // 1. Whale check: Total STX sent in last 50 transactions (approximation for v1)
-    // Actually the rule says "last 30 days". 
-    // For v1 I'll just check the sum of the last 50 transactions if they are within 30 days.
     let totalSent = 0;
+    let totalReceived = 0;
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
     
     let liquidityCalls = 0;
-    const protocols = new Set<string>();
+    const protocolMap: Record<string, number> = {};
     
     for (const tx of transactions) {
       const txTime = new Date(tx.burn_block_time_iso).getTime();
-      if (txTime > thirtyDaysAgo && tx.sender_address === address) {
-        if (tx.tx_type === 'token_transfer') {
-          totalSent += toSTX(tx.token_transfer.amount);
-        }
+      
+      if (tx.tx_type === 'token_transfer' && txTime > thirtyDaysAgo) {
+        const amount = toSTX(tx.token_transfer.amount);
+        if (tx.sender_address === address) totalSent += amount;
+        if (tx.recipient_address === address) totalReceived += amount;
       }
       
       if (tx.tx_type === 'contract_call') {
         const contract = tx.contract_call.contract_id;
-        if (contract.includes('pool') || contract.includes('lp') || contract.includes('swap')) {
+        const protocol = contract.split('.')[0].split('-')[0]; // Extract base protocol name
+        protocolMap[protocol] = (protocolMap[protocol] || 0) + 1;
+        
+        if (contract.includes('pool') || contract.includes('lp') || contract.includes('swap') || contract.includes('alex')) {
           liquidityCalls++;
         }
-        protocols.add(contract.split('.')[0]); // Simple protocol grouping
       }
     }
     
-    if (totalSent > 500000) return 'Whale Wallet';
+    // Scoring Logic
+    const dhScore = totalReceived > 0 ? Math.min(100, Math.round((totalReceived / (totalSent + 1)) * 50) + 50) : 30;
+    const degenScore = Math.min(100, (Object.keys(protocolMap).length * 15) + (liquidityCalls * 5));
     
-    // 2. LP Farmer: > 60% of tx are liquidity calls
-    if (transactions.length > 0 && (liquidityCalls / transactions.length) > 0.6) {
-      return 'LP Farmer';
-    }
+    // Archetype Classification
+    let archetype: Archetype = 'Unclassified Wallet';
+    if (totalSent > 500000) archetype = 'Whale Wallet';
+    else if ((liquidityCalls / transactions.length) > 0.4) archetype = 'LP Farmer';
+    else if (Object.keys(protocolMap).length >= 3) archetype = 'DeFi User';
     
-    // 3. New Wallet: age < 30 days or count < 10
-    // (Using account history for age is hard without fetching all tx, but we can check if the first tx in our list is recent)
-    const oldestTxInList = transactions[transactions.length - 1];
-    const oldestTxTime = new Date(oldestTxInList.burn_block_time_iso).getTime();
-    if (oldestTxTime > thirtyDaysAgo || response.data.total < 10) {
-      return 'New Wallet';
-    }
-    
-    // 4. DeFi User: mix of protocol interactions
-    if (protocols.size >= 3) {
-      return 'DeFi User';
-    }
-    
-    return 'Unclassified Wallet';
+    const oldestTxTime = new Date(transactions[transactions.length - 1].burn_block_time_iso).getTime();
+    if (oldestTxTime > thirtyDaysAgo || response.data.total < 10) archetype = 'New Wallet';
+
+    return {
+      archetype,
+      scores: {
+        diamond_hands: dhScore,
+        defi_degens: degenScore
+      },
+      protocols: Object.entries(protocolMap).map(([name, value]) => ({ name, value })),
+      activity_summary: `${transactions.length} txs processed. ${Object.keys(protocolMap).length} protocols used.`
+    };
   } catch (error) {
-    console.error(`Error classifying wallet ${address}:`, error);
-    return 'Unclassified Wallet';
+    console.error(`Error analyzing wallet ${address}:`, error);
+    return {
+      archetype: 'Unclassified Wallet',
+      scores: { diamond_hands: 0, defi_degens: 0 },
+      protocols: [],
+      activity_summary: 'Analysis failed.'
+    };
   }
 }
