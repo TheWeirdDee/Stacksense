@@ -1,78 +1,85 @@
 'use client'
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
-import { connect, isConnected, disconnect, getLocalStorage, AppConfig, UserSession } from '@stacks/connect'
+
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+import { AppConfig, UserSession, showConnect } from '@stacks/connect'
 import { STACKS_MAINNET } from '@stacks/network'
 
+const appConfig = new AppConfig(['store_write', 'publish_data'])
+export const userSession = new UserSession({ appConfig })
 export const network = STACKS_MAINNET
-
-const appConfig = typeof window !== 'undefined' ? new AppConfig(['store_write', 'publish_data']) : null
-export const userSession = typeof window !== 'undefined' ? new UserSession({ appConfig: appConfig! }) : null as any
 
 interface WalletCtx {
   address: string | null
   connected: boolean
-  connect: () => Promise<void>
+  connect: () => void
   disconnect: () => void
 }
 
 const WalletContext = createContext<WalletCtx>({
-  address: null, 
-  connected: false,
-  connect: async () => {}, 
-  disconnect: () => {}
+  address: null, connected: false,
+  connect: () => {}, disconnect: () => {},
 })
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null)
-  const [connected, setConnected] = useState(false)
-
-  const updateState = useCallback(() => {
-    const connectedStatus = isConnected()
-    setConnected(connectedStatus)
-    if (connectedStatus) {
-      const storage = getLocalStorage()
-      if (storage?.addresses) {
-        // v8 structure: storage.addresses.stx is an array of objects
-        const addr = storage.addresses.stx[0]?.address || null
-        setAddress(addr)
-      }
-    } else {
-      setAddress(null)
-    }
-  }, [])
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    updateState()
-    // Listen for storage changes (optional but good for multi-tab)
-    window.addEventListener('storage', updateState)
-    return () => window.removeEventListener('storage', updateState)
-  }, [updateState])
-
-  const handleConnect = useCallback(async () => {
-    console.log('WalletProvider: Initiating connect flow (v8 API)')
+    setMounted(true)
+    // Restore from localStorage
     try {
-      const response = await connect()
-      console.log('WalletProvider: Connect response', response)
-      
-      const addr = response.addresses.find(a => a.symbol === 'STX')?.address 
-                   || response.addresses[0]?.address
-      
-      setAddress(addr)
-      setConnected(true)
-    } catch (err) {
-      console.error('WalletProvider: connect error', err)
+      const saved = localStorage.getItem('ss_stx_address')
+      if (saved && saved.startsWith('SP')) {
+        setAddress(saved)
+      }
+    } catch {}
+  }, [])
+
+  const connect = useCallback(async () => {
+    try {
+      showConnect({
+        appDetails: {
+          name: 'StackSense',
+          icon: `${window.location.origin}/favicon.ico`,
+        },
+        onFinish: () => {
+          try {
+            const userData = userSession.loadUserData()
+            const addr = userData?.profile?.stxAddress?.mainnet
+            if (addr) {
+              setAddress(addr)
+              localStorage.setItem('ss_stx_address', addr)
+            }
+          } catch (e) {
+            console.error('[Wallet] Failed to read user data:', e)
+          }
+        },
+        onCancel: () => {
+          console.log('[Wallet] User cancelled connection')
+        },
+        userSession,
+      })
+    } catch (e) {
+      console.error('[Wallet] showConnect failed:', e)
+      alert('Wallet connection failed. Make sure Leather or Xverse extension is installed.')
     }
   }, [])
 
-  const handleDisconnect = useCallback(() => {
-    console.log('WalletProvider: Disconnecting')
-    disconnect()
+  const disconnect = useCallback(() => {
     setAddress(null)
-    setConnected(false)
+    try { localStorage.removeItem('ss_stx_address') } catch {}
   }, [])
 
+  if (!mounted) {
+    return (
+      <WalletContext.Provider value={{ address: null, connected: false, connect: () => {}, disconnect: () => {} }}>
+        {children}
+      </WalletContext.Provider>
+    )
+  }
+
   return (
-    <WalletContext.Provider value={{ address, connected, connect: handleConnect, disconnect: handleDisconnect }}>
+    <WalletContext.Provider value={{ address, connected: !!address, connect, disconnect }}>
       {children}
     </WalletContext.Provider>
   )
