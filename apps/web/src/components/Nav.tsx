@@ -10,6 +10,7 @@ export default function Nav() {
 
   const links = [
     { label: 'Feed', href: '/feed' },
+    ...(connected ? [{ label: 'My Activity', href: '/feed?my=true' }] : []),
     { label: 'Analyze', href: '/wallet' },
     { label: 'Methodology', href: '/about' },
   ]
