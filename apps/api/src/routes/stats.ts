@@ -1,7 +1,11 @@
 import express from 'express';
 import { redisClient } from '../redis/client.js';
+import axios from 'axios';
+import { stringAsciiCV, cvToJSON } from '@stacks/transactions';
 
 const router = express.Router();
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV';
+const CONTRACT_NAME = 'signal-tips-v1';
 
 async function getRecentEvents(n: number): Promise<any[]> {
   try {
@@ -13,6 +17,34 @@ async function getRecentEvents(n: number): Promise<any[]> {
     console.error('[Stats] Redis error in getRecentEvents:', err);
   }
   return [];
+}
+
+async function getOnChainStats(signalId: string) {
+  try {
+    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`;
+    const response = await axios.post(url, {
+      sender: CONTRACT_ADDRESS,
+      arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()]
+    });
+    
+    const tips = cvToJSON(response.data.result).value;
+    
+    const voteUrl = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`;
+    const voteResponse = await axios.post(voteUrl, {
+      sender: CONTRACT_ADDRESS,
+      arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()]
+    });
+    
+    const votes = cvToJSON(voteResponse.data.result).value;
+    
+    return {
+      tips: parseInt(tips['tip-count']?.value || '0', 10),
+      bullish: parseInt(votes['bullish-votes']?.value || '0', 10),
+      bearish: parseInt(votes['bearish-votes']?.value || '0', 10)
+    };
+  } catch {
+    return { tips: 0, bullish: 0, bearish: 0 };
+  }
 }
 
 async function refreshStats() {
@@ -35,11 +67,25 @@ async function refreshStats() {
     const mostActive = Object.entries(protocolCounts)
       .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
 
+    // Trending Signals: Take top 5 unique signals from recent events
+    const uniqueSignals = Array.from(new Set(events.map(e => e.id))).slice(0, 5);
+    const trending = await Promise.all(uniqueSignals.map(async (id) => {
+      const event = events.find(e => e.id === id);
+      const onChain = await getOnChainStats(id);
+      return {
+        id,
+        title: event?.title || 'Unknown Signal',
+        signal: event?.signal || 'neutral',
+        ...onChain
+      };
+    }));
+
     const stats = {
       events_last_10m: eventsLast10m,
       stx_moved_today: stxMovedToday,
       most_active_protocol_today: mostActive,
       total_events_today: todayEvents.length,
+      trending_signals: trending,
       last_updated: new Date().toISOString(),
     }
 
@@ -51,7 +97,6 @@ async function refreshStats() {
   }
 }
 
-// Run immediately and then every 60s
 refreshStats();
 setInterval(refreshStats, 60_000);
 
@@ -59,12 +104,12 @@ router.get('/', async (req, res) => {
   try {
     const statsStr = await redisClient.get('stats:current');
     if (!statsStr) {
-      // Return placeholder values if no data
       return res.json({
         events_last_10m: "--",
         stx_moved_today: "--",
         most_active_protocol_today: "N/A",
         total_events_today: "--",
+        trending_signals: [],
         last_updated: new Date().toISOString()
       });
     }
