@@ -7,6 +7,10 @@ import FeedCard from '@/components/FeedCard'
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
 
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+
+const COLORS = ['#7C3AED', '#EC4899', '#3B82F6', '#10B981', '#F59E0B']
+
 function WalletContent() {
   const searchParams = useSearchParams()
   const [address, setAddress] = useState(searchParams?.get('address') ?? '')
@@ -46,7 +50,6 @@ function WalletContent() {
       <Nav />
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px' }}>
-        {/* Header */}
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10, fontWeight: 600 }}>
             Analyze
@@ -55,11 +58,10 @@ function WalletContent() {
             Wallet Intelligence
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            Reconstruct on-chain behavior for any Stacks address — archetype classification, protocol usage, and interpreted transaction history.
+            Reconstruct on-chain behavior — archetype classification, protocol usage, and behavioral scores.
           </p>
         </div>
 
-        {/* Search */}
         <div style={{ display: 'flex', gap: 8, marginBottom: error ? 8 : 32 }}>
           <input
             value={input}
@@ -98,14 +100,12 @@ function WalletContent() {
           </button>
         </div>
 
-        {/* Inline error */}
         {error && (
           <div style={{ fontSize: 12, color: 'var(--anom)', marginBottom: 24, padding: '8px 12px', background: 'var(--anom-bg, #2E0F0F)', borderRadius: 6 }}>
             {error}
           </div>
         )}
 
-        {/* Loading skeletons */}
         {loading && (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
@@ -122,24 +122,82 @@ function WalletContent() {
           </div>
         )}
 
-        {/* Results */}
         {result && (
           <div>
-            {/* Wallet summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
               {[
                 { label: 'Archetype', value: result.wallet?.archetype ?? '—' },
-                { label: 'STX Moved (30d)', value: result.wallet?.total_stx_moved_30d ? `${Math.round(result.wallet.total_stx_moved_30d / 1000)}K STX` : '—' },
-                { label: 'Top Protocol', value: result.wallet?.most_used_protocol ?? '—' },
+                { label: 'Activity Score', value: result.wallet?.scores?.defi_degens ?? 0 },
+                { label: 'HODL Rating', value: result.wallet?.scores?.diamond_hands ?? 0 },
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '16px 18px' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</div>
-                  <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)' }}>{value}</div>
+                  <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: label.includes('Score') || label.includes('Rating') ? (Number(value) > 70 ? 'var(--bull)' : 'var(--text-primary)') : 'var(--text-primary)' }}>
+                    {value}{typeof value === 'number' ? '%' : ''}
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Events */}
+            {/* Behavioral Deep-Dive */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16, marginBottom: 32 }}>
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 12, padding: 24 }}>
+                <h3 style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>Protocol Distribution</h3>
+                <div style={{ height: 200 }}>
+                  {result.wallet?.protocols?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={result.wallet.protocols}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {result.wallet.protocols.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', fontSize: 12 }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: 13 }}>
+                      No protocol data found.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 12, padding: 24 }}>
+                <h3 style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>Behavioral Index</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {[
+                    { label: 'Diamond Hands', score: result.wallet?.scores?.diamond_hands ?? 0, color: 'var(--bull)' },
+                    { label: 'DeFi Degeneracy', score: result.wallet?.scores?.defi_degens ?? 0, color: 'var(--brand)' }
+                  ].map(score => (
+                    <div key={score.label}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{score.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: score.color }}>{score.score}%</span>
+                      </div>
+                      <div style={{ height: 4, background: 'var(--bg-border)', borderRadius: 2 }}>
+                        <div style={{ height: '100%', width: `${score.score}%`, background: score.color, borderRadius: 2, transition: 'width 1s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 8 }}>
+                    {result.wallet?.activity_summary}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
               Transaction History
             </div>
