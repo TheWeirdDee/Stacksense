@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
@@ -16,6 +17,8 @@ type WSStatus = 'connecting' | 'live' | 'disconnected'
 
 export default function FeedPage() {
   const [events, setEvents] = useState<any[]>([])
+  const searchParams = useSearchParams()
+  const isMyActivity = searchParams.get('my') === 'true'
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
   const [paused, setPaused] = useState(false)
   const [buffered, setBuffered] = useState<any[]>([])
@@ -25,6 +28,8 @@ export default function FeedPage() {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [apiError, setApiError] = useState(false)
+  const [whaleThreshold, setWhaleThreshold] = useState<number>(10000)
+  const [whaleAlert, setWhaleAlert] = useState<any>(null)
   const { connected, address, connect } = useWallet()
   const wsRef = useRef<WebSocket | null>(null)
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -108,6 +113,17 @@ export default function FeedPage() {
     }
   }, [connect_ws])
 
+  // Whale alert banner logic
+  useEffect(() => {
+    if (!whaleThreshold || !connected) return
+    const latestEvent = events[0]
+    if (latestEvent && latestEvent.stx_amount >= whaleThreshold) {
+      setWhaleAlert(latestEvent)
+      // Auto-dismiss after 8 seconds
+      setTimeout(() => setWhaleAlert(null), 8_000)
+    }
+  }, [events[0]?.id, whaleThreshold, connected])
+
   // Flush buffer on resume
   const resume = () => {
     setPaused(false)
@@ -120,6 +136,9 @@ export default function FeedPage() {
 
   // Filtered events
   const filtered = events.filter(e => {
+    if (isMyActivity && connected && address) {
+      if (e.wallet_address !== address) return false
+    }
     const sigMatch = signalFilter === 'All' || e.signal === signalFilter.toLowerCase()
     const protoMatch = protocolFilter.size === 0 || protocolFilter.has(e.protocol)
     return sigMatch && protoMatch
@@ -330,6 +349,29 @@ export default function FeedPage() {
 
           {/* Feed list */}
           <div style={{ overflowY: 'auto', flex: 1 }}>
+            {/* Whale Alert Banner */}
+            {whaleAlert && (
+              <div style={{
+                background: 'var(--risk-bg)',
+                borderBottom: '1px solid var(--risk)',
+                padding: '12px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                animation: 'slideDown 0.3s ease-out'
+              }}>
+                <div style={{ fontSize: 13, color: 'var(--risk)', fontWeight: 500 }}>
+                  🐋 Whale alert: {whaleAlert.title} — {Math.round(whaleAlert.stx_amount).toLocaleString()} STX
+                </div>
+                <button 
+                  onClick={() => setWhaleAlert(null)}
+                  style={{ background: 'none', border: 'none', color: 'var(--risk)', cursor: 'pointer', fontSize: 16 }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
             {apiError && (
               <div style={{ padding: '40px 24px', textAlign: 'center' }}>
                 <div style={{ fontSize: 14, color: 'var(--anom)', marginBottom: 8 }}>Backend not connected</div>
@@ -377,7 +419,7 @@ export default function FeedPage() {
               <FeedCard
                 key={event.id}
                 event={event}
-                isNew={newIds.has(event.id)}
+                showActions={connected}
               />
             ))}
           </div>
@@ -421,6 +463,7 @@ export default function FeedPage() {
                     type="number"
                     placeholder="10000"
                     defaultValue={10000}
+                    onChange={(e) => setWhaleThreshold(Number(e.target.value))}
                     style={{
                       flex: 1,
                       padding: '7px 10px',
