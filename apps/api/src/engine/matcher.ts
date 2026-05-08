@@ -42,21 +42,11 @@ export async function matchTransaction(tx: any) {
   if (tx_type === 'contract_call') {
     contract_id = tx.contract_call.contract_id;
     function_name = tx.contract_call.function_name;
-    // Extract STX amount if any. Hiro API puts this in various places depending on the call.
-    // For simplicity in v1, we check if there's a post-condition or transfer involved.
-    // But the prompt says "STX value must be >= min_stx".
-    // I'll assume we look at the tx's fee or a specific transfer inside it? 
-    // Actually, usually we look at the amount being moved. 
-    // For native transfers it's easy. For contract calls, it's more complex.
-    // I'll check for `tx.token_transfer.amount` if available or just use 0 for now unless I find where Hiro puts it.
-    // Wait, the prompt says "All STX amounts from the Hiro API are in microSTX."
-    // I'll check `tx.token_transfer.amount` for `token_transfer` type.
   }
   
   if (tx_type === 'token_transfer') {
     stx_amount = toSTX(tx.token_transfer.amount);
   } else if (tx_type === 'contract_call') {
-    // Extract STX amount from post-conditions where the sender is providing STX
     if (tx.post_conditions && Array.isArray(tx.post_conditions)) {
       const senderPostConditions = tx.post_conditions.filter(
         (pc: any) => pc.condition_code === 'sent_equal_to' || pc.condition_code === 'sent_greater_than_or_equal_to'
@@ -74,7 +64,6 @@ export async function matchTransaction(tx: any) {
       }
     }
     
-    // Fallback: Check if there are internal STX transfers (stx_transfers array in some API versions)
     if (stx_amount === 0 && tx.stx_transfers && Array.isArray(tx.stx_transfers)) {
       const totalInternal = tx.stx_transfers
         .filter((t: any) => t.sender === tx.sender_address)
@@ -122,7 +111,6 @@ export async function matchTransaction(tx: any) {
   const stxPrice = await getSTXPrice();
   const usd_amount = stx_amount * stxPrice;
   
-  // Anomaly Detection
   const { isAnomaly, multiplier } = await checkAnomaly(contract_id, function_name, stx_amount);
   const finalSignal = isAnomaly ? 'anomaly' : matchedRule.signal;
   
@@ -149,6 +137,8 @@ export async function matchTransaction(tx: any) {
     wallet_archetype: archetype,
     explorer_url: `https://explorer.stacks.co/txid/${tx.tx_id}?chain=mainnet`,
     rule_id: matchedRule.id,
+    multiplier,
+    is_anomaly: isAnomaly
   };
   
   return InterpretedEventSchema.parse(event);
