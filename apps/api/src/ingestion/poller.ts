@@ -2,6 +2,7 @@ import axios from 'axios';
 import { redisClient, connectRedis } from '../redis/client.js';
 import { matchTransaction } from '../engine/matcher.js';
 import { broadcastEvent, getClientCount } from '../ws/server.js';
+import { sendHighConvictionAlert } from '../integrations/telegram.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
@@ -56,7 +57,7 @@ async function pollTransactions() {
       newCount++;
       
       await processTransaction(tx);
-      await redisClient.set(`seen:txid:${tx.tx_id}`, '1', { EX: 172800 }); // 48h
+      await redisClient.set(`seen:txid:${tx.tx_id}`, '1', { EX: 172800 });
     }
 
     console.log(`[Poller] Fetched ${transactions.length} txs. New: ${newCount}, Skipped: ${skippedCount}`)
@@ -71,12 +72,15 @@ async function processTransaction(tx: any) {
     if (event) {
       console.log(`[Poller] ✓ Matched "${event.rule_id}" → ${event.signal.toUpperCase()} | ${event.stx_amount.toLocaleString()} STX`)
       
-      // Store in recent events list
       await redisClient.lPush('events:recent', JSON.stringify(event));
       await redisClient.lTrim('events:recent', 0, 499);
       
-      // Broadcast logic
       broadcastEvent(event);
+      
+      if ((event.is_anomaly && event.multiplier >= 5.0) || event.wallet_archetype === 'Whale Wallet') {
+        sendHighConvictionAlert(event);
+      }
+
       console.log(`[Poller] Broadcast to ${getClientCount()} WebSocket clients`)
     }
   } catch (error) {
