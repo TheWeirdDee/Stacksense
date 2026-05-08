@@ -3,10 +3,7 @@ export function toSTX(microSTX: string | number): number {
 }
 
 export function formatSTX(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 6,
-  }).format(amount);
+  return amount.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
 export function formatUSD(amount: number): string {
