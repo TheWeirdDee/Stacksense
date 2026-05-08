@@ -1,0 +1,10 @@
+[project]
+name = "stacksense"
+authors = []
+description = ""
+telemetry = true
+requirements = []
+[contracts.signal-tips]
+path = "contracts/signal-tips.clar"
+clarity_version = 4
+epoch = 3.3
