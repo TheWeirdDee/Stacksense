@@ -1,115 +1,100 @@
 import axios from 'axios';
 import { redisClient } from '../redis/client.js';
-import { toSTX } from './utils.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
 
 const HIRO_API_BASE = process.env.HIRO_API_BASE || 'https://api.hiro.so';
+const HIRO_API_KEY = process.env.HIRO_API_KEY;
 
-export type Archetype = 'Whale Wallet' | 'LP Farmer' | 'New Wallet' | 'DeFi User' | 'Unclassified Wallet';
+export type Archetype = 'Whale Wallet' | 'LP Farmer' | 'New Wallet' | 'DeFi User' | 'Active Wallet' | 'Unclassified Wallet';
 
-export interface WalletDetails {
-  archetype: Archetype;
-  scores: {
-    diamond_hands: number;
-    defi_degens: number;
-  };
-  protocols: { name: string; value: number }[];
-  activity_summary: string;
-}
-
-export async function getArchetype(address: string): Promise<Archetype> {
+export async function getArchetype(address: string): Promise<string> {
   const cacheKey = `archetype:${address}`;
-  const cached = await redisClient.get(cacheKey);
-  if (cached) return cached as Archetype;
-  
-  const details = await analyzeWallet(address);
-  await redisClient.set(cacheKey, details.archetype, { EX: 21600 });
-  return details.archetype;
-}
-
-export async function getDetailedArchetype(address: string): Promise<WalletDetails> {
-  const cacheKey = `details:${address}`;
-  const cached = await redisClient.get(cacheKey);
-  if (cached) return JSON.parse(cached);
-  
-  const details = await analyzeWallet(address);
-  await redisClient.set(cacheKey, JSON.stringify(details), { EX: 3600 });
-  return details;
-}
-
-async function analyzeWallet(address: string): Promise<WalletDetails> {
   try {
-    const url = `${HIRO_API_BASE}/extended/v1/address/${address}/transactions`;
-    const response = await axios.get(url, { params: { limit: 50 } });
-    const transactions = response.data.results;
-    
-    if (transactions.length === 0) {
-      return {
-        archetype: 'New Wallet',
-        scores: { diamond_hands: 50, defi_degens: 0 },
-        protocols: [],
-        activity_summary: 'No activity found.'
-      };
-    }
-    
-    let totalSent = 0;
-    let totalReceived = 0;
-    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    
-    let liquidityCalls = 0;
-    const protocolMap: Record<string, number> = {};
-    
-    for (const tx of transactions) {
-      const txTime = new Date(tx.burn_block_time_iso).getTime();
-      
-      if (tx.tx_type === 'token_transfer' && txTime > thirtyDaysAgo) {
-        const amount = toSTX(tx.token_transfer.amount);
-        if (tx.sender_address === address) totalSent += amount;
-        if (tx.recipient_address === address) totalReceived += amount;
-      }
-      
-      if (tx.tx_type === 'contract_call') {
-        const contract = tx.contract_call.contract_id;
-        const protocol = contract.split('.')[0].split('-')[0]; // Extract base protocol name
-        protocolMap[protocol] = (protocolMap[protocol] || 0) + 1;
-        
-        if (contract.includes('pool') || contract.includes('lp') || contract.includes('swap') || contract.includes('alex')) {
-          liquidityCalls++;
-        }
-      }
-    }
-    
-    // Scoring Logic
-    const dhScore = totalReceived > 0 ? Math.min(100, Math.round((totalReceived / (totalSent + 1)) * 50) + 50) : 30;
-    const degenScore = Math.min(100, (Object.keys(protocolMap).length * 15) + (liquidityCalls * 5));
-    
-    // Archetype Classification
-    let archetype: Archetype = 'Unclassified Wallet';
-    if (totalSent > 500000) archetype = 'Whale Wallet';
-    else if ((liquidityCalls / transactions.length) > 0.4) archetype = 'LP Farmer';
-    else if (Object.keys(protocolMap).length >= 3) archetype = 'DeFi User';
-    
-    const oldestTxTime = new Date(transactions[transactions.length - 1].burn_block_time_iso).getTime();
-    if (oldestTxTime > thirtyDaysAgo || response.data.total < 10) archetype = 'New Wallet';
+    const cached = await redisClient.get(cacheKey);
+    if (cached) return cached;
+  } catch {}
 
-    return {
-      archetype,
-      scores: {
-        diamond_hands: dhScore,
-        defi_degens: degenScore
-      },
-      protocols: Object.entries(protocolMap).map(([name, value]) => ({ name, value })),
-      activity_summary: `${transactions.length} txs processed. ${Object.keys(protocolMap).length} protocols used.`
-    };
-  } catch (error) {
-    console.error(`Error analyzing wallet ${address}:`, error);
-    return {
-      archetype: 'Unclassified Wallet',
-      scores: { diamond_hands: 0, defi_degens: 0 },
-      protocols: [],
-      activity_summary: 'Analysis failed.'
-    };
+  const archetype = await classifyWallet(address);
+  
+  try {
+    await redisClient.set(cacheKey, archetype, { EX: 21600 });
+  } catch {}
+
+  return archetype;
+}
+
+async function getWalletHistory(address: string): Promise<any[]> {
+  try {
+    const url = `${HIRO_API_BASE}/extended/v1/address/${address}/transactions?limit=50&unanchored=false`;
+    console.log(`[Archetype] Fetching history for ${address.slice(0, 8)}...`);
+    
+    const headers: Record<string, string> = {};
+    if (HIRO_API_KEY) headers['x-api-key'] = HIRO_API_KEY;
+
+    const response = await axios.get(url, { headers, timeout: 5000 });
+    const results = response.data?.results || [];
+    console.log(`[Archetype] ${address.slice(0, 8)} has ${results.length} recent txns`);
+    return results;
+  } catch (e: any) {
+    console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e.message);
+    return [];
   }
+}
+
+async function classifyWallet(address: string): Promise<string> {
+  try {
+    const txns = await getWalletHistory(address);
+    const txCount = txns.length;
+
+    const contractCalls = txns.filter((tx: any) => tx.tx_type === 'contract_call');
+    const lpInteractions = contractCalls.filter((tx: any) =>
+      tx.contract_call?.function_name?.includes('liquidity') ||
+      tx.contract_call?.function_name?.includes('position') ||
+      tx.contract_call?.function_name?.includes('pool') ||
+      tx.contract_call?.function_name?.includes('swap')
+    ).length;
+
+    let stxBalance = 0;
+    try {
+      const balanceUrl = `${HIRO_API_BASE}/extended/v1/address/${address}/balances`;
+      const headers: Record<string, string> = {};
+      if (HIRO_API_KEY) headers['x-api-key'] = HIRO_API_KEY;
+
+      const balRes = await axios.get(balanceUrl, { headers, timeout: 3000 });
+      stxBalance = parseInt(balRes.data?.stx?.balance || '0', 10) / 1_000_000;
+    } catch {}
+
+    let archetype = 'DeFi User';
+
+    if (stxBalance > 100000 || txCount === 0) {
+      archetype = txCount === 0 ? 'New Wallet' : 'Whale Wallet';
+    } else if (txCount < 5) {
+      archetype = 'New Wallet';
+    } else if (lpInteractions > 0 && contractCalls.length > 0 && (lpInteractions / contractCalls.length) > 0.5) {
+      archetype = 'LP Farmer';
+    } else if (contractCalls.length > txCount * 0.7) {
+      archetype = 'DeFi User';
+    } else {
+      archetype = 'Active Wallet';
+    }
+
+    console.log(`[Archetype] ${address.slice(0, 8)}... → ${archetype} (${txCount} txns, ${stxBalance.toLocaleString()} STX)`);
+    return archetype;
+  } catch (e) {
+    console.error('[Archetype] Classification failed:', e);
+    return 'Unclassified Wallet';
+  }
+}
+
+// Keeping getDetailedArchetype for UI compatibility if needed
+export async function getDetailedArchetype(address: string): Promise<any> {
+  const archetype = await getArchetype(address);
+  return {
+    archetype,
+    scores: { diamond_hands: 50, defi_degens: 50 },
+    protocols: [],
+    activity_summary: `Classified as ${archetype}`
+  };
 }
