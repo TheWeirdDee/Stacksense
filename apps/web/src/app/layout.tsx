@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script defer data-domain="stacksense.app" src="https://plausible.io/js/script.js"></script>
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ClientRoot>
           {children}
         </ClientRoot>
