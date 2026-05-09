@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { InterpretedEvent } from '@/types';
 import axios from 'axios';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://127.0.0.1:3001';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://127.0.0.1:3001/ws';
 
 export function useFeed() {
   const [events, setEvents] = useState<InterpretedEvent[]>([]);
