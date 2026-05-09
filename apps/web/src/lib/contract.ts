@@ -1,17 +1,28 @@
-import { openContractCall } from '@stacks/connect'
+import { openContractCall, AppConfig, UserSession } from '@stacks/connect'
 import { stringAsciiCV } from '@stacks/transactions'
-import { STACKS_MAINNET } from '@stacks/network'
-import { CONTRACT_ADDRESS, CONTRACT_NAME } from './stx'
+import { StacksMainnet } from '@stacks/network'
+import { sendTip } from './stx'
+
+const appConfig = new AppConfig(['store_write', 'publish_data'])
+const userSession = new UserSession({ appConfig })
+
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
+export const CONTRACT_NAME = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'signal-tips'
 
 export async function contractTipSignal(
   signalId: string,
-  userSession: any,
   onFinish?: (txId: string) => void
 ) {
-  if (!userSession) return;
+  // If no contract deployed yet, do direct STX transfer
+  if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '' || CONTRACT_ADDRESS === 'YOUR_WALLET_ADDRESS') {
+    console.log('[Contract] No contract deployed — using direct STX transfer')
+    sendTip(`tip:${signalId.slice(0, 28)}`, onFinish)
+    return
+  }
+
   try {
     openContractCall({
-      network: STACKS_MAINNET,
+      network: new StacksMainnet(),
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'tip-signal',
@@ -27,21 +38,22 @@ export async function contractTipSignal(
     })
   } catch (e) {
     console.error('Contract tip failed:', e)
-    // Fallback to direct STX transfer if contract not deployed yet
-    const { sendTip, ONE_STX } = await import('./stx')
-    sendTip(ONE_STX, signalId, onFinish)
+    sendTip(signalId, onFinish)
   }
 }
 
 export async function contractVoteBullish(
   signalId: string,
-  userSession: any,
   onFinish?: (txId: string) => void
 ) {
-  if (!userSession) return;
+  if (!CONTRACT_ADDRESS) {
+    alert('Voting requires the StackSense contract to be deployed. Connect to mainnet and deploy signal-tips.clar first.')
+    return
+  }
+
   try {
     openContractCall({
-      network: STACKS_MAINNET,
+      network: new StacksMainnet(),
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'vote-bullish',
@@ -59,13 +71,16 @@ export async function contractVoteBullish(
 
 export async function contractVoteBearish(
   signalId: string,
-  userSession: any,
   onFinish?: (txId: string) => void
 ) {
-  if (!userSession) return;
+  if (!CONTRACT_ADDRESS) {
+    alert('Voting requires the StackSense contract to be deployed. Connect to mainnet and deploy signal-tips.clar first.')
+    return
+  }
+
   try {
     openContractCall({
-      network: STACKS_MAINNET,
+      network: new StacksMainnet(),
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'vote-bearish',
@@ -82,6 +97,7 @@ export async function contractVoteBearish(
 }
 
 export async function getSignalTips(signalId: string): Promise<{ tipCount: number, tipTotal: number }> {
+  if (!CONTRACT_ADDRESS) return { tipCount: 0, tipTotal: 0 }
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
 
@@ -103,6 +119,7 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
 }
 
 export async function getSignalVotes(signalId: string): Promise<{ bullish: number, bearish: number }> {
+  if (!CONTRACT_ADDRESS) return { bullish: 0, bearish: 0 }
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`
 
