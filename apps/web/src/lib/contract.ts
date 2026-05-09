@@ -1,15 +1,17 @@
 import { openContractCall } from '@stacks/connect'
 import { stringAsciiCV } from '@stacks/transactions'
-import { userSession, network } from './wallet'
+import { STACKS_MAINNET } from '@stacks/network'
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from './stx'
 
 export async function contractTipSignal(
   signalId: string,
+  userSession: any,
   onFinish?: (txId: string) => void
 ) {
+  if (!userSession) return;
   try {
     openContractCall({
-      network,
+      network: STACKS_MAINNET,
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'tip-signal',
@@ -33,11 +35,13 @@ export async function contractTipSignal(
 
 export async function contractVoteBullish(
   signalId: string,
+  userSession: any,
   onFinish?: (txId: string) => void
 ) {
+  if (!userSession) return;
   try {
     openContractCall({
-      network,
+      network: STACKS_MAINNET,
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'vote-bullish',
@@ -55,11 +59,13 @@ export async function contractVoteBullish(
 
 export async function contractVoteBearish(
   signalId: string,
+  userSession: any,
   onFinish?: (txId: string) => void
 ) {
+  if (!userSession) return;
   try {
     openContractCall({
-      network,
+      network: STACKS_MAINNET,
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
       functionName: 'vote-bearish',
