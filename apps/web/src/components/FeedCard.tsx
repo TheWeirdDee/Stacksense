@@ -53,7 +53,7 @@ export default function FeedCard({
     })
   }
 
-  // Use only session-local stats for the main feed to avoid API flooding
+  // Session-local stats only to prevent Hiro API flooding
   const displayTips = localStats.tips || 0
   const displayBull = localStats.bull || 0
   const displayBear = localStats.bear || 0

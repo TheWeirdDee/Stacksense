@@ -1,5 +1,5 @@
 import { openContractCall, AppConfig, UserSession } from '@stacks/connect'
-import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode, cvToHex, serializeCV } from '@stacks/transactions'
+import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode, cvToHex } from '@stacks/transactions'
 import { StacksMainnet } from '@stacks/network'
 import { sendTip } from './stx'
 
@@ -35,9 +35,7 @@ export async function contractTipSignal(
       functionArgs: [stringAsciiCV(signalId.slice(0, 64))],
       postConditions: [postCondition],
       appDetails: { name: 'StackSense', icon: '' },
-      onFinish: (data: any) => {
-        onFinish?.(data.txId)
-      },
+      onFinish: (data: any) => { onFinish?.(data.txId) },
       onCancel: () => {},
       userSession,
     })
@@ -96,7 +94,7 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
     
-    // Use the library to serialize safely
+    // Using cvToHex for robust serialization in browser
     const arg = cvToHex(stringAsciiCV(signalId.slice(0, 64)));
 
     const response = await fetch(url, {
