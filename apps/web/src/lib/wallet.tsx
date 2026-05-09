@@ -3,11 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { STACKS_MAINNET } from '@stacks/network'
 
-// We will import these dynamically to avoid bundling issues
-let AppConfig: any, UserSession: any, showConnect: any;
-
-// Global session state
-let userSession: any = null;
+// Global session state (handled inside provider now)
 const network = STACKS_MAINNET;
 
 interface WalletCtx {
@@ -27,65 +23,54 @@ const WalletContext = createContext<WalletCtx>({
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-
+  const [lib, setLib] = useState<{ showConnect: any, userSession: any } | null>(null)
+ 
   useEffect(() => {
     setMounted(true)
     
     const loadStacks = async () => {
       try {
         const Connect = await import('@stacks/connect');
-        
-        // Comprehensive discovery for different build targets
         const source = (Connect as any).default || Connect;
-        AppConfig = source.AppConfig;
-        UserSession = source.UserSession;
-        showConnect = source.showConnect;
+        const AppConfig = source.AppConfig;
+        const UserSession = source.UserSession;
+        const showConnect = source.showConnect || source.Connect?.showConnect || (Connect as any).showConnect;
 
-        if (!showConnect) {
-           // Last resort: check if it's nested in a property called 'Connect'
-           showConnect = source.Connect?.showConnect || (Connect as any).showConnect;
-        }
-
-        console.log('[Wallet] Discovery result:', { 
-          hasAppConfig: !!AppConfig, 
-          hasUserSession: !!UserSession, 
-          hasShowConnect: !!showConnect 
-        });
-
-        if (!userSession && AppConfig && UserSession) {
+        if (AppConfig && UserSession && showConnect) {
           const config = new AppConfig(['store_write', 'publish_data']);
-          userSession = new UserSession({ appConfig: config });
+          const session = new UserSession({ appConfig: config });
+          setLib({ showConnect, userSession: session });
+
+          try {
+            const saved = localStorage.getItem('ss_stx_address')
+            if (saved && saved.startsWith('SP')) {
+              setAddress(saved)
+            }
+          } catch {}
         }
       } catch (e) {
         console.error('[Wallet] Failed to dynamically load Stacks:', e);
       }
-
-      try {
-        const saved = localStorage.getItem('ss_stx_address')
-        if (saved && saved.startsWith('SP')) {
-          setAddress(saved)
-        }
-      } catch {}
     };
 
     loadStacks();
   }, [])
 
   const connect = useCallback(async () => {
-    if (!showConnect || !userSession) {
+    if (!lib?.showConnect || !lib?.userSession) {
       alert('Stacks library is still loading. Please wait a moment and try again.');
       return;
     }
 
     try {
-      showConnect({
+      lib.showConnect({
         appDetails: {
           name: 'StackSense',
           icon: `${window.location.origin}/favicon.ico`,
         },
         onFinish: () => {
           try {
-            const userData = userSession.loadUserData()
+            const userData = lib.userSession.loadUserData()
             const addr = userData?.profile?.stxAddress?.mainnet || userData?.profile?.stxAddress?.testnet
             if (addr) {
               setAddress(addr)
@@ -98,7 +83,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         onCancel: () => {
           console.log('[Wallet] User cancelled connection')
         },
-        userSession,
+        userSession: lib.userSession,
       })
     } catch (e: any) {
       console.error('[Wallet] showConnect failed:', e)
@@ -108,9 +93,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const disconnect = useCallback(() => {
     setAddress(null)
-    if (userSession) userSession.signUserOut();
+    if (lib?.userSession) lib.userSession.signUserOut();
     try { localStorage.removeItem('ss_stx_address') } catch {}
-  }, [])
+  }, [lib])
 
   if (!mounted) {
     return (
@@ -121,7 +106,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WalletContext.Provider value={{ address, connected: !!address, connect, disconnect, userSession }}>
+    <WalletContext.Provider value={{ address, connected: !!address, connect, disconnect, userSession: lib?.userSession }}>
       {children}
     </WalletContext.Provider>
   )
