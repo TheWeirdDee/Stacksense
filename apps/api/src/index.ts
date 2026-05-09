@@ -73,7 +73,7 @@ async function start() {
   
   // Railway uses a proxy — trust the forwarded headers
   server.on('upgrade', (request, socket, head) => {
-    if (wss) {
+    if (wss && request.url?.startsWith('/ws')) {
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
       });
