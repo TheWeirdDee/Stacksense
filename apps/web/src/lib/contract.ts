@@ -107,7 +107,7 @@ export async function contractVoteBearish(
 export async function getSignalTips(signalId: string): Promise<{ tipCount: number, tipTotal: number }> {
   if (!CONTRACT_ADDRESS) return { tipCount: 0, tipTotal: 0 }
   try {
-    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
+    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-stats`
 
     const response = await fetch(url, {
       method: 'POST',
@@ -120,7 +120,8 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
 
     if (!response.ok) return { tipCount: 0, tipTotal: 0 }
     const data = await response.json()
-    return { tipCount: Number(data.result?.value?.['tip-count']?.value || 0), tipTotal: 0 }
+    const stats = data.result?.value
+    return { tipCount: Number(stats?.['tip-count']?.value || 0), tipTotal: 0 }
   } catch {
     return { tipCount: 0, tipTotal: 0 }
   }
@@ -129,7 +130,7 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
 export async function getSignalVotes(signalId: string): Promise<{ bullish: number, bearish: number }> {
   if (!CONTRACT_ADDRESS) return { bullish: 0, bearish: 0 }
   try {
-    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`
+    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-stats`
 
     const response = await fetch(url, {
       method: 'POST',
@@ -142,10 +143,10 @@ export async function getSignalVotes(signalId: string): Promise<{ bullish: numbe
 
     if (!response.ok) return { bullish: 0, bearish: 0 }
     const data = await response.json()
-    const val = data.result?.value
+    const stats = data.result?.value
     return {
-      bullish: Number(val?.['bullish-votes']?.value || 0),
-      bearish: Number(val?.['bearish-votes']?.value || 0),
+      bullish: Number(stats?.['bullish-votes']?.value || 0),
+      bearish: Number(stats?.['bearish-votes']?.value || 0),
     }
   } catch {
     return { bullish: 0, bearish: 0 }
