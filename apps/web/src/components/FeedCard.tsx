@@ -1,15 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import SignalTag from './SignalTag'
 import { getSignal, timeAgo } from '@/lib/signals'
 import { fmtSTX, fmtUSD } from '@/lib/stx'
 import { 
   contractTipSignal, 
   contractVoteBullish, 
-  contractVoteBearish,
-  getSignalTips,
-  getSignalVotes 
+  contractVoteBearish 
 } from '@/lib/contract'
 import type { FeedEvent } from '@/lib/types'
 
@@ -33,27 +31,6 @@ export default function FeedCard({
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
-  const [chainStats, setChainStats] = useState<{ bull: number, bear: number, tips: number } | null>(null)
-
-  // Fetch real on-chain counts on mount
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const [tips, votes] = await Promise.all([
-          getSignalTips(event.id),
-          getSignalVotes(event.id)
-        ]);
-        setChainStats({
-          tips: tips.tipCount,
-          bull: votes.bullish,
-          bear: votes.bearish
-        });
-      } catch (err) {
-        console.error('Failed to load on-chain stats:', err);
-      }
-    }
-    loadStats();
-  }, [event.id]);
 
   const handleTip = () => {
     if (tipState !== 'idle') return
@@ -76,10 +53,10 @@ export default function FeedCard({
     })
   }
 
-  // Combine chain stats with session-local stats
-  const displayTips = (chainStats?.tips || 0) + (localStats.tips || 0)
-  const displayBull = (chainStats?.bull || 0) + (localStats.bull || 0)
-  const displayBear = (chainStats?.bear || 0) + (localStats.bear || 0)
+  // Use only session-local stats for the main feed to avoid API flooding
+  const displayTips = localStats.tips || 0
+  const displayBull = localStats.bull || 0
+  const displayBear = localStats.bear || 0
 
   return (
     <div
@@ -193,7 +170,7 @@ export default function FeedCard({
           </button>
 
           <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            On-chain synced
+            Live Feed
           </span>
         </div>
       )}

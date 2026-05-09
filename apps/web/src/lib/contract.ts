@@ -1,5 +1,5 @@
 import { openContractCall, AppConfig, UserSession } from '@stacks/connect'
-import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode } from '@stacks/transactions'
+import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode, cvToHex, serializeCV } from '@stacks/transactions'
 import { StacksMainnet } from '@stacks/network'
 import { sendTip } from './stx'
 
@@ -15,9 +15,7 @@ export async function contractTipSignal(
 ) {
   const address = userSession.loadUserData().profile.stxAddress.mainnet;
 
-  // If no contract deployed yet, do direct STX transfer
   if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '' || CONTRACT_ADDRESS === 'YOUR_WALLET_ADDRESS') {
-    console.log('[Contract] No contract deployed — using direct STX transfer')
     sendTip(`tip:${signalId.slice(0, 28)}`, onFinish)
     return
   }
@@ -38,14 +36,12 @@ export async function contractTipSignal(
       postConditions: [postCondition],
       appDetails: { name: 'StackSense', icon: '' },
       onFinish: (data: any) => {
-        console.log('Tip tx:', data.txId)
         onFinish?.(data.txId)
       },
       onCancel: () => {},
       userSession,
     })
   } catch (e) {
-    console.error('Contract tip failed:', e)
     sendTip(signalId, onFinish)
   }
 }
@@ -54,11 +50,7 @@ export async function contractVoteBullish(
   signalId: string,
   onFinish?: (txId: string) => void
 ) {
-  if (!CONTRACT_ADDRESS) {
-    alert('Voting requires the StackSense contract to be deployed. Connect to mainnet and deploy signal-tips.clar first.')
-    return
-  }
-
+  if (!CONTRACT_ADDRESS) return
   try {
     openContractCall({
       network: new StacksMainnet(),
@@ -81,11 +73,7 @@ export async function contractVoteBearish(
   signalId: string,
   onFinish?: (txId: string) => void
 ) {
-  if (!CONTRACT_ADDRESS) {
-    alert('Voting requires the StackSense contract to be deployed. Connect to mainnet and deploy signal-tips.clar first.')
-    return
-  }
-
+  if (!CONTRACT_ADDRESS) return
   try {
     openContractCall({
       network: new StacksMainnet(),
@@ -104,49 +92,52 @@ export async function contractVoteBearish(
   }
 }
 
-export async function getSignalTips(signalId: string): Promise<{ tipCount: number, tipTotal: number }> {
-  if (!CONTRACT_ADDRESS) return { tipCount: 0, tipTotal: 0 }
+export async function getSignalTips(signalId: string): Promise<{ tipCount: number }> {
   try {
-    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-stats`
+    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
+    
+    // Use the library to serialize safely
+    const arg = cvToHex(stringAsciiCV(signalId.slice(0, 64)));
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sender: CONTRACT_ADDRESS,
-        arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()],
+        arguments: [arg],
       }),
     })
 
-    if (!response.ok) return { tipCount: 0, tipTotal: 0 }
+    if (!response.ok) return { tipCount: 0 }
     const data = await response.json()
-    const stats = data.result?.value
-    return { tipCount: Number(stats?.['tip-count']?.value || 0), tipTotal: 0 }
+    const tipCount = Number(data?.result?.value?.['tip-count']?.value ?? 0)
+    return { tipCount }
   } catch {
-    return { tipCount: 0, tipTotal: 0 }
+    return { tipCount: 0 }
   }
 }
 
 export async function getSignalVotes(signalId: string): Promise<{ bullish: number, bearish: number }> {
-  if (!CONTRACT_ADDRESS) return { bullish: 0, bearish: 0 }
   try {
-    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-stats`
+    const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`
+    
+    const arg = cvToHex(stringAsciiCV(signalId.slice(0, 64)));
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sender: CONTRACT_ADDRESS,
-        arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()],
+        arguments: [arg],
       }),
     })
 
     if (!response.ok) return { bullish: 0, bearish: 0 }
     const data = await response.json()
-    const stats = data.result?.value
+    const val = data?.result?.value
     return {
-      bullish: Number(stats?.['bullish-votes']?.value || 0),
-      bearish: Number(stats?.['bearish-votes']?.value || 0),
+      bullish: Number(val?.['bullish-votes']?.value ?? 0),
+      bearish: Number(val?.['bearish-votes']?.value ?? 0),
     }
   } catch {
     return { bullish: 0, bearish: 0 }
