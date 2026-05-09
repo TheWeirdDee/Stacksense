@@ -1,5 +1,5 @@
 import { openContractCall, AppConfig, UserSession } from '@stacks/connect'
-import { stringAsciiCV } from '@stacks/transactions'
+import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode } from '@stacks/transactions'
 import { StacksMainnet } from '@stacks/network'
 import { sendTip } from './stx'
 
@@ -13,12 +13,20 @@ export async function contractTipSignal(
   signalId: string,
   onFinish?: (txId: string) => void
 ) {
+  const address = userSession.loadUserData().profile.stxAddress.mainnet;
+
   // If no contract deployed yet, do direct STX transfer
   if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '' || CONTRACT_ADDRESS === 'YOUR_WALLET_ADDRESS') {
     console.log('[Contract] No contract deployed — using direct STX transfer')
     sendTip(`tip:${signalId.slice(0, 28)}`, onFinish)
     return
   }
+
+  const postCondition = createSTXPostCondition(
+    address,
+    FungibleConditionCode.Equal,
+    1000000
+  );
 
   try {
     openContractCall({
@@ -27,7 +35,7 @@ export async function contractTipSignal(
       contractName: CONTRACT_NAME,
       functionName: 'tip-signal',
       functionArgs: [stringAsciiCV(signalId.slice(0, 64))],
-      postConditions: [],
+      postConditions: [postCondition],
       appDetails: { name: 'StackSense', icon: '' },
       onFinish: (data: any) => {
         console.log('Tip tx:', data.txId)
