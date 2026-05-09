@@ -5,6 +5,7 @@ import SignalTag from './SignalTag'
 import { getSignal, timeAgo } from '@/lib/signals'
 import { fmtSTX, fmtUSD } from '@/lib/stx'
 import { contractTipSignal, contractVoteBullish, contractVoteBearish } from '@/lib/contract'
+import { useWallet } from '@/lib/wallet'
 import type { FeedEvent } from '@/lib/types'
 
 interface Props {
@@ -15,14 +16,15 @@ interface Props {
 type ActionState = 'idle' | 'pending' | 'done'
 
 export default function FeedCard({ event, showActions = false }: Props) {
+  const { userSession } = useWallet()
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
 
   const handleTip = () => {
-    if (tipState !== 'idle') return
+    if (tipState !== 'idle' || !userSession) return
     setTipState('pending')
-    contractTipSignal(event.id, (txId) => {
+    contractTipSignal(event.id, userSession, (txId) => {
       console.log('Tip confirmed:', txId)
       setTipState('done')
     })
@@ -31,10 +33,10 @@ export default function FeedCard({ event, showActions = false }: Props) {
   }
 
   const handleVote = (direction: 'bullish' | 'bearish') => {
-    if (voteState !== 'idle') return
+    if (voteState !== 'idle' || !userSession) return
     setVoteState(direction)
     const fn = direction === 'bullish' ? contractVoteBullish : contractVoteBearish
-    fn(event.id, (txId) => {
+    fn(event.id, userSession, (txId: string) => {
       console.log('Vote confirmed:', txId)
     })
   }
