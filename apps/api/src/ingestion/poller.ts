@@ -77,7 +77,7 @@ async function processTransaction(tx: any) {
       
       broadcastEvent(event);
       
-      if ((event.is_anomaly && event.multiplier >= 5.0) || event.wallet_archetype === 'Whale Wallet') {
+      if ((event.is_anomaly && (event.multiplier ?? 0) >= 5.0) || event.wallet_archetype === 'Whale Wallet') {
         sendHighConvictionAlert(event);
       }
 
