@@ -18,7 +18,7 @@ async function getRecentEvents(n: number): Promise<any[]> {
 }
 
 export function setupWebSocket(server: Server) {
-  wss = new WebSocketServer({ server, path: '/ws' });
+  wss = new WebSocketServer({ noServer: true, path: '/ws' });
 
   wss.on('connection', (ws) => {
     console.log('[WS] Client connected. Total:', wss.clients.size)
