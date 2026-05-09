@@ -9,6 +9,7 @@ const CONTRACT_NAME = process.env.CONTRACT_NAME || 'signal-tips';
 
 async function getRecentEvents(n: number): Promise<any[]> {
   try {
+    if (!redisClient.isOpen) return [];
     const events = await redisClient.lRange('events:recent', 0, n - 1);
     if (events && events.length > 0) {
       return events.map((e: string) => JSON.parse(e));
