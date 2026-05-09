@@ -1,6 +1,6 @@
 [
   {
-    "id": "alex-lp-add",
+    "id": "alex-lp-add-v1",
     "protocol": "ALEX",
     "tx_type": "contract_call",
     "contract_id": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.amm-pool-v2-01",
@@ -9,21 +9,60 @@
     "max_stx": null,
     "signal": "bullish",
     "title_template": "{archetype} added liquidity to ALEX",
-    "description_template": "A large liquidity provision of {stx_amount} STX ({usd_amount}) was detected on ALEX AMM v2.",
-    "context_template": "Protocol: {protocol} | Multiplier: {multiplier}"
+    "description_template": "A liquidity provision of {stx_amount} STX ({usd_amount}) was detected on ALEX AMM v2.",
+    "context_template": "{multiplier}x larger than 7-day avg"
   },
   {
-    "id": "alex-swap-large",
+    "id": "alex-swap-v1",
     "protocol": "ALEX",
     "tx_type": "contract_call",
     "contract_id": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.amm-pool-v2-01",
     "function_name": "swap-x-for-y",
-    "min_stx": 10000,
+    "min_stx": 1000,
     "max_stx": null,
     "signal": "bullish",
-    "title_template": "Large ALEX Swap Detected",
-    "description_template": "A swap of {stx_amount} STX ({usd_amount}) was executed on ALEX.",
-    "context_template": "This trade is {multiplier} larger than the 7-day average."
+    "title_template": "ALEX Swap Detected",
+    "description_template": "{archetype} swapped {stx_amount} STX ({usd_amount}) on ALEX.",
+    "context_template": "ALEX AMM v2 activity"
+  },
+  {
+    "id": "alex-swap-y-for-x",
+    "protocol": "ALEX",
+    "tx_type": "contract_call",
+    "contract_id": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.amm-pool-v2-01",
+    "function_name": "swap-y-for-x",
+    "min_stx": 1000,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "ALEX Swap Detected",
+    "description_template": "{archetype} swapped {stx_amount} STX ({usd_amount}) on ALEX.",
+    "context_template": "ALEX AMM v2 activity"
+  },
+  {
+    "id": "alex-swap-router",
+    "protocol": "ALEX",
+    "tx_type": "contract_call",
+    "contract_id": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.alex-router",
+    "function_name": null,
+    "min_stx": 1000,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "ALEX Router Activity",
+    "description_template": "{archetype} interacted with ALEX router for {stx_amount} STX ({usd_amount}).",
+    "context_template": "ALEX DEX activity"
+  },
+  {
+    "id": "alex-launchpad",
+    "protocol": "ALEX",
+    "tx_type": "contract_call",
+    "contract_id": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.alex-launchpad",
+    "function_name": null,
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "ALEX Launchpad Interaction",
+    "description_template": "{archetype} participated in an ALEX launchpad event.",
+    "context_template": "ALEX launchpad activity"
   },
   {
     "id": "arkadiko-vault-open",
@@ -35,8 +74,8 @@
     "max_stx": null,
     "signal": "neutral",
     "title_template": "New Arkadiko Vault Opened",
-    "description_template": "A user deposited {stx_amount} STX to mint USDA on Arkadiko.",
-    "context_template": "Arkadiko Freddie v1.1"
+    "description_template": "{archetype} deposited {stx_amount} STX to mint USDA on Arkadiko.",
+    "context_template": "Stacks DeFi vault activity"
   },
   {
     "id": "arkadiko-burn-large",
@@ -44,12 +83,12 @@
     "tx_type": "contract_call",
     "contract_id": "SP2C2YFP12AJZB4MABJBAJ55XECVS7E4PMMZ89YZR.arkadiko-freddie-v1-1",
     "function_name": "burn-usda",
-    "min_stx": 50000,
+    "min_stx": 10000,
     "max_stx": null,
     "signal": "risk",
     "title_template": "Large USDA Burn on Arkadiko",
-    "description_template": "A major Arkadiko vault was partially closed by burning USDA with {stx_amount} STX collateral underlying.",
-    "context_template": "Significant deleveraging event."
+    "description_template": "{archetype} burned USDA backed by {stx_amount} STX on Arkadiko. Potential STX unlock incoming.",
+    "context_template": "Significant deleveraging event"
   },
   {
     "id": "arkadiko-liquidate",
@@ -60,35 +99,87 @@
     "min_stx": null,
     "max_stx": null,
     "signal": "anomaly",
-    "title_template": "Arkadiko Liquidation Event",
+    "title_template": "Arkadiko Vault Liquidated",
     "description_template": "A vault was liquidated on Arkadiko. {stx_amount} STX of collateral was processed.",
-    "context_template": "High volatility signal."
+    "context_template": "High volatility signal"
   },
   {
-    "id": "velar-lp-whale",
+    "id": "arkadiko-stake",
+    "protocol": "Arkadiko",
+    "tx_type": "contract_call",
+    "contract_id": "SP2C2YFP12AJZB4MABJBAJ55XECVS7E4PMMZ89YZR.arkadiko-stake-pool-diko-v1-1",
+    "function_name": null,
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "DIKO Staking Activity",
+    "description_template": "{archetype} interacted with Arkadiko DIKO staking pool.",
+    "context_template": "Arkadiko staking"
+  },
+  {
+    "id": "velar-lp-add",
     "protocol": "Velar",
     "tx_type": "contract_call",
     "contract_id": "SP1Y5YSTAHZ88XYK1VPDH24GY0HPX5J4JECTMY4A1.univ2-core",
     "function_name": "add-liquidity",
-    "min_stx": 50000,
+    "min_stx": 5000,
     "max_stx": null,
     "signal": "bullish",
-    "title_template": "Velar Whale LP Addition",
-    "description_template": "A {archetype} added {stx_amount} STX to a Velar liquidity pool.",
-    "context_template": "Velar UniV2 Core interaction."
+    "title_template": "Velar Liquidity Addition",
+    "description_template": "{archetype} added {stx_amount} STX ({usd_amount}) to a Velar liquidity pool.",
+    "context_template": "Velar DEX activity"
+  },
+  {
+    "id": "velar-swap",
+    "protocol": "Velar",
+    "tx_type": "contract_call",
+    "contract_id": "SP1Y5YSTAHZ88XYK1VPDH24GY0HPX5J4JECTMY4A1.univ2-core",
+    "function_name": "swap-exact-tokens-for-tokens",
+    "min_stx": 1000,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "Velar Swap Detected",
+    "description_template": "{archetype} swapped tokens worth {stx_amount} STX ({usd_amount}) on Velar.",
+    "context_template": "Velar DEX swap"
+  },
+  {
+    "id": "velar-router",
+    "protocol": "Velar",
+    "tx_type": "contract_call",
+    "contract_id": "SP1Y5YSTAHZ88XYK1VPDH24GY0HPX5J4JECTMY4A1.univ2-router02",
+    "function_name": null,
+    "min_stx": 1000,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "Velar Router Activity",
+    "description_template": "{archetype} used Velar router for {stx_amount} STX ({usd_amount}).",
+    "context_template": "Velar DEX routing"
   },
   {
     "id": "sbtc-bridge-deposit",
     "protocol": "sBTC Bridge",
     "tx_type": "contract_call",
     "contract_id": "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry",
-    "function_name": "deposit",
-    "min_stx": 100000,
+    "function_name": null,
+    "min_stx": 1000,
     "max_stx": null,
     "signal": "bullish",
-    "title_template": "Large sBTC Bridge Deposit",
-    "description_template": "A significant deposit of {stx_amount} STX was bridged via sBTC registry.",
-    "context_template": "Bitcoin-Stacks interoperability increasing."
+    "title_template": "sBTC Bridge Activity",
+    "description_template": "{archetype} interacted with the sBTC bridge for {stx_amount} STX ({usd_amount}).",
+    "context_template": "Bitcoin-Stacks interoperability"
+  },
+  {
+    "id": "sbtc-token",
+    "protocol": "sBTC Bridge",
+    "tx_type": "contract_call",
+    "contract_id": "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token",
+    "function_name": null,
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "sBTC Token Activity",
+    "description_template": "{archetype} transferred sBTC worth {stx_amount} STX ({usd_amount}).",
+    "context_template": "sBTC token movement"
   },
   {
     "id": "native-transfer-whale",
@@ -96,12 +187,25 @@
     "tx_type": "token_transfer",
     "contract_id": null,
     "function_name": null,
-    "min_stx": 200000,
+    "min_stx": 100000,
     "max_stx": null,
     "signal": "neutral",
     "title_template": "Whale STX Transfer",
-    "description_template": "A transfer of {stx_amount} STX ({usd_amount}) was detected between wallets.",
-    "context_template": "Archetype: {archetype}"
+    "description_template": "{archetype} moved {stx_amount} STX ({usd_amount}) between wallets.",
+    "context_template": "Large capital movement"
+  },
+  {
+    "id": "native-transfer-medium",
+    "protocol": "Native STX",
+    "tx_type": "token_transfer",
+    "contract_id": null,
+    "function_name": null,
+    "min_stx": 10000,
+    "max_stx": 99999,
+    "signal": "neutral",
+    "title_template": "Notable STX Transfer",
+    "description_template": "{archetype} transferred {stx_amount} STX ({usd_amount}) on-chain.",
+    "context_template": "Mid-size capital movement"
   },
   {
     "id": "native-transfer-new-wallet",
@@ -109,11 +213,50 @@
     "tx_type": "token_transfer",
     "contract_id": null,
     "function_name": null,
-    "min_stx": 1000,
-    "max_stx": null,
+    "min_stx": 5000,
+    "max_stx": 9999,
     "signal": "anomaly",
-    "title_template": "Unusual New Wallet Activity",
-    "description_template": "A new wallet initiated a transfer of {stx_amount} STX.",
+    "title_template": "New Wallet Activity Detected",
+    "description_template": "{archetype} initiated a transfer of {stx_amount} STX ({usd_amount}).",
     "context_template": "Wallet archetype: {archetype}"
+  },
+  {
+    "id": "stacksense-tip",
+    "protocol": "StackSense",
+    "tx_type": "contract_call",
+    "contract_id": "SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips",
+    "function_name": "tip-signal",
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "Signal Boosted via Tip",
+    "description_template": "{archetype} tipped 1 STX to boost a signal on StackSense.",
+    "context_template": "On-chain community endorsement"
+  },
+  {
+    "id": "stacksense-vote-bull",
+    "protocol": "StackSense",
+    "tx_type": "contract_call",
+    "contract_id": "SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips",
+    "function_name": "vote-bullish",
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "bullish",
+    "title_template": "Community Bullish Sentiment",
+    "description_template": "{archetype} voted Bullish on an event.",
+    "context_template": "Clarity-powered voting"
+  },
+  {
+    "id": "stacksense-vote-bear",
+    "protocol": "StackSense",
+    "tx_type": "contract_call",
+    "contract_id": "SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips",
+    "function_name": "vote-bearish",
+    "min_stx": null,
+    "max_stx": null,
+    "signal": "risk",
+    "title_template": "Community Bearish Sentiment",
+    "description_template": "{archetype} voted Bearish on an event.",
+    "context_template": "Clarity-powered voting"
   }
 ]
