@@ -57,6 +57,8 @@ export function setupWebSocket(server: Server) {
       }
     })
   }, 30_000)
+
+  return wss;
 }
 
 export function broadcastEvent(event: any) {
