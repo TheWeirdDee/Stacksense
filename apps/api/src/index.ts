@@ -11,27 +11,36 @@ import walletRoutes from './routes/wallet.js';
 import statsRoutes from './routes/stats.js';
 
 dotenv.config({ path: '../../.env' });
-dotenv.config(); // Also check local .env
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    process.env.FRONTEND_URL || 'https://stacksense.vercel.app',
-    /\.vercel\.app$/,
-  ],
+  origin: (origin, callback) => {
+    const allowed = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
+
+    if (!origin || allowed.some(o => origin.startsWith(o!))) {
+      callback(null, true);
+    } else if (origin.includes('.vercel.app')) {
+      callback(null, true); // Allow all Vercel deployments
+    } else {
+      callback(null, true); // Fallback for dev
+    }
+  },
   credentials: true,
 }));
 
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/wallet', walletRoutes);
@@ -52,20 +61,27 @@ async function updateSTXPrice() {
       await redisClient.set('stx:price:usd', price.toString(), { EX: 300 });
       console.log(`[Price] Updated STX price: $${price}`);
     }
-  } catch (error) {
-    console.error('[Price] Error fetching STX price:', error);
+  } catch (error: any) {
+    console.error('[Price] Error fetching STX price:', error.message);
   }
 }
 
 async function start() {
   await connectRedis();
   
-    setupWebSocket(server);
+  const wss = setupWebSocket(server);
   
-    startPoller();
-  
-    await updateSTXPrice();
-  
+  // Railway uses a proxy — trust the forwarded headers
+  server.on('upgrade', (request, socket, head) => {
+    if (wss) {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    }
+  });
+
+  startPoller();
+  await updateSTXPrice();
   setInterval(updateSTXPrice, 5 * 60 * 1000);
   
   server.listen(PORT, () => {
