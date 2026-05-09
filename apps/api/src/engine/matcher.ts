@@ -31,6 +31,19 @@ async function loadRules() {
   }
 }
 
+function matchesContractId(ruleContractId: string | null, txContractId: string | undefined): boolean {
+  if (!ruleContractId) return true;
+  if (!txContractId) return false;
+  
+  if (ruleContractId.toLowerCase() === txContractId.toLowerCase()) return true;
+  
+  const ruleName = ruleContractId.split('.')[1]?.toLowerCase();
+  const txName = txContractId.split('.')[1]?.toLowerCase();
+  if (ruleName && txName && ruleName === txName) return true;
+  
+  return false;
+}
+
 export async function matchTransaction(tx: any) {
   await loadRules();
   
@@ -77,13 +90,21 @@ export async function matchTransaction(tx: any) {
   let matchedRule = null;
   for (const rule of rules) {
     if (rule.tx_type !== tx_type) continue;
-    if (rule.contract_id && rule.contract_id !== contract_id) continue;
+    if (!matchesContractId(rule.contract_id, contract_id)) continue;
     if (rule.function_name && rule.function_name !== function_name) continue;
     if (rule.min_stx !== null && stx_amount < rule.min_stx) continue;
     if (rule.max_stx !== null && stx_amount > rule.max_stx) continue;
     
     matchedRule = rule;
     break;
+  }
+
+  if (matchedRule) {
+    console.log(`[Matcher] ✓ ${tx.tx_id.slice(0, 8)} → ${matchedRule.id} (${matchedRule.signal})`);
+  } else {
+    if (tx_type === 'contract_call') {
+      console.log(`[Matcher] ✗ No rule for: ${contract_id} :: ${function_name} (${stx_amount} STX)`);
+    }
   }
   
   if (!matchedRule) {
@@ -127,7 +148,7 @@ export async function matchTransaction(tx: any) {
     tx_id: tx.tx_id,
     timestamp: tx.burn_block_time_iso || new Date().toISOString(),
     signal: finalSignal,
-    protocol: matchedRule.protocol,
+    protocol: matchedRule.protocol, // Copies directly from rule
     title: fillTemplate(matchedRule.title_template, templateVars),
     description: fillTemplate(matchedRule.description_template, templateVars),
     context: matchedRule.context_template ? fillTemplate(matchedRule.context_template, templateVars) : null,
