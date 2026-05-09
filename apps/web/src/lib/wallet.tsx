@@ -34,14 +34,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const loadStacks = async () => {
       try {
         const Connect = await import('@stacks/connect');
-        // Robust discovery
-        AppConfig = Connect.AppConfig || (Connect as any).default?.AppConfig;
-        UserSession = Connect.UserSession || (Connect as any).default?.UserSession;
-        showConnect = Connect.showConnect || (Connect as any).default?.showConnect;
+        
+        // Comprehensive discovery for different build targets
+        const source = (Connect as any).default || Connect;
+        AppConfig = source.AppConfig;
+        UserSession = source.UserSession;
+        showConnect = source.showConnect;
 
-        if (!AppConfig || !UserSession || !showConnect) {
-           console.error('[Wallet] Could not find Stacks functions in module:', Connect);
+        if (!showConnect) {
+           // Last resort: check if it's nested in a property called 'Connect'
+           showConnect = source.Connect?.showConnect || (Connect as any).showConnect;
         }
+
+        console.log('[Wallet] Discovery result:', { 
+          hasAppConfig: !!AppConfig, 
+          hasUserSession: !!UserSession, 
+          hasShowConnect: !!showConnect 
+        });
 
         if (!userSession && AppConfig && UserSession) {
           const config = new AppConfig(['store_write', 'publish_data']);
