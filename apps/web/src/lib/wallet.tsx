@@ -35,6 +35,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const connect = useCallback(async () => {
+    // Check if any Stacks provider is injected
+    const isProviderInstalled = !!(window as any).StacksProvider || !!(window as any).StacksProvider;
+    console.log('[Wallet] Provider detection:', { 
+      stacks: !!(window as any).StacksProvider, 
+      leather: !!(window as any).LeatherProvider,
+      xverse: !!(window as any).XverseProviders 
+    });
+
     try {
       showConnect({
         appDetails: {
@@ -44,7 +52,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         onFinish: () => {
           try {
             const userData = userSession.loadUserData()
-            const addr = userData?.profile?.stxAddress?.mainnet
+            const addr = userData?.profile?.stxAddress?.mainnet || userData?.profile?.stxAddress?.testnet
             if (addr) {
               setAddress(addr)
               localStorage.setItem('ss_stx_address', addr)
@@ -58,9 +66,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         },
         userSession,
       })
-    } catch (e) {
+    } catch (e: any) {
       console.error('[Wallet] showConnect failed:', e)
-      alert('Wallet connection failed. Make sure Leather or Xverse extension is installed.')
+      alert(`Wallet connection failed: ${e.message || 'Unknown error'}. Please refresh the page and try again.`)
     }
   }, [])
 
