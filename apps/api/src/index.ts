@@ -47,9 +47,11 @@ async function updateSTXPrice() {
       },
       timeout: 5000
     });
-    const price = response.data.blockstack.usd;
-    await redisClient.set('stx:price:usd', price.toString(), { EX: 300 });
-    console.log(`[Price] Updated STX price: $${price}`);
+    const price = response.data?.blockstack?.usd;
+    if (price) {
+      await redisClient.set('stx:price:usd', price.toString(), { EX: 300 });
+      console.log(`[Price] Updated STX price: $${price}`);
+    }
   } catch (error) {
     console.error('[Price] Error fetching STX price:', error);
   }
