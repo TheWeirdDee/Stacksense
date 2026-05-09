@@ -1,11 +1,12 @@
 import { openSTXTransfer } from '@stacks/connect'
-import { network, userSession } from './wallet'
+import { STACKS_MAINNET } from '@stacks/network'
 
 export const TREASURY = 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV'
 
-export function sendTip(microSTX: number, memo: string, onFinish?: (txId: string) => void) {
+export function sendTip(microSTX: number, memo: string, userSession: any, onFinish?: (txId: string) => void) {
+  if (!userSession) return;
   openSTXTransfer({
-    network,
+    network: STACKS_MAINNET,
     recipient: TREASURY,
     amount: microSTX.toString(),
     memo: memo.slice(0, 34), // Memo is limited to 34 bytes
