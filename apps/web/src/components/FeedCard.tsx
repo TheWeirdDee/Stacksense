@@ -5,39 +5,48 @@ import SignalTag from './SignalTag'
 import { getSignal, timeAgo } from '@/lib/signals'
 import { fmtSTX, fmtUSD } from '@/lib/stx'
 import { contractTipSignal, contractVoteBullish, contractVoteBearish } from '@/lib/contract'
-import { useWallet } from '@/lib/wallet'
 import type { FeedEvent } from '@/lib/types'
 
 interface Props {
   event: FeedEvent
-  showActions?: boolean  // true when wallet is connected
+  showActions: boolean  // true when wallet is connected
+  onVote?: (direction: 'bull' | 'bear') => void
+  onTip?: () => void
+  localStats?: { bull: number, bear: number, tips: number }
 }
 
 type ActionState = 'idle' | 'pending' | 'done'
 
-export default function FeedCard({ event, showActions = false }: Props) {
-  const { userSession } = useWallet()
+export default function FeedCard({ 
+  event, 
+  showActions = false,
+  onVote,
+  onTip,
+  localStats = { bull: 0, bear: 0, tips: 0 }
+}: Props) {
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
 
   const handleTip = () => {
-    if (tipState !== 'idle' || !userSession) return
+    if (tipState !== 'idle') return
     setTipState('pending')
-    contractTipSignal(event.id, userSession, (txId) => {
+    contractTipSignal(event.id, (txId) => {
       console.log('Tip confirmed:', txId)
       setTipState('done')
+      onTip?.()
     })
-    // Show pending immediately, revert after 10s if no callback
-    setTimeout(() => setTipState(s => s === 'pending' ? 'idle' : s), 10_000)
+    // Auto-revert after 15s if no callback
+    setTimeout(() => setTipState(s => s === 'pending' ? 'idle' : s), 15_000)
   }
 
   const handleVote = (direction: 'bullish' | 'bearish') => {
-    if (voteState !== 'idle' || !userSession) return
+    if (voteState !== 'idle') return
     setVoteState(direction)
     const fn = direction === 'bullish' ? contractVoteBullish : contractVoteBearish
-    fn(event.id, userSession, (txId: string) => {
+    fn(event.id, (txId: string) => {
       console.log('Vote confirmed:', txId)
+      onVote?.(direction === 'bullish' ? 'bull' : 'bear')
     })
   }
 
@@ -53,7 +62,6 @@ export default function FeedCard({ event, showActions = false }: Props) {
       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-surface)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-base)' }}
     >
-      {/* Row 1: tag + archetype + time + explorer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <SignalTag signal={event.signal} />
@@ -75,17 +83,14 @@ export default function FeedCard({ event, showActions = false }: Props) {
         </a>
       </div>
 
-      {/* Row 2: title */}
       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
         {event.title}
       </div>
 
-      {/* Row 3: description */}
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55, marginBottom: 12 }}>
         {event.description}
       </div>
 
-      {/* Row 4: amounts + context */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: showActions ? 12 : 0 }}>
         <span style={{ fontSize: 13, color: 'var(--text-mono)', fontFamily: 'JetBrains Mono, monospace' }}>
           {fmtSTX(event.stx_amount)} STX
@@ -103,30 +108,25 @@ export default function FeedCard({ event, showActions = false }: Props) {
         )}
       </div>
 
-      {/* Row 5: action buttons — only shown when wallet connected */}
       {showActions && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, borderTop: '1px solid var(--bg-border)' }}>
-
-          {/* Tip button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12, borderTop: '1px solid var(--bg-border)', marginTop: 8 }}>
           <button
             onClick={handleTip}
             disabled={tipState !== 'idle'}
             style={{
               background: tipState === 'done' ? 'var(--bull-bg)' : 'transparent',
-              color: tipState === 'done' ? 'var(--bull)' : tipState === 'pending' ? 'var(--text-muted)' : 'var(--text-muted)',
+              color: tipState === 'done' ? 'var(--bull)' : 'var(--text-muted)',
               border: `1px solid ${tipState === 'done' ? 'var(--bull)' : 'var(--bg-border)'}`,
-              padding: '5px 12px',
-              borderRadius: 5,
-              fontSize: 11,
+              padding: '6px 14px',
+              borderRadius: 6,
+              fontSize: 12,
               cursor: tipState === 'idle' ? 'pointer' : 'default',
               fontFamily: 'Inter, sans-serif',
-              transition: 'all 0.15s',
             }}
           >
-            {tipState === 'done' ? '✓ Tipped 1 STX' : tipState === 'pending' ? 'Confirm in wallet...' : '↑ Tip 1 STX'}
+            {tipState === 'done' ? '✓ Tipped' : tipState === 'pending' ? '...' : `↑ Tip (Local: ${localStats.tips})`}
           </button>
 
-          {/* Vote bullish */}
           <button
             onClick={() => handleVote('bullish')}
             disabled={voteState !== 'idle'}
@@ -134,18 +134,16 @@ export default function FeedCard({ event, showActions = false }: Props) {
               background: voteState === 'bullish' ? 'var(--bull-bg)' : 'transparent',
               color: voteState === 'bullish' ? 'var(--bull)' : 'var(--text-muted)',
               border: `1px solid ${voteState === 'bullish' ? 'var(--bull)' : 'var(--bg-border)'}`,
-              padding: '5px 12px',
-              borderRadius: 5,
-              fontSize: 11,
+              padding: '6px 14px',
+              borderRadius: 6,
+              fontSize: 12,
               cursor: voteState === 'idle' ? 'pointer' : 'default',
               fontFamily: 'Inter, sans-serif',
-              transition: 'all 0.15s',
             }}
           >
-            {voteState === 'bullish' ? '✓ Voted Bullish' : '▲ Bullish'}
+            {voteState === 'bullish' ? '✓ Bull' : `▲ Bull (${localStats.bull})`}
           </button>
 
-          {/* Vote bearish */}
           <button
             onClick={() => handleVote('bearish')}
             disabled={voteState !== 'idle'}
@@ -153,19 +151,18 @@ export default function FeedCard({ event, showActions = false }: Props) {
               background: voteState === 'bearish' ? 'var(--anom-bg)' : 'transparent',
               color: voteState === 'bearish' ? 'var(--anom)' : 'var(--text-muted)',
               border: `1px solid ${voteState === 'bearish' ? 'var(--anom)' : 'var(--bg-border)'}`,
-              padding: '5px 12px',
-              borderRadius: 5,
-              fontSize: 11,
+              padding: '6px 14px',
+              borderRadius: 6,
+              fontSize: 12,
               cursor: voteState === 'idle' ? 'pointer' : 'default',
               fontFamily: 'Inter, sans-serif',
-              transition: 'all 0.15s',
             }}
           >
-            {voteState === 'bearish' ? '✓ Voted Bearish' : '▼ Bearish'}
+            {voteState === 'bearish' ? '✓ Bear' : `▼ Bear (${localStats.bear})`}
           </button>
 
           <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            On-chain via Clarity contract
+            On-chain fallback active
           </span>
         </div>
       )}
