@@ -29,17 +29,35 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setMounted(true)
     
     const loadStacks = async () => {
+      console.log('[Wallet] Starting Stacks library load...');
       try {
         const Connect = await import('@stacks/connect');
+        console.log('[Wallet] Module keys:', Object.keys(Connect));
+        
         const source = (Connect as any).default || Connect;
-        const AppConfig = source.AppConfig;
-        const UserSession = source.UserSession;
-        const showConnect = source.showConnect || source.Connect?.showConnect || (Connect as any).showConnect;
+        console.log('[Wallet] Source keys:', Object.keys(source));
 
-        if (AppConfig && UserSession && showConnect) {
+        // Deep-scan discovery
+        const AppConfig = source.AppConfig || (Connect as any).AppConfig;
+        const UserSession = source.UserSession || (Connect as any).UserSession;
+        
+        // Find showConnect specifically
+        let foundShowConnect = source.showConnect || (Connect as any).showConnect;
+        if (!foundShowConnect && source.Connect) {
+           foundShowConnect = source.Connect.showConnect;
+        }
+
+        console.log('[Wallet] Discovery check:', { 
+          AppConfig: !!AppConfig, 
+          UserSession: !!UserSession, 
+          showConnect: !!foundShowConnect 
+        });
+
+        if (AppConfig && UserSession && foundShowConnect) {
           const config = new AppConfig(['store_write', 'publish_data']);
           const session = new UserSession({ appConfig: config });
-          setLib({ showConnect, userSession: session });
+          setLib({ showConnect: foundShowConnect, userSession: session });
+          console.log('[Wallet] Library initialized successfully');
 
           try {
             const saved = localStorage.getItem('ss_stx_address')
@@ -47,9 +65,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
               setAddress(saved)
             }
           } catch {}
+        } else {
+           console.warn('[Wallet] Library loaded but functions are missing. This usually means a bundling conflict.');
         }
       } catch (e) {
-        console.error('[Wallet] Failed to dynamically load Stacks:', e);
+        console.error('[Wallet] Critical error loading Stacks:', e);
       }
     };
 
