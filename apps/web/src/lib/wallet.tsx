@@ -121,18 +121,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const disconnect = useCallback(() => {
+  const disconnect = useCallback(async () => {
     setAddress(null)
     try {
       localStorage.removeItem('ss_stx_address')
-      // Also clear any stacks auth data
+      
+      const mod = await import('@stacks/connect')
+      const appConfig = new mod.AppConfig(['store_write', 'publish_data'])
+      const userSession = new mod.UserSession({ appConfig })
+      
+      if (userSession.isUserSignedIn()) {
+        userSession.signUserOut()
+      }
+
+      // Aggressively clear all possible Stacks/Blockstack keys
       const keys = Object.keys(localStorage)
       keys.forEach(k => {
-        if (k.includes('blockstack') || k.includes('stacks-session')) {
+        if (k.toLowerCase().includes('blockstack') || k.toLowerCase().includes('stacks')) {
           localStorage.removeItem(k)
         }
       })
-    } catch {}
+
+      // Refresh to ensure all memory states are wiped
+      window.location.href = window.location.origin
+    } catch {
+      window.location.reload()
+    }
   }, [])
 
   return (
