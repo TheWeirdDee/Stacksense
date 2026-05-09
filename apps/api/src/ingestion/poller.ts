@@ -60,7 +60,9 @@ async function pollTransactions() {
       await redisClient.set(`seen:txid:${tx.tx_id}`, '1', { EX: 172800 });
     }
 
-    console.log(`[Poller] Fetched ${transactions.length} txs. New: ${newCount}, Skipped: ${skippedCount}`)
+    if (newCount > 0 || skippedCount > 0) {
+      console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped`);
+    }
   } catch (error) {
     console.error('[Poller] Fetch error:', error);
   }
