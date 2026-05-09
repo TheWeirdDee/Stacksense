@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import SignalTag from './SignalTag'
 import { getSignal, timeAgo } from '@/lib/signals'
 import { fmtSTX, fmtUSD } from '@/lib/stx'
-import { contractTipSignal, contractVoteBullish, contractVoteBearish } from '@/lib/contract'
+import { 
+  contractTipSignal, 
+  contractVoteBullish, 
+  contractVoteBearish,
+  getSignalTips,
+  getSignalVotes 
+} from '@/lib/contract'
 import type { FeedEvent } from '@/lib/types'
 
 interface Props {
@@ -27,6 +33,27 @@ export default function FeedCard({
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
+  const [chainStats, setChainStats] = useState<{ bull: number, bear: number, tips: number } | null>(null)
+
+  // Fetch real on-chain counts on mount
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const [tips, votes] = await Promise.all([
+          getSignalTips(event.id),
+          getSignalVotes(event.id)
+        ]);
+        setChainStats({
+          tips: tips.tipCount,
+          bull: votes.bullish,
+          bear: votes.bearish
+        });
+      } catch (err) {
+        console.error('Failed to load on-chain stats:', err);
+      }
+    }
+    loadStats();
+  }, [event.id]);
 
   const handleTip = () => {
     if (tipState !== 'idle') return
@@ -36,7 +63,6 @@ export default function FeedCard({
       setTipState('done')
       onTip?.()
     })
-    // Auto-revert after 15s if no callback
     setTimeout(() => setTipState(s => s === 'pending' ? 'idle' : s), 15_000)
   }
 
@@ -49,6 +75,11 @@ export default function FeedCard({
       onVote?.(direction === 'bullish' ? 'bull' : 'bear')
     })
   }
+
+  // Combine chain stats with session-local stats
+  const displayTips = (chainStats?.tips || 0) + (localStats.tips || 0)
+  const displayBull = (chainStats?.bull || 0) + (localStats.bull || 0)
+  const displayBear = (chainStats?.bear || 0) + (localStats.bear || 0)
 
   return (
     <div
@@ -124,7 +155,7 @@ export default function FeedCard({
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            {tipState === 'done' ? '✓ Tipped' : tipState === 'pending' ? '...' : `↑ Tip (Local: ${localStats.tips})`}
+            {tipState === 'done' ? '✓ Tipped' : tipState === 'pending' ? '...' : `↑ Tip (${displayTips})`}
           </button>
 
           <button
@@ -141,7 +172,7 @@ export default function FeedCard({
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            {voteState === 'bullish' ? '✓ Bull' : `▲ Bull (${localStats.bull})`}
+            {voteState === 'bullish' ? '✓ Bull' : `▲ Bull (${displayBull})`}
           </button>
 
           <button
@@ -158,11 +189,11 @@ export default function FeedCard({
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            {voteState === 'bearish' ? '✓ Bear' : `▼ Bear (${localStats.bear})`}
+            {voteState === 'bearish' ? '✓ Bear' : `▼ Bear (${displayBear})`}
           </button>
 
           <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            On-chain fallback active
+            On-chain synced
           </span>
         </div>
       )}
