@@ -3,7 +3,6 @@ import { stringAsciiCV } from '@stacks/transactions'
 import { userSession, network } from './wallet'
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from './stx'
 
-// Call tip-signal on the Clarity contract
 export async function contractTipSignal(
   signalId: string,
   onFinish?: (txId: string) => void
@@ -32,7 +31,6 @@ export async function contractTipSignal(
   }
 }
 
-// Call vote-bullish on the Clarity contract
 export async function contractVoteBullish(
   signalId: string,
   onFinish?: (txId: string) => void
@@ -55,7 +53,6 @@ export async function contractVoteBullish(
   }
 }
 
-// Call vote-bearish on the Clarity contract
 export async function contractVoteBearish(
   signalId: string,
   onFinish?: (txId: string) => void
@@ -78,7 +75,6 @@ export async function contractVoteBearish(
   }
 }
 
-// Read tip count for a signal from the contract (read-only, no wallet needed)
 export async function getSignalTips(signalId: string): Promise<{ tipCount: number, tipTotal: number }> {
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
@@ -100,7 +96,6 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
   }
 }
 
-// Read vote counts for a signal
 export async function getSignalVotes(signalId: string): Promise<{ bullish: number, bearish: number }> {
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`

@@ -1,7 +1,6 @@
 import { openSTXTransfer } from '@stacks/connect'
 import { network, userSession } from './wallet'
 
-// Treasury address — replace with your actual Stacks mainnet wallet address
 export const TREASURY = 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV'
 
 export function sendTip(microSTX: number, memo: string, onFinish?: (txId: string) => void) {
@@ -20,7 +19,6 @@ export function sendTip(microSTX: number, memo: string, onFinish?: (txId: string
   })
 }
 
-// 1 STX = 1,000,000 microSTX
 export const ONE_STX = 1_000_000
 export const FIVE_STX = 5_000_000
 

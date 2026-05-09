@@ -49,7 +49,6 @@ export function setupWebSocket(server: Server) {
     })
   })
 
-  // Heartbeat every 30 seconds
   setInterval(() => {
     if (!wss) return;
     wss.clients.forEach(client => {
@@ -63,7 +62,6 @@ export function setupWebSocket(server: Server) {
 export function broadcastEvent(event: any) {
   if (!wss) return;
   
-  // Update in-memory fallback
   inMemoryEvents.unshift(event);
   if (inMemoryEvents.length > 100) inMemoryEvents.pop();
 

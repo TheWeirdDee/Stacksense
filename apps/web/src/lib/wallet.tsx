@@ -26,7 +26,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    // Restore from localStorage
     try {
       const saved = localStorage.getItem('ss_stx_address')
       if (saved && saved.startsWith('SP')) {

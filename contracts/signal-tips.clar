@@ -1,5 +1,3 @@
-;; signal-tips.clar
-;; Records on-chain tips and votes for StackSense signals
 ;; VERSION: Clarity 4 (SIP-033/SIP-034)
 
 (define-constant CONTRACT-OWNER 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV)
@@ -23,11 +21,10 @@
   { amount: uint, timestamp: uint }
 )
 
-;; Tip a signal - sends 1 STX to contract owner and records it
 ;; Uses Clarity 4 'stacks-block-time' for precise Unix timestamping
 (define-public (tip-signal (signal-id (string-ascii 64)))
   (let (
-    (tip-amount u1000000) ;; 1 STX in microSTX
+    (tip-amount u1000000)
     (current-time stacks-block-time)
     (current (default-to
       { tip-count: u0, tip-total-ustx: u0, last-tip-timestamp: u0 }
@@ -51,7 +48,6 @@
   )
 )
 
-;; Vote bullish on a signal
 (define-public (vote-bullish (signal-id (string-ascii 64)))
   (let (
     (current (default-to
@@ -70,7 +66,6 @@
   )
 )
 
-;; Vote bearish on a signal
 (define-public (vote-bearish (signal-id (string-ascii 64)))
   (let (
     (current (default-to
@@ -89,7 +84,6 @@
   )
 )
 
-;; Read-only: get tip data for a signal
 (define-read-only (get-signal-tips (signal-id (string-ascii 64)))
   (default-to
     { tip-count: u0, tip-total-ustx: u0, last-tip-timestamp: u0 }
@@ -97,7 +91,6 @@
   )
 )
 
-;; Read-only: get vote data for a signal
 (define-read-only (get-signal-votes (signal-id (string-ascii 64)))
   (default-to
     { bullish-votes: u0, bearish-votes: u0 }
@@ -105,7 +98,6 @@
   )
 )
 
-;; Read-only: check if user has tipped a signal
 (define-read-only (has-user-tipped (user principal) (signal-id (string-ascii 64)))
   (is-some (map-get? user-tipped { user: user, signal-id: signal-id }))
 )

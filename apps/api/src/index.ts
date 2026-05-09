@@ -29,17 +29,14 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// Routes
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/stats', statsRoutes);
 
-// STX Price Poller
 async function updateSTXPrice() {
   try {
     const baseUrl = process.env.COINGECKO_API_URL || 'https://api.coingecko.com/api/v3';
@@ -51,7 +48,7 @@ async function updateSTXPrice() {
       timeout: 5000
     });
     const price = response.data.blockstack.usd;
-    await redisClient.set('stx:price:usd', price.toString(), { EX: 300 }); // 5 min TTL
+    await redisClient.set('stx:price:usd', price.toString(), { EX: 300 });
     console.log(`[Price] Updated STX price: $${price}`);
   } catch (error) {
     console.error('[Price] Error fetching STX price:', error);
@@ -61,17 +58,13 @@ async function updateSTXPrice() {
 async function start() {
   await connectRedis();
   
-  // Setup WebSocket
-  setupWebSocket(server);
+    setupWebSocket(server);
   
-  // Start Hiro Poller
-  startPoller();
+    startPoller();
   
-  // Initial price
-  await updateSTXPrice();
+    await updateSTXPrice();
   
-  // Periodic updates
-  setInterval(updateSTXPrice, 5 * 60 * 1000); // 5 mins
+  setInterval(updateSTXPrice, 5 * 60 * 1000);
   
   server.listen(PORT, () => {
     console.log(`[Server] Running on port ${PORT}`);
