@@ -1,23 +1,27 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { AppConfig, UserSession, showConnect } from '@stacks/connect'
 import { STACKS_MAINNET } from '@stacks/network'
 
-const appConfig = new AppConfig(['store_write', 'publish_data'])
-export const userSession = new UserSession({ appConfig })
-export const network = STACKS_MAINNET
+// We will import these dynamically to avoid bundling issues
+let AppConfig: any, UserSession: any, showConnect: any;
+
+// Global session state
+let userSession: any = null;
+const network = STACKS_MAINNET;
 
 interface WalletCtx {
   address: string | null
   connected: boolean
   connect: () => void
   disconnect: () => void
+  userSession: any
 }
 
 const WalletContext = createContext<WalletCtx>({
   address: null, connected: false,
   connect: () => {}, disconnect: () => {},
+  userSession: null
 })
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -26,22 +30,43 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    try {
-      const saved = localStorage.getItem('ss_stx_address')
-      if (saved && saved.startsWith('SP')) {
-        setAddress(saved)
+    
+    const loadStacks = async () => {
+      try {
+        const Connect = await import('@stacks/connect');
+        // Robust discovery
+        AppConfig = Connect.AppConfig || (Connect as any).default?.AppConfig;
+        UserSession = Connect.UserSession || (Connect as any).default?.UserSession;
+        showConnect = Connect.showConnect || (Connect as any).default?.showConnect;
+
+        if (!AppConfig || !UserSession || !showConnect) {
+           console.error('[Wallet] Could not find Stacks functions in module:', Connect);
+        }
+
+        if (!userSession && AppConfig && UserSession) {
+          const config = new AppConfig(['store_write', 'publish_data']);
+          userSession = new UserSession({ appConfig: config });
+        }
+      } catch (e) {
+        console.error('[Wallet] Failed to dynamically load Stacks:', e);
       }
-    } catch {}
+
+      try {
+        const saved = localStorage.getItem('ss_stx_address')
+        if (saved && saved.startsWith('SP')) {
+          setAddress(saved)
+        }
+      } catch {}
+    };
+
+    loadStacks();
   }, [])
 
   const connect = useCallback(async () => {
-    // Check if any Stacks provider is injected
-    const isProviderInstalled = !!(window as any).StacksProvider || !!(window as any).StacksProvider;
-    console.log('[Wallet] Provider detection:', { 
-      stacks: !!(window as any).StacksProvider, 
-      leather: !!(window as any).LeatherProvider,
-      xverse: !!(window as any).XverseProviders 
-    });
+    if (!showConnect || !userSession) {
+      alert('Stacks library is still loading. Please wait a moment and try again.');
+      return;
+    }
 
     try {
       showConnect({
@@ -74,19 +99,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const disconnect = useCallback(() => {
     setAddress(null)
+    if (userSession) userSession.signUserOut();
     try { localStorage.removeItem('ss_stx_address') } catch {}
   }, [])
 
   if (!mounted) {
     return (
-      <WalletContext.Provider value={{ address: null, connected: false, connect: () => {}, disconnect: () => {} }}>
+      <WalletContext.Provider value={{ address: null, connected: false, connect: () => {}, disconnect: () => {}, userSession: null }}>
         {children}
       </WalletContext.Provider>
     )
   }
 
   return (
-    <WalletContext.Provider value={{ address, connected: !!address, connect, disconnect }}>
+    <WalletContext.Provider value={{ address, connected: !!address, connect, disconnect, userSession }}>
       {children}
     </WalletContext.Provider>
   )
