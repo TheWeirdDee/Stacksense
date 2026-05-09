@@ -15,8 +15,8 @@ export const InterpretedEventSchema = z.object({
   wallet_archetype: z.string(),
   explorer_url: z.string().url(),
   rule_id: z.string(),
-  multiplier: z.number().optional(),
-  is_anomaly: z.boolean().optional(),
+  is_anomaly: z.boolean(),
+  multiplier: z.number(),
 });
 
 export const RuleSchema = z.object({
