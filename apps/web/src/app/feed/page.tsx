@@ -4,14 +4,13 @@ import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
-import SignalTag from '@/components/SignalTag'
 import { useWallet } from '@/lib/wallet'
 
-const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001/ws'
+const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://127.0.0.1:3001'
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://127.0.0.1:3001/ws'
 
 const SIGNALS = ['All', 'Bullish', 'Neutral', 'Risk', 'Anomaly']
-const PROTOCOLS = ['ALEX', 'Arkadiko', 'Velar', 'sBTC Bridge', 'Native STX']
+const PROTOCOLS = ['All', 'ALEX', 'Arkadiko', 'Velar', 'sBTC Bridge', 'Native STX', 'StackSense']
 
 type WSStatus = 'connecting' | 'live' | 'disconnected'
 
@@ -19,16 +18,22 @@ export default function FeedPage() {
   const [events, setEvents] = useState<any[]>([])
   const searchParams = useSearchParams()
   const isMyActivity = searchParams.get('my') === 'true'
-  const [newIds, setNewIds] = useState<Set<string>>(new Set())
+  
+  const [myEvents, setMyEvents] = useState<any[]>([])
+  const [myLoading, setMyLoading] = useState(false)
+  const [myError, setMyError] = useState<string | null>(null)
+
   const [paused, setPaused] = useState(false)
   const [buffered, setBuffered] = useState<any[]>([])
   const [wsStatus, setWsStatus] = useState<WSStatus>('connecting')
   const [signalFilter, setSignalFilter] = useState('All')
-  const [protocolFilter, setProtocolFilter] = useState<Set<string>>(new Set(PROTOCOLS))
+  const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
+  
+  const [localVotes, setLocalVotes] = useState<Record<string, { bull: number, bear: number, tips: number }>>({})
+  
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [apiError, setApiError] = useState(false)
-  const [whaleThreshold, setWhaleThreshold] = useState<number>(10000)
   const [whaleAlert, setWhaleAlert] = useState<any>(null)
   const { connected, address, connect } = useWallet()
   const wsRef = useRef<WebSocket | null>(null)
@@ -42,13 +47,35 @@ export default function FeedPage() {
       .then(data => {
         setEvents(data.events ?? [])
         setLoading(false)
-        setApiError(false)
       })
       .catch(() => {
         setLoading(false)
         setApiError(true)
       })
   }, [])
+
+  // My Activity fetch
+  useEffect(() => {
+    if (!connected || !address || !isMyActivity) return
+    
+    setMyLoading(true)
+    setMyError(null)
+    
+    fetch(`${API}/api/v1/wallet/${address}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then(data => {
+        setMyEvents(data.events || [])
+        setMyLoading(false)
+      })
+      .catch(err => {
+        console.error('[MyActivity] Failed:', err)
+        setMyError('Could not load your activity. The API may be unavailable.')
+        setMyLoading(false)
+      })
+  }, [connected, address, isMyActivity])
 
   // Fetch stats every 30s
   useEffect(() => {
@@ -62,7 +89,7 @@ export default function FeedPage() {
     return () => clearInterval(t)
   }, [])
 
-  // WebSocket with exponential backoff
+  // WebSocket connection
   const connect_ws = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setWsStatus('connecting')
@@ -77,14 +104,10 @@ export default function FeedPage() {
     ws.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)
-        if (msg.type === 'history') {
-          setEvents(prev => prev.length === 0 ? msg.data : prev)
-        }
         if (msg.type === 'event') {
           if (paused) {
             setBuffered(b => [msg.data, ...b])
           } else {
-            setNewIds(ids => new Set([msg.data.id, ...ids]))
             setEvents(ev => [msg.data, ...ev].slice(0, 200))
           }
         }
@@ -95,7 +118,6 @@ export default function FeedPage() {
       if (retryCount.current < 5) {
         const delay = Math.min(1000 * 2 ** retryCount.current, 16000)
         retryCount.current++
-        setWsStatus('connecting')
         retryRef.current = setTimeout(connect_ws, delay)
       } else {
         setWsStatus('disconnected')
@@ -113,34 +135,41 @@ export default function FeedPage() {
     }
   }, [connect_ws])
 
-  // Whale alert banner logic
-  useEffect(() => {
-    if (!whaleThreshold || !connected) return
-    const latestEvent = events[0]
-    if (latestEvent && latestEvent.stx_amount >= whaleThreshold) {
-      setWhaleAlert(latestEvent)
-      // Auto-dismiss after 8 seconds
-      setTimeout(() => setWhaleAlert(null), 8_000)
-    }
-  }, [events[0]?.id, whaleThreshold, connected])
-
-  // Flush buffer on resume
   const resume = () => {
     setPaused(false)
     if (buffered.length > 0) {
-      setNewIds(ids => new Set([...buffered.map((e: any) => e.id), ...ids]))
       setEvents(ev => [...buffered, ...ev].slice(0, 200))
       setBuffered([])
     }
   }
 
-  // Filtered events
-  const filtered = events.filter(e => {
-    if (isMyActivity && connected && address) {
-      if (e.wallet_address !== address) return false
-    }
+  const handleLocalVote = (eventId: string, direction: 'bull' | 'bear') => {
+    setLocalVotes(prev => ({
+      ...prev,
+      [eventId]: {
+        bull: (prev[eventId]?.bull || 0) + (direction === 'bull' ? 1 : 0),
+        bear: (prev[eventId]?.bear || 0) + (direction === 'bear' ? 1 : 0),
+        tips: prev[eventId]?.tips || 0,
+      }
+    }))
+  }
+
+  const handleLocalTip = (eventId: string) => {
+    setLocalVotes(prev => ({
+      ...prev,
+      [eventId]: {
+        ...prev[eventId],
+        bull: prev[eventId]?.bull || 0,
+        bear: prev[eventId]?.bear || 0,
+        tips: (prev[eventId]?.tips || 0) + 1,
+      }
+    }))
+  }
+
+  const currentEvents = isMyActivity ? myEvents : events
+  const filtered = currentEvents.filter(e => {
     const sigMatch = signalFilter === 'All' || e.signal === signalFilter.toLowerCase()
-    const protoMatch = protocolFilter.size === 0 || protocolFilter.has(e.protocol)
+    const protoMatch = !selectedProtocol || e.protocol.toLowerCase() === selectedProtocol.toLowerCase()
     return sigMatch && protoMatch
   })
 
@@ -166,8 +195,6 @@ export default function FeedPage() {
           flexDirection: 'column',
           gap: 24,
         }}>
-
-          {/* Signal filters */}
           <div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
               Signal
@@ -180,18 +207,11 @@ export default function FeedPage() {
                     key={s}
                     onClick={() => setSignalFilter(s)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '7px 10px',
-                      borderRadius: 6,
-                      border: 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '7px 10px', borderRadius: 6, border: 'none',
                       background: active ? 'var(--bg-elevated)' : 'transparent',
                       color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontSize: 13,
-                      fontFamily: 'Inter, sans-serif',
-                      cursor: 'pointer',
-                      textAlign: 'left',
+                      fontSize: 13, cursor: 'pointer', textAlign: 'left',
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -199,7 +219,6 @@ export default function FeedPage() {
                         <span style={{
                           width: 7, height: 7, borderRadius: '50%',
                           background: s === 'Bullish' ? '#22C55E' : s === 'Neutral' ? '#94A3B8' : s === 'Risk' ? '#F59E0B' : '#EF4444',
-                          display: 'inline-block',
                         }} />
                       )}
                       {s}
@@ -213,59 +232,35 @@ export default function FeedPage() {
 
           <div style={{ height: 1, background: 'var(--bg-border)' }} />
 
-          {/* Protocol filters */}
           <div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
               Protocol
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {PROTOCOLS.map(p => {
-                const checked = protocolFilter.has(p)
-                return (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setProtocolFilter(prev => {
-                        const next = new Set(prev)
-                        checked ? next.delete(p) : next.add(p)
-                        return next
-                      })
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 9,
-                      padding: '7px 10px',
-                      borderRadius: 6,
-                      border: 'none',
-                      background: 'transparent',
-                      color: checked ? 'var(--text-primary)' : 'var(--text-muted)',
-                      fontSize: 13,
-                      fontFamily: 'Inter, sans-serif',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                    }}
-                  >
-                    {/* Custom checkbox — no browser default */}
-                    <span style={{
-                      width: 14, height: 14, borderRadius: 3,
-                      border: `1px solid ${checked ? 'var(--brand)' : 'var(--bg-border)'}`,
-                      background: checked ? 'var(--brand)' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0, transition: 'all 0.1s',
-                    }}>
-                      {checked && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1 }}>✓</span>}
-                    </span>
-                    {p}
-                  </button>
-                )
-              })}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {PROTOCOLS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => setSelectedProtocol(p === 'All' ? null : p)}
+                  style={{
+                    background: selectedProtocol === p || (p === 'All' && !selectedProtocol) ? 'var(--brand)' : 'var(--bg-elevated)',
+                    color: selectedProtocol === p || (p === 'All' && !selectedProtocol) ? '#fff' : 'var(--text-secondary)',
+                    border: '1px solid var(--bg-border)',
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
           </div>
 
           <div style={{ height: 1, background: 'var(--bg-border)' }} />
 
-          {/* Stats */}
           <div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
               Today
@@ -281,189 +276,84 @@ export default function FeedPage() {
               </div>
             ))}
           </div>
-
-          {/* Version */}
-          <div style={{ marginTop: 'auto', fontSize: 10, color: 'var(--text-muted)', paddingTop: 8 }}>
-            StackSense v1.0 · Mainnet<br />
-            <span style={{ color: 'var(--bg-border)' }}>Signals are observational.</span>
-          </div>
         </div>
 
         {/* ── CENTER FEED ── */}
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-          {/* Feed header */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 24px',
-            borderBottom: '1px solid var(--bg-border)',
-            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 24px', borderBottom: '1px solid var(--bg-border)', flexShrink: 0,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 15, fontWeight: 600 }}>Live Feed</span>
+              <span style={{ fontSize: 15, fontWeight: 600 }}>{isMyActivity ? 'My Activity' : 'Live Feed'}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{
-                  width: 7, height: 7, borderRadius: '50%',
-                  background: statusColor,
-                  display: 'inline-block',
-                  animation: wsStatus === 'connecting' ? 'pulse 1.2s infinite' : 'none',
-                }} />
-                <span style={{ fontSize: 11, color: statusColor, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.04em' }}>
-                  {statusLabel}
-                </span>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusColor }} />
+                <span style={{ fontSize: 11, color: statusColor, fontFamily: 'JetBrains Mono, monospace' }}>{statusLabel}</span>
               </div>
-              {wsStatus === 'disconnected' && (
-                <button
-                  onClick={() => { retryCount.current = 0; connect_ws() }}
-                  style={{ fontSize: 11, color: 'var(--brand-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                >
-                  Reconnect
-                </button>
-              )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {paused && buffered.length > 0 && (
-                <span style={{ fontSize: 11, color: 'var(--brand-text)' }}>
-                  {buffered.length} new
-                </span>
-              )}
-              <button
-                onClick={paused ? resume : () => setPaused(true)}
-                style={{
-                  padding: '5px 14px',
-                  borderRadius: 6,
-                  border: '1px solid var(--bg-border)',
-                  background: 'transparent',
-                  color: paused ? 'var(--brand-text)' : 'var(--text-secondary)',
-                  fontSize: 12,
-                  fontFamily: 'Inter, sans-serif',
-                }}
-              >
-                {paused ? `Resume${buffered.length > 0 ? ` (${buffered.length})` : ''}` : 'Pause'}
-              </button>
-            </div>
+            {!isMyActivity && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {paused && buffered.length > 0 && <span style={{ fontSize: 11, color: 'var(--brand-text)' }}>{buffered.length} new</span>}
+                <button
+                  onClick={paused ? resume : () => setPaused(true)}
+                  style={{
+                    padding: '5px 14px', borderRadius: 6, border: '1px solid var(--bg-border)',
+                    background: 'transparent', color: paused ? 'var(--brand-text)' : 'var(--text-secondary)', fontSize: 12,
+                  }}
+                >
+                  {paused ? `Resume${buffered.length > 0 ? ` (${buffered.length})` : ''}` : 'Pause'}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Feed list */}
           <div style={{ overflowY: 'auto', flex: 1 }}>
-            {/* Whale Alert Banner */}
-            {whaleAlert && (
-              <div style={{
-                background: 'var(--risk-bg)',
-                borderBottom: '1px solid var(--risk)',
-                padding: '12px 24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                animation: 'slideDown 0.3s ease-out'
-              }}>
-                <div style={{ fontSize: 13, color: 'var(--risk)', fontWeight: 500 }}>
-                  🐋 Whale alert: {whaleAlert.title} — {Math.round(whaleAlert.stx_amount).toLocaleString()} STX
-                </div>
-                <button 
-                  onClick={() => setWhaleAlert(null)}
-                  style={{ background: 'none', border: 'none', color: 'var(--risk)', cursor: 'pointer', fontSize: 16 }}
-                >
-                  ×
-                </button>
-              </div>
-            )}
+            {apiError && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Backend not connected.</div>}
 
-            {apiError && (
-              <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 14, color: 'var(--anom)', marginBottom: 8 }}>Backend not connected</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
-                  Start the API server: <code style={{ fontFamily: 'JetBrains Mono, monospace', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: 4 }}>cd apps/api && npm run dev</code>
-                </div>
-                <button
-                  onClick={() => { setLoading(true); setApiError(false); window.location.reload() }}
-                  style={{ padding: '8px 20px', borderRadius: 6, background: 'var(--brand)', color: '#fff', border: 'none', fontSize: 13, fontFamily: 'Inter, sans-serif' }}
-                >
-                  Retry
-                </button>
-              </div>
-            )}
+            {isMyActivity && myLoading && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Loading your activity...</div>}
 
-            {loading && !apiError && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} style={{
-                borderLeft: '3px solid var(--bg-elevated)',
-                borderBottom: '1px solid var(--bg-border)',
-                padding: '18px 24px',
-              }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                  <div style={{ width: 60, height: 18, borderRadius: 999, background: 'var(--bg-elevated)' }} />
-                  <div style={{ width: 80, height: 18, borderRadius: 4, background: 'var(--bg-elevated)' }} />
-                </div>
-                <div style={{ width: '70%', height: 16, borderRadius: 4, background: 'var(--bg-elevated)', marginBottom: 8 }} />
-                <div style={{ width: '90%', height: 13, borderRadius: 4, background: 'var(--bg-elevated)' }} />
-              </div>
-            ))}
-
-            {!loading && !apiError && filtered.length === 0 && (
+            {isMyActivity && !myLoading && myEvents.length === 0 && (
               <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}>No events match your filters</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Try widening the signal or protocol selection</div>
-                <button
-                  onClick={() => { setSignalFilter('All'); setProtocolFilter(new Set(PROTOCOLS)) }}
-                  style={{ marginTop: 16, padding: '6px 16px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
-                >
-                  Clear filters
-                </button>
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}>No on-chain activity found for your wallet in the last 30 days.</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>StackSense tracks significant transactions above 5,000 STX.</div>
               </div>
             )}
 
-            {!loading && filtered.map(event => (
+            {!loading && !myLoading && filtered.length === 0 && !isMyActivity && (
+              <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No events match your filters</div>
+              </div>
+            )}
+
+            {filtered.map(event => (
               <FeedCard
                 key={event.id}
                 event={event}
-                showActions={connected}
+                showActions={!!address}
+                onVote={(dir) => handleLocalVote(event.id, dir)}
+                onTip={() => handleLocalTip(event.id)}
+                localStats={localVotes[event.id]}
               />
             ))}
           </div>
         </div>
 
         {/* ── RIGHT PANEL ── */}
-        <div style={{
-          borderLeft: '1px solid var(--bg-border)',
-          overflowY: 'auto',
-          padding: '20px 16px',
-        }}>
-          {/* Wallet Section */}
+        <div style={{ borderLeft: '1px solid var(--bg-border)', overflowY: 'auto', padding: '20px 16px' }}>
           <div style={{ marginBottom: 32 }}>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
               Account
             </div>
             {connected ? (
-              <div style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--bg-border)',
-                borderRadius: 8,
-                padding: '12px 14px',
-              }}>
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>Connected as</div>
                 <div className="mono" style={{ fontSize: 12, color: 'var(--text-primary)', wordBreak: 'break-all' }}>
                   {address?.slice(0, 8)}...{address?.slice(-6)}
                 </div>
               </div>
             ) : (
-              <button
-                onClick={connect}
-                style={{
-                  width: '100%',
-                  padding: '11px',
-                  borderRadius: 7,
-                  border: 'none',
-                  background: 'var(--brand)',
-                  color: '#fff',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  fontFamily: 'Inter, sans-serif',
-                  cursor: 'pointer',
-                }}
-              >
+              <button onClick={connect} style={{ width: '100%', padding: '11px', borderRadius: 7, border: 'none', background: 'var(--brand)', color: '#fff', fontSize: 13, cursor: 'pointer' }}>
                 Connect Wallet
               </button>
             )}
@@ -471,64 +361,33 @@ export default function FeedPage() {
 
           <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 24 }} />
 
-          {/* Trending Leaderboard */}
           <div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-              On-Chain Sentiment
+              Community Sentiment
             </div>
-            
-            {!stats?.trending_signals || stats.trending_signals.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
-                No community signals yet.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {stats.trending_signals.map((sig: any) => {
-                  const totalVotes = sig.bullish + sig.bearish;
-                  const bullPercent = totalVotes > 0 ? (sig.bullish / totalVotes) * 100 : 50;
-                  
-                  return (
-                    <div key={sig.id} style={{ 
-                      background: 'var(--bg-surface)', 
-                      border: '1px solid var(--bg-border)', 
-                      borderRadius: 10, 
-                      padding: '14px',
-                      transition: 'transform 0.15s',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {sig.title}
-                      </div>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 11, color: 'var(--bull)' }}>▲ {sig.bullish}</span>
-                          <span style={{ fontSize: 11, color: 'var(--anom)' }}>▼ {sig.bearish}</span>
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          💎 <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{sig.tips}</span> tips
-                        </div>
-                      </div>
-
-                      {/* Sentiment bar */}
-                      <div style={{ height: 3, background: 'var(--anom)', borderRadius: 1.5, display: 'flex', overflow: 'hidden' }}>
-                        <div style={{ width: `${bullPercent}%`, background: 'var(--bull)', height: '100%' }} />
-                      </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {filtered.slice(0, 5).map(sig => {
+                const l = localVotes[sig.id] || { bull: 0, bear: 0, tips: 0 };
+                const bullPercent = (l.bull + l.bear) > 0 ? (l.bull / (l.bull + l.bear)) * 100 : 50;
+                return (
+                  <div key={sig.id} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: '14px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>{sig.title}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div style={{ fontSize: 11 }}>▲ {l.bull} <span style={{ color: 'var(--text-muted)' }}>/</span> ▼ {l.bear}</div>
+                      <div style={{ fontSize: 11 }}>💎 {l.tips} tips</div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, marginTop: 24, fontStyle: 'italic' }}>
-            Community sentiment is pulled directly from the Clarity contract. Tip 1 STX to boost a signal.
+                    <div style={{ height: 3, background: 'var(--anom)', borderRadius: 1.5, display: 'flex', overflow: 'hidden' }}>
+                      <div style={{ width: `${bullPercent}%`, background: 'var(--bull)', height: '100%' }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 20, fontStyle: 'italic' }}>
+              Community votes reset on page refresh — on-chain persistence coming soon.
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   )
