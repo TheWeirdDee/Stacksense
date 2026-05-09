@@ -27,7 +27,8 @@ async function getOnChainStats(signalId: string) {
       arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()]
     });
     
-    const tips = cvToJSON(response.data.result).value;
+    const tipsResult = cvToJSON(response.data.result);
+    const tips = tipsResult?.value || {};
     
     const voteUrl = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-votes`;
     const voteResponse = await axios.post(voteUrl, {
@@ -35,14 +36,16 @@ async function getOnChainStats(signalId: string) {
       arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()]
     });
     
-    const votes = cvToJSON(voteResponse.data.result).value;
+    const votesResult = cvToJSON(voteResponse.data.result);
+    const votes = votesResult?.value || {};
     
     return {
       tips: parseInt(tips['tip-count']?.value || '0', 10),
       bullish: parseInt(votes['bullish-votes']?.value || '0', 10),
       bearish: parseInt(votes['bearish-votes']?.value || '0', 10)
     };
-  } catch {
+  } catch (err) {
+    console.error('[Stats] On-chain error for', signalId, err);
     return { tips: 0, bullish: 0, bearish: 0 };
   }
 }
