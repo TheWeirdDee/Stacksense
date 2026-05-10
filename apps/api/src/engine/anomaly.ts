@@ -11,7 +11,7 @@ export async function checkAnomaly(contract_id: string | null, function_name: st
   let isAnomaly = false;
   let multiplier = 1.0;
   
-  if (numericValues.length >= 10) { // Need some data for meaningful stats
+  if (numericValues.length >= 10) {
     const mean = numericValues.reduce((a: number, b: number) => a + b, 0) / numericValues.length;
     const variance = numericValues.reduce((a: number, b: number) => a + Math.pow(b - mean, 2), 0) / numericValues.length;
     const stddev = Math.sqrt(variance);
@@ -25,10 +25,9 @@ export async function checkAnomaly(contract_id: string | null, function_name: st
     }
   }
   
-  // Record current value
   await redisClient.lPush(key, amount.toString());
   await redisClient.lTrim(key, 0, 999);
-  await redisClient.expire(key, 2592000); // 30 days
+  await redisClient.expire(key, 2592000);
   
   return { isAnomaly, multiplier };
 }
