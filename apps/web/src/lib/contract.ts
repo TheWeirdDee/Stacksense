@@ -94,7 +94,6 @@ export async function getSignalTips(signalId: string): Promise<{ tipCount: numbe
   try {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-tips`
     
-    // Using cvToHex for robust serialization in browser
     const arg = cvToHex(stringAsciiCV(signalId.slice(0, 64)));
 
     const response = await fetch(url, {
