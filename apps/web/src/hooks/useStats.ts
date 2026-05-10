@@ -13,6 +13,6 @@ export function useStats() {
       const response = await axios.get(`${API_BASE}/api/v1/stats`);
       return response.data;
     },
-    refetchInterval: 60000, // Refresh every 60s
+    refetchInterval: 60000,
   });
 }
