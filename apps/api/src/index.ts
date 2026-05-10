@@ -28,9 +28,9 @@ app.use(cors({
     if (!origin || allowed.some(o => origin.startsWith(o!))) {
       callback(null, true);
     } else if (origin.includes('.vercel.app')) {
-      callback(null, true); // Allow all Vercel deployments
+      callback(null, true);
     } else {
-      callback(null, true); // Fallback for dev
+      callback(null, true);
     }
   },
   credentials: true,
@@ -71,7 +71,6 @@ async function start() {
   
   const wss = setupWebSocket(server);
   
-  // Railway uses a proxy — trust the forwarded headers
   server.on('upgrade', (request, socket, head) => {
     if (wss && request.url?.startsWith('/ws')) {
       wss.handleUpgrade(request, socket, head, (ws) => {
