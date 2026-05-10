@@ -88,7 +88,6 @@ async function classifyWallet(address: string): Promise<string> {
   }
 }
 
-// Keeping getDetailedArchetype for UI compatibility if needed
 export async function getDetailedArchetype(address: string): Promise<any> {
   const archetype = await getArchetype(address);
   return {
