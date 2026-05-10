@@ -7,7 +7,7 @@ const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
 import { useWindowSize } from '@/hooks/useWindowSize'
 
-const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
+const API = process.env.NEXT_PUBLIC_API_BASE ?? 'https://stacksense-production-7a6f.up.railway.app'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 

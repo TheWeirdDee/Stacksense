@@ -8,8 +8,8 @@ import FeedCard from '@/components/FeedCard'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 
-const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://127.0.0.1:3001'
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://127.0.0.1:3001/ws'
+const API = process.env.NEXT_PUBLIC_API_BASE ?? 'https://stacksense-production-7a6f.up.railway.app'
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'wss://stacksense-production-7a6f.up.railway.app/ws'
 
 const SIGNALS = ['All', 'Bullish', 'Neutral', 'Risk', 'Anomaly']
 const PROTOCOLS = ['All', 'ALEX', 'Arkadiko', 'Velar', 'sBTC Bridge', 'Native STX', 'StackSense']
