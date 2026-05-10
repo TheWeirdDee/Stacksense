@@ -36,7 +36,6 @@ export default function Nav() {
         top: 0,
         zIndex: 100,
       }}>
-        {/* Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
           <img src="/logo.png" alt="StackSense" style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }} />
           {!isMobile && (
@@ -46,7 +45,6 @@ export default function Nav() {
           )}
         </Link>
 
-        {/* Desktop nav links */}
         {isDesktop && (
           <div style={{ display: 'flex', gap: 4, alignItems: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             {NAV_LINKS.map(({ label, href }) => {
@@ -66,7 +64,6 @@ export default function Nav() {
           </div>
         )}
 
-        {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8 }}>
           {connected && short && !isMobile && (
             <span style={{
@@ -79,7 +76,6 @@ export default function Nav() {
             </span>
           )}
 
-          {/* Hamburger for mobile/tablet - Now FIRST on mobile */}
           {!isDesktop && (
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -140,7 +136,6 @@ export default function Nav() {
         </div>
       </nav>
 
-      {/* Mobile/tablet dropdown menu */}
       {!isDesktop && menuOpen && (
         <div style={{
           position: 'fixed', top: 56, left: 0, right: 0,
