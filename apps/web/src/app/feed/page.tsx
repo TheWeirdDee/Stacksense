@@ -45,7 +45,6 @@ export default function FeedPage() {
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryCount = useRef(0)
 
-  // Fetch initial events
   useEffect(() => {
     fetch(`${API}/api/v1/feed?limit=50`)
       .then(r => r.json())
@@ -59,7 +58,6 @@ export default function FeedPage() {
       })
   }, [])
 
-  // My Activity fetch
   useEffect(() => {
     if (!connected || !address || !isMyActivity) return
     
@@ -82,7 +80,6 @@ export default function FeedPage() {
       })
   }, [connected, address, isMyActivity])
 
-  // Fetch stats every 30s
   useEffect(() => {
     const load = () =>
       fetch(`${API}/api/v1/stats`)
@@ -94,7 +91,6 @@ export default function FeedPage() {
     return () => clearInterval(t)
   }, [])
 
-  // WebSocket connection
   const connect_ws = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setWsStatus('connecting')
@@ -311,7 +307,6 @@ export default function FeedPage() {
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       
-      {/* Mobile filter toggle bar */}
       {!isDesktop && (
         <div style={{
           display: 'flex',
@@ -380,7 +375,6 @@ export default function FeedPage() {
         overflow: 'hidden',
       }}>
 
-        {/* Sidebar — hidden on mobile unless toggled */}
         {(isDesktop || isTablet || showSidebar) && (
           <div style={{
             width: isDesktop ? 280 : isTablet ? 240 : '100%',
@@ -402,7 +396,6 @@ export default function FeedPage() {
           </div>
         )}
 
-        {/* Main feed area */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -473,7 +466,6 @@ export default function FeedPage() {
           </div>
         </div>
 
-        {/* Right panel — desktop only */}
         {isDesktop && (
           <div style={{
             width: 300,
@@ -506,7 +498,6 @@ export default function FeedPage() {
         )}
       </div>
 
-      {/* Bottom drawer for tablet sentiment */}
       {isTablet && showSentiment && (
         <div style={{
           position: 'fixed',
