@@ -37,7 +37,6 @@ async function getOnChainStats(signalId: string) {
       bearish: parseInt(stats['bearish-votes']?.value || '0', 10)
     };
   } catch (err: any) {
-    // Only log if it's not a 404/not found error
     if (!err.response || err.response.status !== 404) {
       console.error('[Stats] On-chain error for', signalId, err.message);
     }
