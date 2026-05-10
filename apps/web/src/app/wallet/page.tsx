@@ -55,7 +55,7 @@ function WalletContent() {
       <div style={{ 
         maxWidth: isMobile ? '100%' : 800, 
         margin: '0 auto', 
-        padding: isMobile ? '32px 16px' : '60px 24px' 
+        padding: isMobile ? '32px 16px 60px' : '60px 24px' 
       }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10, fontWeight: 600 }}>
@@ -163,7 +163,6 @@ function WalletContent() {
               ))}
             </div>
 
-            {/* Behavioral Deep-Dive */}
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', 
