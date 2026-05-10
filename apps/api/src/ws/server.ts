@@ -3,7 +3,7 @@ import { Server } from 'http';
 import { redisClient } from '../redis/client.js';
 
 let wss: WebSocketServer;
-const inMemoryEvents: any[] = []; // Fallback for when Redis is down
+const inMemoryEvents: any[] = [];
 
 async function getRecentEvents(n: number): Promise<any[]> {
   try {
@@ -23,7 +23,6 @@ export function setupWebSocket(server: Server) {
   wss.on('connection', (ws) => {
     console.log('[WS] Client connected. Total:', wss.clients.size)
 
-    // Send last 10 events immediately so feed is not empty
     getRecentEvents(10).then(events => {
       if (events.length > 0) {
         ws.send(JSON.stringify({ type: 'initial', data: events }))
@@ -36,7 +35,7 @@ export function setupWebSocket(server: Server) {
     ws.on('message', (data) => {
       try {
         const msg = JSON.parse(data.toString())
-        if (msg.type === 'pong') return // heartbeat response, ignore
+        if (msg.type === 'pong') return
       } catch {}
     })
 
