@@ -49,7 +49,6 @@ export function useFeed() {
       socket.onclose = () => {
         console.log('WebSocket Disconnected');
         setConnected(false);
-        // Reconnect after 3 seconds
         reconnectTimeout = setTimeout(connect, 3000);
       };
 
