@@ -41,7 +41,6 @@ export default function LandingPage() {
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh' }}>
       <Nav />
 
-      {/* HERO */}
       <section style={{ 
         textAlign: 'center', 
         padding: isMobile ? '60px 20px 40px' : '100px 40px 70px', 
@@ -114,7 +113,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TICKER */}
       <div style={{ borderTop: '1px solid var(--bg-border)', borderBottom: '1px solid var(--bg-border)', overflow: 'hidden', padding: '12px 0' }}>
         <div style={{ 
           display: 'flex', 
@@ -128,7 +126,7 @@ export default function LandingPage() {
                 background: SIG_STYLES[item.signal].bg,
                 color: SIG_STYLES[item.signal].color,
                 padding: '2px 9px', borderRadius: 999,
-                fontSize: isMobile ? 10 : 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase'
+                fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase'
               }}>
                 {item.label}
               </span>
@@ -139,7 +137,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* FEED PREVIEW */}
       <section style={{ maxWidth: isMobile ? '100%' : 900, margin: '80px auto', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
           Live Feed Preview
@@ -184,7 +181,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* STATS */}
       <section style={{ 
         maxWidth: 1100, 
         margin: '0 auto 80px', 
@@ -206,7 +202,6 @@ export default function LandingPage() {
         ))}
       </section>
 
-      {/* WALLET CTA */}
       <section style={{ maxWidth: 1100, margin: '0 auto 80px', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{
           background: 'var(--bg-surface)', border: '1px solid var(--bg-border)',
@@ -285,7 +280,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section style={{ maxWidth: 1100, margin: '0 auto 100px', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
           How It Works
@@ -312,7 +306,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer style={{ 
         borderTop: '1px solid var(--bg-border)', 
         padding: isMobile ? '24px 16px' : '28px 40px', 
