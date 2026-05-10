@@ -1,8 +1,10 @@
 'use client'
+
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import Link from 'next/link'
 import { useWallet } from '@/lib/wallet'
+import { useWindowSize } from '@/hooks/useWindowSize'
 
 const TICKER = [
   { signal: 'bullish', label: 'Bullish', text: 'Whale Wallet added liquidity to ALEX', val: '142,000 STX' },
@@ -32,6 +34,7 @@ const SIG_BORDER: Record<string, string> = {
 
 export default function LandingPage() {
   const { connected, connect } = useWallet()
+  const { isMobile, isTablet } = useWindowSize()
   const doubled = [...TICKER, ...TICKER]
 
   return (
@@ -39,7 +42,12 @@ export default function LandingPage() {
       <Nav />
 
       {/* HERO */}
-      <section style={{ textAlign: 'center', padding: '100px 40px 70px', maxWidth: 860, margin: '0 auto' }}>
+      <section style={{ 
+        textAlign: 'center', 
+        padding: isMobile ? '60px 20px 40px' : '100px 40px 70px', 
+        maxWidth: 860, 
+        margin: '0 auto' 
+      }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           background: 'var(--bg-surface)', border: '1px solid var(--bg-border)',
@@ -51,15 +59,33 @@ export default function LandingPage() {
           Live on Stacks Mainnet
         </div>
 
-        <h1 style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.08, letterSpacing: '-0.025em', marginBottom: 22 }}>
+        <h1 style={{ 
+          fontSize: isMobile ? 36 : isTablet ? 44 : 58, 
+          fontWeight: 700, 
+          lineHeight: 1.08, 
+          letterSpacing: '-0.025em', 
+          marginBottom: 22 
+        }}>
           On-chain intelligence<br />for <span style={{ color: 'var(--brand)' }}>Stacks</span>.
         </h1>
 
-        <p style={{ fontSize: 18, color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: 540, margin: '0 auto 40px' }}>
+        <p style={{ 
+          fontSize: isMobile ? 16 : 18, 
+          color: 'var(--text-secondary)', 
+          lineHeight: 1.65, 
+          maxWidth: 540, 
+          margin: '0 auto 40px' 
+        }}>
           Every significant Stacks transaction, translated into plain English. Connect your wallet to tip signals, vote on events, and unlock whale alerts.
         </p>
 
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center',
+          gap: 12, 
+          justifyContent: 'center', 
+        }}>
           {!connected ? (
             <button
               onClick={connect}
@@ -73,7 +99,7 @@ export default function LandingPage() {
           ) : (
             <Link href="/feed" style={{
               background: 'var(--brand)', color: '#fff', padding: '13px 30px',
-              borderRadius: 7, fontSize: 14, fontWeight: 500, textDecoration: 'none', display: 'inline-block'
+              borderRadius: 7, fontSize: 14, fontWeight: 500, textDecoration: 'none', textAlign: 'center'
             }}>
               Go to Feed →
             </Link>
@@ -81,7 +107,7 @@ export default function LandingPage() {
           <Link href="/about" style={{
             background: 'transparent', color: 'var(--text-primary)',
             border: '1px solid var(--bg-border)', padding: '13px 30px',
-            borderRadius: 7, fontSize: 14, textDecoration: 'none', display: 'inline-block'
+            borderRadius: 7, fontSize: 14, textDecoration: 'none', textAlign: 'center'
           }}>
             How It Works
           </Link>
@@ -90,30 +116,35 @@ export default function LandingPage() {
 
       {/* TICKER */}
       <div style={{ borderTop: '1px solid var(--bg-border)', borderBottom: '1px solid var(--bg-border)', overflow: 'hidden', padding: '12px 0' }}>
-        <div style={{ display: 'flex', gap: 56, animation: 'ticker 28s linear infinite', width: 'max-content' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: isMobile ? 32 : 56, 
+          animation: 'ticker 28s linear infinite', 
+          width: 'max-content' 
+        }}>
           {doubled.map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, whiteSpace: 'nowrap' }}>
               <span style={{
                 background: SIG_STYLES[item.signal].bg,
                 color: SIG_STYLES[item.signal].color,
                 padding: '2px 9px', borderRadius: 999,
-                fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase'
+                fontSize: isMobile ? 10 : 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase'
               }}>
                 {item.label}
               </span>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.text}</span>
-              <span className="mono" style={{ fontSize: 12, color: 'var(--text-primary)' }}>{item.val}</span>
+              <span style={{ fontSize: isMobile ? 11 : 12, color: 'var(--text-secondary)' }}>{item.text}</span>
+              <span className="mono" style={{ fontSize: isMobile ? 11 : 12, color: 'var(--text-primary)' }}>{item.val}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* FEED PREVIEW */}
-      <section style={{ maxWidth: 900, margin: '80px auto', padding: '0 40px' }}>
+      <section style={{ maxWidth: isMobile ? '100%' : 900, margin: '80px auto', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
           Live Feed Preview
         </div>
-        <h2 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 6 }}>What's happening right now</h2>
+        <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 6 }}>What's happening right now</h2>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 32 }}>Real interpretations. Updated every 10 seconds from Stacks mainnet.</p>
 
         <div style={{ border: '1px solid var(--bg-border)', borderRadius: 12, overflow: 'hidden' }}>
@@ -121,7 +152,7 @@ export default function LandingPage() {
             <div key={i} style={{
               borderLeft: `3px solid ${SIG_BORDER[e.signal]}`,
               borderBottom: i < PREVIEW_EVENTS.length - 1 ? '1px solid var(--bg-border)' : 'none',
-              padding: '20px 24px', background: 'var(--bg-base)',
+              padding: isMobile ? '16px' : '20px 24px', background: 'var(--bg-base)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span style={{
@@ -135,9 +166,9 @@ export default function LandingPage() {
                 </span>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{e.time}</span>
               </div>
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{e.title}</div>
+              <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, marginBottom: 4 }}>{e.title}</div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>{e.desc}</div>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: isMobile ? 10 : 16, alignItems: 'center', flexWrap: 'wrap' }}>
                 <span className="mono" style={{ fontSize: 12, color: 'var(--text-mono)' }}>{e.amount}</span>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{e.usd}</span>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>{e.ctx}</span>
@@ -154,32 +185,39 @@ export default function LandingPage() {
       </section>
 
       {/* STATS */}
-      <section style={{ maxWidth: 1100, margin: '0 auto 80px', padding: '0 40px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <section style={{ 
+        maxWidth: 1100, 
+        margin: '0 auto 80px', 
+        padding: isMobile ? '0 16px' : '0 40px', 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', 
+        gap: 12 
+      }}>
         {[
           { label: 'STX moved today', val: '4.2M', sub: 'across all protocols' },
           { label: 'Most active protocol', val: 'ALEX', sub: '48% of today\'s volume' },
           { label: 'Anomalies detected', val: '7', sub: 'in the last 24 hours' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: '24px 28px' }}>
+          <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: isMobile ? '20px' : '24px 28px' }}>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{s.label}</div>
-            <div className="mono" style={{ fontSize: 32, fontWeight: 600, color: 'var(--text-primary)' }}>{s.val}</div>
+            <div className="mono" style={{ fontSize: isMobile ? 28 : 32, fontWeight: 600, color: 'var(--text-primary)' }}>{s.val}</div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{s.sub}</div>
           </div>
         ))}
       </section>
 
       {/* WALLET CTA */}
-      <section style={{ maxWidth: 1100, margin: '0 auto 80px', padding: '0 40px' }}>
+      <section style={{ maxWidth: 1100, margin: '0 auto 80px', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{
           background: 'var(--bg-surface)', border: '1px solid var(--bg-border)',
-          borderRadius: 16, padding: '52px 56px',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center'
+          borderRadius: 16, padding: isMobile ? '32px 24px' : '52px 56px',
+          display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 32 : 64, alignItems: 'center'
         }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 12 }}>
               Wallet Integration
             </div>
-            <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 14 }}>
+            <h2 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 14 }}>
               Connect to unlock<br />the full experience
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 24 }}>
@@ -248,12 +286,16 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ maxWidth: 1100, margin: '0 auto 100px', padding: '0 40px' }}>
+      <section style={{ maxWidth: 1100, margin: '0 auto 100px', padding: isMobile ? '0 16px' : '0 40px' }}>
         <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
           How It Works
         </div>
-        <h2 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 36 }}>From raw chain to readable signal</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 36 }}>From raw chain to readable signal</h2>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', 
+          gap: 20 
+        }}>
           {[
             { n: '01', title: 'Ingest', desc: 'StackSense polls the Hiro Stacks API every 10 seconds for confirmed transactions. No mempool noise — confirmed blocks only.' },
             { n: '02', title: 'Interpret', desc: 'Each transaction is matched against protocol-specific rules for ALEX, Arkadiko, Velar, and sBTC. Statistical anomaly detection flags outliers above 2σ from the 30-day baseline.' },
@@ -271,9 +313,17 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid var(--bg-border)', padding: '28px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <footer style={{ 
+        borderTop: '1px solid var(--bg-border)', 
+        padding: isMobile ? '24px 16px' : '28px 40px', 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 16 : 0,
+        justifyContent: 'space-between', 
+        alignItems: isMobile ? 'flex-start' : 'center' 
+      }}>
         <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          StackSense · Built on <span style={{ color: 'var(--brand)' }}>Stacks</span> (Bitcoin L2) · v1.0
+          StackSense · Built on <span style={{ color: 'var(--brand)' }}>Stacks</span> · v1.0
         </span>
         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           Signals are observational, not financial advice.

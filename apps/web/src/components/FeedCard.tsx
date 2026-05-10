@@ -9,11 +9,12 @@ import {
   contractVoteBullish, 
   contractVoteBearish 
 } from '@/lib/contract'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { FeedEvent } from '@/lib/types'
 
 interface Props {
   event: FeedEvent
-  showActions: boolean  // true when wallet is connected
+  showActions: boolean
   onVote?: (direction: 'bull' | 'bear') => void
   onTip?: () => void
   localStats?: { bull: number, bear: number, tips: number }
@@ -28,6 +29,7 @@ export default function FeedCard({
   onTip,
   localStats = { bull: 0, bear: 0, tips: 0 }
 }: Props) {
+  const { isMobile } = useWindowSize()
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
@@ -53,7 +55,6 @@ export default function FeedCard({
     })
   }
 
-  // Session-local stats only to prevent Hiro API flooding
   const displayTips = localStats.tips || 0
   const displayBull = localStats.bull || 0
   const displayBear = localStats.bear || 0
@@ -63,12 +64,12 @@ export default function FeedCard({
       style={{
         borderLeft: `3px solid ${sig.border}`,
         borderBottom: '1px solid var(--bg-border)',
-        padding: '18px 24px',
+        padding: isMobile ? '14px 16px' : '18px 24px',
         background: 'var(--bg-base)',
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-surface)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-base)' }}
+      onMouseEnter={e => { if(!isMobile) e.currentTarget.style.background = 'var(--bg-surface)' }}
+      onMouseLeave={e => { if(!isMobile) e.currentTarget.style.background = 'var(--bg-base)' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -91,7 +92,7 @@ export default function FeedCard({
         </a>
       </div>
 
-      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+      <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
         {event.title}
       </div>
 
@@ -99,7 +100,13 @@ export default function FeedCard({
         {event.description}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: showActions ? 12 : 0 }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: isMobile ? 6 : 12, 
+        flexWrap: 'wrap', 
+        marginBottom: showActions ? 12 : 0 
+      }}>
         <span style={{ fontSize: 13, color: 'var(--text-mono)', fontFamily: 'JetBrains Mono, monospace' }}>
           {fmtSTX(event.stx_amount)} STX
         </span>
@@ -117,40 +124,52 @@ export default function FeedCard({
       </div>
 
       {showActions && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12, borderTop: '1px solid var(--bg-border)', marginTop: 8 }}>
-          <button
-            onClick={handleTip}
-            disabled={tipState !== 'idle'}
-            style={{
-              background: tipState === 'done' ? 'var(--bull-bg)' : 'transparent',
-              color: tipState === 'done' ? 'var(--bull)' : 'var(--text-muted)',
-              border: `1px solid ${tipState === 'done' ? 'var(--bull)' : 'var(--bg-border)'}`,
-              padding: '6px 14px',
-              borderRadius: 6,
-              fontSize: 12,
-              cursor: tipState === 'idle' ? 'pointer' : 'default',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            {tipState === 'done' ? '✓ Tipped' : tipState === 'pending' ? '...' : `↑ Tip (${displayTips})`}
-          </button>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: isMobile ? 'flex-start' : 'center', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 8, 
+          paddingTop: 12, 
+          borderTop: '1px solid var(--bg-border)', 
+          marginTop: 8 
+        }}>
+          <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto' }}>
+            <button
+              onClick={handleTip}
+              disabled={tipState !== 'idle'}
+              style={{
+                background: tipState === 'done' ? 'var(--bull-bg)' : 'transparent',
+                color: tipState === 'done' ? 'var(--bull)' : 'var(--text-muted)',
+                border: `1px solid ${tipState === 'done' ? 'var(--bull)' : 'var(--bg-border)'}`,
+                padding: '6px 14px',
+                borderRadius: 6,
+                fontSize: 12,
+                cursor: tipState === 'idle' ? 'pointer' : 'default',
+                fontFamily: 'Inter, sans-serif',
+                flex: isMobile ? 1 : 'none',
+              }}
+            >
+              {tipState === 'done' ? '✓ Tipped' : tipState === 'pending' ? '...' : `↑ Tip (${displayTips})`}
+            </button>
 
-          <button
-            onClick={() => handleVote('bullish')}
-            disabled={voteState !== 'idle'}
-            style={{
-              background: voteState === 'bullish' ? 'var(--bull-bg)' : 'transparent',
-              color: voteState === 'bullish' ? 'var(--bull)' : 'var(--text-muted)',
-              border: `1px solid ${voteState === 'bullish' ? 'var(--bull)' : 'var(--bg-border)'}`,
-              padding: '6px 14px',
-              borderRadius: 6,
-              fontSize: 12,
-              cursor: voteState === 'idle' ? 'pointer' : 'default',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            {voteState === 'bullish' ? '✓ Bull' : `▲ Bull (${displayBull})`}
-          </button>
+            <button
+              onClick={() => handleVote('bullish')}
+              disabled={voteState !== 'idle'}
+              style={{
+                background: voteState === 'bullish' ? 'var(--bull-bg)' : 'transparent',
+                color: voteState === 'bullish' ? 'var(--bull)' : 'var(--text-muted)',
+                border: `1px solid ${voteState === 'bullish' ? 'var(--bull)' : 'var(--bg-border)'}`,
+                padding: '6px 14px',
+                borderRadius: 6,
+                fontSize: 12,
+                cursor: voteState === 'idle' ? 'pointer' : 'default',
+                fontFamily: 'Inter, sans-serif',
+                flex: isMobile ? 1 : 'none',
+              }}
+            >
+              {voteState === 'bullish' ? '✓ Bull' : `▲ Bull (${displayBull})`}
+            </button>
+          </div>
 
           <button
             onClick={() => handleVote('bearish')}
@@ -164,14 +183,17 @@ export default function FeedCard({
               fontSize: 12,
               cursor: voteState === 'idle' ? 'pointer' : 'default',
               fontFamily: 'Inter, sans-serif',
+              width: isMobile ? '100%' : 'auto',
             }}
           >
             {voteState === 'bearish' ? '✓ Bear' : `▼ Bear (${displayBear})`}
           </button>
 
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            Live Feed
-          </span>
+          {!isMobile && (
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+              Live Feed
+            </span>
+          )}
         </div>
       )}
     </div>

@@ -1,9 +1,11 @@
 'use client'
+
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
+import { useWindowSize } from '@/hooks/useWindowSize'
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
 
@@ -12,6 +14,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 const COLORS = ['#7C3AED', '#EC4899', '#3B82F6', '#10B981', '#F59E0B']
 
 function WalletContent() {
+  const { isMobile } = useWindowSize()
   const searchParams = useSearchParams()
   const [address, setAddress] = useState(searchParams?.get('address') ?? '')
   const [input, setInput] = useState(searchParams?.get('address') ?? '')
@@ -49,12 +52,16 @@ function WalletContent() {
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh' }}>
       <Nav />
 
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px' }}>
+      <div style={{ 
+        maxWidth: isMobile ? '100%' : 800, 
+        margin: '0 auto', 
+        padding: isMobile ? '32px 16px' : '60px 24px' 
+      }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 11, color: 'var(--brand)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10, fontWeight: 600 }}>
             Analyze
           </div>
-          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8 }}>
+          <h1 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8 }}>
             Wallet Intelligence
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -62,7 +69,12 @@ function WalletContent() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: error ? 8 : 32 }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 8, 
+          marginBottom: error ? 8 : 32 
+        }}>
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -71,6 +83,7 @@ function WalletContent() {
             className="mono"
             style={{
               flex: 1,
+              width: '100%',
               padding: '12px 16px',
               borderRadius: 8,
               border: '1px solid var(--bg-border)',
@@ -94,6 +107,7 @@ function WalletContent() {
               fontFamily: 'Inter, sans-serif',
               cursor: loading ? 'wait' : 'pointer',
               flexShrink: 0,
+              width: isMobile ? '100%' : 'auto',
             }}
           >
             {loading ? '...' : 'Analyze →'}
@@ -108,7 +122,12 @@ function WalletContent() {
 
         {loading && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', 
+              gap: 12, 
+              marginBottom: 24 
+            }}>
               {[1,2,3].map(i => (
                 <div key={i} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '18px 20px', height: 72 }} />
               ))}
@@ -124,7 +143,12 @@ function WalletContent() {
 
         {result && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', 
+              gap: 12, 
+              marginBottom: 24 
+            }}>
               {[
                 { label: 'Archetype', value: result.wallet?.archetype ?? '—' },
                 { label: 'Activity Score', value: result.wallet?.scores?.defi_degens ?? 0 },
@@ -132,7 +156,7 @@ function WalletContent() {
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '16px 18px' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</div>
-                  <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: label.includes('Score') || label.includes('Rating') ? (Number(value) > 70 ? 'var(--bull)' : 'var(--text-primary)') : 'var(--text-primary)' }}>
+                  <div className="mono" style={{ fontSize: isMobile ? 14 : 16, fontWeight: 500, color: label.includes('Score') || label.includes('Rating') ? (Number(value) > 70 ? 'var(--bull)' : 'var(--text-primary)') : 'var(--text-primary)' }}>
                     {value}{typeof value === 'number' ? '%' : ''}
                   </div>
                 </div>
@@ -140,7 +164,12 @@ function WalletContent() {
             </div>
 
             {/* Behavioral Deep-Dive */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16, marginBottom: 32 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', 
+              gap: 16, 
+              marginBottom: 32 
+            }}>
               <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 12, padding: 24 }}>
                 <h3 style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>Protocol Distribution</h3>
                 <div style={{ height: 200 }}>
@@ -207,7 +236,7 @@ function WalletContent() {
                   No transactions above the StackSense threshold in the last 30 days.
                 </div>
               ) : (
-                result.events?.map((e: any) => <FeedCard key={e.id} event={e} />)
+                result.events?.map((e: any) => <FeedCard key={e.id} event={e} showActions={false} />)
               )}
             </div>
           </div>
