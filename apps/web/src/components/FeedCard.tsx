@@ -38,7 +38,6 @@ export default function FeedCard({
     if (tipState !== 'idle') return
     setTipState('pending')
     contractTipSignal(event.id, (txId) => {
-      console.log('Tip confirmed:', txId)
       setTipState('done')
       onTip?.()
     })
@@ -50,7 +49,6 @@ export default function FeedCard({
     setVoteState(direction)
     const fn = direction === 'bullish' ? contractVoteBullish : contractVoteBearish
     fn(event.id, (txId: string) => {
-      console.log('Vote confirmed:', txId)
       onVote?.(direction === 'bullish' ? 'bull' : 'bear')
     })
   }
