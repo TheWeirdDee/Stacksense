@@ -46,7 +46,6 @@ function matchesContractId(ruleContractId: string | null, txContractId: string |
 
 export async function matchTransaction(tx: any) {
   await loadRules();
-  
   const tx_type = tx.tx_type;
   let stx_amount = 0;
   let contract_id = null;
@@ -148,7 +147,7 @@ export async function matchTransaction(tx: any) {
     tx_id: tx.tx_id,
     timestamp: tx.burn_block_time_iso || new Date().toISOString(),
     signal: finalSignal,
-    protocol: matchedRule.protocol, // Copies directly from rule
+    protocol: matchedRule.protocol,
     title: fillTemplate(matchedRule.title_template, templateVars),
     description: fillTemplate(matchedRule.description_template, templateVars),
     context: matchedRule.context_template ? fillTemplate(matchedRule.context_template, templateVars) : null,
