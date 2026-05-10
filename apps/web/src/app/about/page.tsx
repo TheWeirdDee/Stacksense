@@ -45,7 +45,6 @@ export default function MethodologyPage() {
 
         <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 36 }} />
 
-        {/* Pipeline */}
         <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, letterSpacing: '-0.01em' }}>The Ingestion Pipeline</h2>
         <div style={{ 
           display: 'grid', 
@@ -68,7 +67,6 @@ export default function MethodologyPage() {
 
         <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 36 }} />
 
-        {/* Signal definitions */}
         <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 6, letterSpacing: '-0.01em' }}>Signal Definitions</h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 20 }}>
           Every event receives exactly one signal tag, assigned by the rule engine — not manually.
@@ -94,7 +92,6 @@ export default function MethodologyPage() {
 
         <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 36 }} />
 
-        {/* Protocol coverage */}
         <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20, letterSpacing: '-0.01em' }}>Protocol Coverage</h2>
         <div style={{ border: '1px solid var(--bg-border)', borderRadius: 10, overflow: 'hidden', marginBottom: 40 }}>
           {PROTOCOLS.map((p, i) => (
@@ -115,7 +112,6 @@ export default function MethodologyPage() {
 
         <div style={{ height: 1, background: 'var(--bg-border)', marginBottom: 36 }} />
 
-        {/* What it is not */}
         <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, letterSpacing: '-0.01em' }}>What StackSense Is Not</h2>
         {[
           ['Not financial advice', 'All signals are observations about on-chain activity — they describe what happened, not what will happen.'],
