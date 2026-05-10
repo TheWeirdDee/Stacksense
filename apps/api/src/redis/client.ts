@@ -5,7 +5,6 @@ dotenv.config({ path: '../../.env' });
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-// Simple in-memory fallback for environments where Redis is not available
 class MemoryClient {
   private store: Map<string, any> = new Map();
   public isOpen = true;
@@ -65,7 +64,6 @@ let activeClient: any = createClient({
 });
 
 activeClient.on('error', (err: any) => {
-  // Silence initial connection errors as we'll handle them in connectRedis
 });
 
 export const redisClient = new Proxy({} as any, {
