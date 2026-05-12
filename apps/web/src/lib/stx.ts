@@ -18,11 +18,13 @@ export function fmtUSD(n: number): string {
   return Math.round(n).toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
-export function sendTip(memo: string, onFinish?: (txId: string) => void) {
+export const ONE_STX = '1000000'
+
+export function sendTip(amount: string, memo: string, onFinish?: (txId: string) => void) {
   openSTXTransfer({
     network: new StacksMainnet(),
     recipient: TREASURY_ADDRESS,
-    amount: '1000000',
+    amount,
     memo: memo.slice(0, 34),
     appDetails: { name: 'StackSense', icon: '' },
     userSession,
