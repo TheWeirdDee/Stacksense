@@ -1,7 +1,7 @@
 import { openContractCall, AppConfig, UserSession } from '@stacks/connect'
 import { stringAsciiCV, createSTXPostCondition, FungibleConditionCode, cvToHex } from '@stacks/transactions'
 import { StacksMainnet } from '@stacks/network'
-import { sendTip } from './stx'
+import { sendTip, ONE_STX } from './stx'
 
 const appConfig = new AppConfig(['store_write', 'publish_data'])
 const userSession = new UserSession({ appConfig })
@@ -16,7 +16,7 @@ export async function contractTipSignal(
   const address = userSession.loadUserData().profile.stxAddress.mainnet;
 
   if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '' || CONTRACT_ADDRESS === 'YOUR_WALLET_ADDRESS') {
-    sendTip(`tip:${signalId.slice(0, 28)}`, onFinish)
+    sendTip(ONE_STX, `tip:${signalId.slice(0, 28)}`, onFinish)
     return
   }
 
@@ -40,7 +40,7 @@ export async function contractTipSignal(
       userSession,
     })
   } catch (e) {
-    sendTip(signalId, onFinish)
+    sendTip(ONE_STX, signalId, onFinish)
   }
 }
 
