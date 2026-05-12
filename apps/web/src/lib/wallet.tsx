@@ -14,16 +14,39 @@ interface WalletContextType {
 const appConfig = new AppConfig(['store_write', 'publish_data'])
 const userSession = new UserSession({ appConfig })
 
+// Proactive fix for "JSON data version undefined" error
+if (typeof window !== 'undefined') {
+  try {
+    const session = localStorage.getItem('blockstack-session')
+    if (session) {
+      const parsed = JSON.parse(session)
+      if (!parsed || !parsed.version) {
+        console.warn('Detected invalid Stacks session, clearing...')
+        localStorage.removeItem('blockstack-session')
+      }
+    }
+  } catch (e) {
+    localStorage.removeItem('blockstack-session')
+  }
+}
+
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null)
 
   useEffect(() => {
-    if (userSession.isUserSignedIn()) {
-      const userData = userSession.loadUserData()
-      setAddress(userData.profile.stxAddress.mainnet)
-    } else {
+    try {
+      if (userSession.isUserSignedIn()) {
+        const userData = userSession.loadUserData()
+        setAddress(userData.profile.stxAddress.mainnet)
+      } else {
+        const saved = localStorage.getItem('stacks-address-mainnet')
+        if (saved) setAddress(saved)
+      }
+    } catch (e) {
+      console.error('Invalid session state:', e)
+      localStorage.removeItem('blockstack-session')
       const saved = localStorage.getItem('stacks-address-mainnet')
       if (saved) setAddress(saved)
     }
@@ -88,7 +111,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const disconnect = useCallback(() => {
-    userSession.signUserOut()
+    try {
+      userSession.signUserOut()
+    } catch (e) {
+      console.error('Sign out failed:', e)
+    }
     setAddress(null)
     
     const keysToRemove = [
