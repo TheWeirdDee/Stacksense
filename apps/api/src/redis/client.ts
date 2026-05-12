@@ -67,7 +67,10 @@ activeClient.on('error', (err: any) => {
 });
 
 export const redisClient = new Proxy({} as any, {
-  get: (target, prop) => activeClient[prop].bind(activeClient)
+  get: (target, prop) => {
+    const val = activeClient[prop];
+    return typeof val === 'function' ? val.bind(activeClient) : val;
+  }
 });
 
 export async function connectRedis() {
