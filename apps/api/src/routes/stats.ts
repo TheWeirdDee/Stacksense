@@ -1,7 +1,7 @@
 import express from 'express';
 import { redisClient } from '../redis/client.js';
 import axios from 'axios';
-import { stringAsciiCV, cvToJSON } from '@stacks/transactions';
+import { stringAsciiCV, cvToJSON, cvToHex } from '@stacks/transactions';
 
 const router = express.Router();
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV';
@@ -25,7 +25,7 @@ async function getOnChainStats(signalId: string) {
     const url = `https://api.hiro.so/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/get-signal-stats`;
     const response = await axios.post(url, {
       sender: CONTRACT_ADDRESS,
-      arguments: [stringAsciiCV(signalId.slice(0, 64)).toString()]
+      arguments: [cvToHex(stringAsciiCV(signalId.slice(0, 64)))]
     });
     
     const statsResult = cvToJSON(response.data.result);
