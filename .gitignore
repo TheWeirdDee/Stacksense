@@ -35,9 +35,8 @@ yarn-error.log*
 # env files
 **/.env*
 **/.env.local
-divine-addresses.csv
-divine-keys.csv
-divine.ts
+private/
+
 **/.env.production
 **/.env.development
 

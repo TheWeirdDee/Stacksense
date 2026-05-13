@@ -1,0 +1,354 @@
+
+=== friend-farmer 2026-05-11T22:31:39.874Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+[fatal] ENOENT: no such file or directory, open 'C:\Users\DELL\Desktop\stacksense\keys\friend-keys.csv'
+
+=== friend-farmer 2026-05-11T22:32:30.186Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w2] ok vote-bullish wallet=SP2TB8…YSQQ fee=3304 tx=fc5dd25b687da7e5cbbb267087911636ca6b66f3d6d1c4b912267916abdb8f37
+[w3] ok vote-bullish wallet=SPQT7K…JKX2 fee=2955 tx=44c1ccbf43904279b11a2c9bdcdb3559c0ec891d037c22edd52d0b2eb79f5308
+[w1] ok vote-bearish wallet=SP1PW0…1XCW fee=3180 tx=b7223e5026ad5549812c53803fce3ee6a62f3008f5ce6c0a47d6e1fbeab5d59d
+[w2] ok vote-bearish wallet=SP3PX9…W4Q9 fee=2938 tx=b44b755aa102521b37afab1714b7d353f48f48520db13539beae6dd385428476
+[w3] ok vote-bullish wallet=SP38VM…HHED fee=3382 tx=55e4e7edb3c5808f5f25cb01c007712893c237b1af8c7ac8ebbc0b9eac264ba5
+[w1] ok vote-bullish wallet=SP1G1T…YM18 fee=3160 tx=482bca2dd827bc17d62ade7f0fdbf48a7398cf46e7618e518a68de45b022db19
+[w2] ok vote-bullish wallet=SP3QRQ…3YGS fee=2585 tx=14e47d6ceb6e6c3c980a4ca1f4337f9c1d4a8e10cea8b00dd0260d94df43bc47
+[w3] ok vote-bearish wallet=SPQCKE…9J1D fee=2609 tx=626d9c7ae74e442b781ef9c152bd0f0cba3bb05e0ac2fb1ad9c3d4ed4f7179a1
+[w1] ok vote-bearish wallet=SP3V64…79KH fee=3439 tx=b7899f7f0a62c29fc1c488ce01d23ab03f9fc6c16c31faa27f0554ad5104c004
+[w3] ok vote-bullish wallet=SPVT5Q…HHXA fee=3231 tx=5ae7ff35ba015b5919277f9f354e78d4fed2b315d027258fb26962a0601c0bf9
+[w2] ok vote-bearish wallet=SP1SVQ…76KZ fee=3244 tx=74c91a92c05d1a1ccc4bcc34563172d0b21974eff8c0539ef2cfdbb1bb74d7d2
+[w1] ok vote-bearish wallet=SP2E80…05C0 fee=2961 tx=8c6dc03178355925e01d62ef4e02c230352f823c8a4e2d2a3d6c082293a7c597
+[w2] ok vote-bearish wallet=SP1P9C…YQE3 fee=2811 tx=80876569fbfb4515864caa3a0c28bb5f88f3f3520d58d401b45f582bdde07c70
+[w3] ok vote-bearish wallet=SP29JH…WBCH fee=2949 tx=172671f79dc4f8d4147d8c37a91531e7de5a53dc71d0e7f902ded5bf7839c2f2
+[w1] ok vote-bullish wallet=SP37M6…5TYB fee=2695 tx=f77545ed89b655312632d5e046c77c6a0ff2c55f030ee858f1852c286c7568c5
+[w3] ok vote-bullish wallet=SP388H…6B6N fee=2566 tx=332f8f493e15f61317c650ce678feeb50a7ed25f4b3dbc93e66c2c83b53cca1c
+[w2] ok vote-bullish wallet=SP1Z2C…03XJ fee=3363 tx=668e3196f141ae47aac46cac748dfeb3322a059c4aa5cd4d6018238c64f1af3d
+[w1] ok vote-bullish wallet=SP2V7P…1A9G fee=3041 tx=9b9a3af8d03781a1638fc81081a39fac2cb26cb864f28244d5d5c52bb658a902
+[w2] ok vote-bearish wallet=SP1KEF…AAER fee=2744 tx=4de6c24fe798729b2fecbfa07ae3213fc68d1d27cd6fdb3ffc24c8ffb61ab17b
+[w3] ok vote-bullish wallet=SP32JS…712X fee=3203 tx=6d0b98b487f1558f20929e6dcf9e2de131ae03405dd9bef28c5aad91b9b6e729
+[w1] ok vote-bullish wallet=SPMF12…QVQ1 fee=3412 tx=f5604dd18ef7e33856093954bbaaf57f9718c017f75b0ed2d54d84ee1aacc2ca
+
+[shutdown] SIGINT - draining...
+
+=== final ===
+attempted: 21  ok: 21  fail: 0
+
+=== friend-farmer 2026-05-11T22:35:03.482Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP1SWQ…Z5TK fee=3115 tx=705b73cadca782f5060669f0396718f436180e70fab26966030fa5360e60a572
+
+[shutdown] SIGINT - draining...
+
+=== final ===
+attempted: 22  ok: 22  fail: 0
+
+=== friend-farmer 2026-05-11T22:36:18.343Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bearish wallet=SP1Z22…4KZZ fee=2711 tx=bfdc91fe6baf1951a46c089bbabd7e56643e29626aa41032e2ba2b1781d31aad
+[w1] ok vote-bullish wallet=SPZ1ZZ…VCTT fee=3348 tx=83ae4d1242c14a8217741e11838f93748bb2268ec64497fef23e2017a1f712fe
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-11T22:39:08.458Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bearish wallet=SP2YGZ…1R8R fee=2801 tx=7d8c1a47fcef18c314b30fb2bfb55e09ff42e1649361d82686e3c71b45be9e51
+
+=== final ===
+attempted: 24  ok: 24  fail: 0
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-11T22:41:08.738Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP3QKV…0EVB fee=2786 tx=b4e06f9ce658c3f60fca9492b99de582324447aaf012dd23904c15fb70cadd78
+
+=== final ===
+attempted: 25  ok: 25  fail: 0
+[w1] ok vote-bearish wallet=SP12KG…M1S7 fee=2580 tx=b3209442c1ecc544210ccee3dcd30f2b6d160088320fffb1d4ad1f4b41ca4e1c
+[w1] ok vote-bearish wallet=SPFM41…12SS fee=3003 tx=804bdf24a893d7040579e33e7ac0ffff54ce5fb6b91ff9e3d5f86d85604f8994
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-11T23:13:37.918Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bearish wallet=SP2N1E…1AKM fee=3369 tx=70f36836d1056ab011bbb0a91a9b04c6eb2d35eda5338eefc9667f9bea8c8066
+[w1] ok vote-bearish wallet=SPA96T…0A3A fee=3116 tx=517d31dd38617a17a08e952bf84f18a2a392ec01727a224f8213474952b79bb2
+[w1] ok vote-bearish wallet=SP1BFD…GG1E fee=3072 tx=2469d596b885e530181c9b3688d2616f8ae64f011624eed5ca7df142e3b94fef
+[w1] ok vote-bearish wallet=SP3G0D…XN8P fee=3446 tx=bc85f455508936ec26692a08bdc2b25b1e31ce27474d399750bb59bfe56bee29
+[w1] ok vote-bearish wallet=SP2JQ5…7D67 fee=3401 tx=af82318654f88bd1d3a804a79425bd2e54aa7f701d1e9be242461f8efeb00e95
+[w1] ok vote-bullish wallet=SP362B…7RRF fee=2925 tx=f2ec791b21191837e3906dd5a6e32567303a0a2531c7bb78599e88d42476d599
+
+=== final ===
+attempted: 27  ok: 27  fail: 0
+[w1] ok vote-bearish wallet=SP1DJY…A1BP fee=3278 tx=bf87b1fea0f5ba58ef9c8f3bf99045b744b810b2e0a7f6560a6706662b5cb76b
+[w1] ok vote-bullish wallet=SP3W65…SRY5 fee=3216 tx=22d877791886abed921649cc1c907bb2974735e923d18400f9b2bf14e66a9dc8
+[w1] ok vote-bullish wallet=SP138B…2YJ7 fee=2791 tx=e66a109620ed624c5c4ced09e2725dc686b912e3a9149a2eb7beb5f2a4ff82ef
+[w1] ok vote-bearish wallet=SPA96T…0A3A fee=3293 tx=00142542da96f7df0222eaf74b9741eb87db6b3bc28183f69c690f0e7f243045
+[w1] ok vote-bearish wallet=SP1495…FY4F fee=2736 tx=94a8f714b6f6db5f8979ab0d3bca56365d89babbdc22e362fd23273b71afd1e6
+[w1] ok vote-bearish wallet=SP1MXG…EZHX fee=2588 tx=edcb73ac1be0ce7020d47acd2e6d023321e62ac84034ddd75c5dfc420bb3c524
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-12T01:42:07.755Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP3PX9…W4Q9 fee=3294 tx=f3eb8c92f0da9c98c08ade3697ffbc0d993812e1bd3a0eeeb96fb92afe9a7a4f
+
+=== final ===
+attempted: 39  ok: 39  fail: 0
+[w1] ok vote-bullish wallet=SP3X2H…SNZN fee=3329 tx=41dd2e97472712ea1525bd1bf28541425c240131301592a3bc783a3f490a2e20
+[w1] ok vote-bullish wallet=SPD365…ZQ57 fee=3349 tx=b4943d5b093f306dbfa60a33c7f601be11ac5d35d6ed91ca1f4df99ee88b6756
+[w1] ok vote-bullish wallet=SPYDE8…N174 fee=2903 tx=a8cd69bdac50ccf8dfb010c44dca0f1dcdfa3bf51fad37c3f0da952688a73846
+[w1] ok vote-bullish wallet=SP1DYQ…9CD0 fee=2949 tx=a172c5705a13a69dc1d6de3651e1ce057c268c0606d39741c487ccc45515d1af
+[w1] ok vote-bearish wallet=SPZAV0…J07Q fee=2818 tx=fb37a2dfeb7153cabe28c6b4238f060fb43036f8641fbd15a915abe98e555f46
+[w1] ok vote-bearish wallet=SP3GH8…XQ81 fee=2909 tx=74d86d4d2b79558e4d14d694b6304f064e30f767e663790d16bb44c19a25a506
+[w1] ok vote-bullish wallet=SP1DCT…TCMX fee=2962 tx=736bee301f5a6c665db3e4e25da5aceb44f3861366c20dad805a3e6e689ae13f
+[w1] ok vote-bearish wallet=SP2B0T…W1T4 fee=3409 tx=f10e60f189ad37154024d7c6a8d6bbc3221f29a6daf92744c18607a3cb3a6b03
+[w1] ok vote-bearish wallet=SPFFNW…SP0Z fee=2898 tx=23d645b8040202d58554222cb73c418c170191787073a636571c06c0cfb644b6
+[w1] ok vote-bearish wallet=SP3QKD…7FYE fee=3140 tx=1dd40f177b1be8161654e0f6e983e1a77e16c5b14ade97ba4626390540e8e905
+[w1] ok vote-bearish wallet=SP2BFV…GJ57 fee=2708 tx=48052162c3c350e3b78aaa999232560da18a54041791bf2c5a5c537e8ae8f972
+[w1] ok vote-bearish wallet=SPBMRP…NSB5 fee=3069 tx=41aa15d760d5c7ec58306ec7e75123d4f94a9d50144d9416e60fb79371bfcd0a
+[w1] ok vote-bullish wallet=SP1FTA…8V55 fee=2936 tx=7924c6ea17a45ac726b65b475a2ce30dd1edd910a6ebf5635f12cee2819992a8
+[w1] ok vote-bullish wallet=SP1SWQ…4V7J fee=2676 tx=5ed7a39048343f9e3d2c24db32bc8fe7b535ad40a7526ce4484ee106da6d1425
+[w1] ok vote-bullish wallet=SPWZT0…R6Q2 fee=2805 tx=92a82eeb8d37cad7f03ef976c799d9b7865dfd87d53baae9bbabaac37e5980b7
+[w1] ok vote-bearish wallet=SPF0PV…5APA fee=2589 tx=64460605aaed33b406f91c569cdf393c001ebf94b6f2227bfb6562d2e678fa2c
+[w1] ok vote-bullish wallet=SP122K…9BPP fee=2865 tx=16d03bb8ea864e4140247a0251b94694d970c94547d3ba4636479dda2f16246d
+[w1] ok vote-bearish wallet=SP362B…7RRF fee=2663 tx=7142e241e4f04553b1c044ee7e6bee59cf2b3a2c21acc93a51fead44f7cb57f6
+[w1] ok vote-bullish wallet=SPNFCD…PJCT fee=3297 tx=0d413fdf31a556a250dad402bffbc7859492b808533e0b3ad0b55bc52db9320e
+[w1] ok vote-bullish wallet=SP2YGZ…1R8R fee=3309 tx=5992e08c98e91e69e52563cf357b15446077c398f46cc8dd115f5c5e37c65066
+[w1] ok vote-bullish wallet=SPQT7K…JKX2 fee=2761 tx=720baaa862d6c285de28762f99f8c28c759c89686fec13241302a706a6f2932f
+[w1] ok vote-bullish wallet=SP3NWE…A9WH fee=3358 tx=2211a441b13edc9acf6638f0d95ded67e253fd6bff3623f0bc2f025ef5cee83c
+[w1] ok vote-bearish wallet=SP1DH6…N9GY fee=2767 tx=a6815bb9858bb75753d2373c9a4c900f90fbf1f1be70b63c0489d1194a0016b3
+[w1] ok vote-bearish wallet=SP2X1Z…H128 fee=2615 tx=58d6ab6065eaac5c6b33a2aa9c93a089699be0fa2f0263ce597c4ff05ec1c4dd
+[w1] ok vote-bearish wallet=SP3W6V…V22E fee=3103 tx=fce85b55934a061c4e1c6a9ea32b386d6728b570f4f33cbd0c97a7e396e1e976
+[w1] ok vote-bearish wallet=SP1Z22…4KZZ fee=2973 tx=daa77151685eab35d2ecbfb700f07a0b060607e1c5594d77884bf371593f843a
+[w1] ok vote-bullish wallet=SP2E3C…T29T fee=2926 tx=cb27fd98edce2a529d977beae4d4f89c4f2daed51ffe4ae2e16b9d9a978b2814
+[w1] ok vote-bullish wallet=SP2TB8…YSQQ fee=3435 tx=679294716b4082115be3e66d5537f49cbfbdc6de82f55d59e1d7f931683c8c87
+[w1] ok vote-bearish wallet=SP1PW0…1XCW fee=2903 tx=7f311f1f9eb029f9177c39ea1d7b236a2769b3567a1aa175e391e7c236590f88
+[w1] ok vote-bearish wallet=SP12KG…M1S7 fee=2564 tx=00a608587609ef4cbfc091ca1b174e92d03d43ce5b903a11d6e5926842399e38
+[w1] ok vote-bullish wallet=SP361Q…Q0K0 fee=2764 tx=3cee6899e77b96bc552489e86c9cb75c53647613eebdb18ee4a60d13f74e4303
+[w1] ok vote-bullish wallet=SP2AHD…CXE2 fee=3190 tx=5f1be987eab55ab0ddbc0dcabea85728924a88aacf598afb7fad4a6b72cc9a76
+[w1] ok vote-bullish wallet=SP3FRW…AQQF fee=3202 tx=0decb7bd53e5da1e6ac6bac30f72b9153e7e16f8378dc6c530621fff63f6052d
+[w1] ok vote-bullish wallet=SP2WBV…5B3G fee=2696 tx=1517b9f3b5be082da237c1244d26b8c4dd6b4d4291021f0fc793c4fe6701a5c0
+[w1] ok vote-bullish wallet=SP2RZC…4E5H fee=3010 tx=5dbbc81b2b078f48082b6191bb22acc5de40947b9f4284ef6b793055b4b3cd5a
+[w1] ok vote-bearish wallet=SPN94Q…P91F fee=3080 tx=103723454279dfbd9fab6f7c5097ac9e20b9afbca6341b243e7e3aade74ef77a
+[w1] ok vote-bearish wallet=SPS4P7…PF4A fee=2628 tx=a9a9fa5981dfd8b4f06ab647966705f12485e978b425910566df8044743d124d
+[w1] ok vote-bearish wallet=SP3WG5…SMST fee=3271 tx=7cea387f87fcfc41d8484719ceaf56ecdae400b560aa5f052655c85fb78e2923
+[w1] ok vote-bearish wallet=SP13G8…2N6D fee=3138 tx=d110a7147441f63546cb8cb3bf826407ff96183869318544de5cd846de79d9e1
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-12T09:48:29.854Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP1F6C…5X72 fee=2842 tx=074a948843a28ed581cf076f4f5b4b1dad118919d7f41271975353998360892e
+[w1] ok vote-bullish wallet=SP1Z2C…03XJ fee=2817 tx=fc17424ba8b2f9e86054c20e960d04c6fa8091c3966ed374535a2dfc7d1cd139
+[w1] ok vote-bearish wallet=SP1SVQ…76KZ fee=2667 tx=4a7d3f084d36726ff6ccf07e49a6881ce104a2359128a4f9ae88ceba281b0ca3
+[w1] ok vote-bearish wallet=SP1PXH…QAK9 fee=2642 tx=d4ab1df2b7e5f1a0ce6b9757c18eed501b5a266b81700b3efe07a8821c3f0b81
+[w1] ok vote-bearish wallet=SP1K31…TRRS fee=2935 tx=556a1283d12d1c4c307a97e97c0ba8903858a742e7bb63269a5c8893a4d6d94b
+[w1] ok vote-bullish wallet=SP13EC…8ZH8 fee=3053 tx=e569f61a074cbb436a2b4c892cd351d123881f312ecc0dd74e215a4d2d89f603
+[w1] ok vote-bullish wallet=SP254N…734Y fee=2849 tx=5e1b90157c846bf01b2cd49958885756b34edf26d0aa565f5348979a1f9fba9a
+[w1] ok vote-bearish wallet=SP34BK…K456 fee=3159 tx=227b6f54984c4524c541406afaf1e649e64bb57f608e63df893c1cec24b8e45b
+[w1] ok vote-bullish wallet=SP37M6…5TYB fee=2861 tx=46e8b8cd55d2a9437eb08bd27521959387c3e99e7faa5076376038a7fba2521e
+[w1] ok vote-bullish wallet=SPWM9C…ZWT5 fee=2900 tx=8cfb290fd7964c36a24b8692558b2849e802132ccd563b43a7901e7fcb7b224f
+[w1] ok vote-bullish wallet=SP3W6V…V22E fee=3233 tx=313aadbd1114c8bfebeab28ea3a5414f8dbff791760df861cc16248f8fde2246
+[w1] ok vote-bullish wallet=SPNFCD…PJCT fee=3269 tx=a0f6fc9c3cfd692ddb56b3daf6397d96a00661555368abc8d15860f86337849c
+[w1] ok vote-bearish wallet=SP15M9…8RK4 fee=3261 tx=441c29ddecccef291855c3e463bd5ae8866c5c93c0eba7eb5ab1e3b8913a1b09
+[w1] ok vote-bullish wallet=SP3X2H…SNZN fee=3162 tx=317f6f7244aa1d6416893639ae59239189442d91fb7620ff95a1f7079509b93b
+[w1] ok vote-bullish wallet=SP17EG…8HT0 fee=2783 tx=b1aceec3d8455f174999fee4f073514268a8371907753fbd3dbd95209c1e8739
+[w1] ok vote-bearish wallet=SP1Q3E…Q3EK fee=3428 tx=6994df7a35889dca8e609c8c160f0ea8735734dbb8a3c0ece2b56c81769b81d7
+[w1] ok vote-bearish wallet=SP362B…7RRF fee=2573 tx=5b272a9d2ae60683478b0f0b07417432f9b6dec567e7a246d216bcb46084ed3c
+[w1] ok vote-bullish wallet=SP1KEF…AAER fee=3077 tx=4228494f7a0ba0499bb1e145bd39b3200b96aad704bc03b887fc3f335111115e
+[w1] ok vote-bullish wallet=SP29JH…WBCH fee=3065 tx=5bc2ed7d61dce8ceb1d4acf6914d1dc3a5ff1c32f7cc5ca6db8aef540513c1b5
+[w1] ok vote-bullish wallet=SPMF12…QVQ1 fee=2970 tx=121cf71ed094971768d7c55113674cd74a6fab2613e9abb9bbb397fa62504e14
+[w1] ok vote-bearish wallet=SP784M…FQNR fee=2557 tx=92911383e93cd69f1e424fab8d4f561fd440d2be6e4fab90209e4aef8fcdd6da
+[w1] ok vote-bullish wallet=SP2Q0R…1BKM fee=3359 tx=1233714c214aca0cf1ec8828e7294f4c901355d9dae87d77f33ac19ffed01029
+[w1] ok vote-bullish wallet=SP31BP…Q7T6 fee=3150 tx=52d27f8deba35f1e0e7e023ac239a2eddc7efd3c1bfc106a2a1725ec55218eee
+[w1] ok vote-bearish wallet=SP2Z8J…S1EB fee=3391 tx=7455e24ecb2015f5482e29a7e8b8f1967586e2e2ea3ca118044f277b1fa56e92
+[w1] ok vote-bullish wallet=SP3ZGX…AR27 fee=3113 tx=c3a1b7964cc48b0bf610db71a6b700206301373c041fea74d8b851755a6d359d
+[w1] ok vote-bearish wallet=SPFMKA…HBVN fee=2613 tx=1bfb12f947b9d7669c76c74a1d855c0d67726064be269e30798174135b794a9b
+[w1] ok vote-bullish wallet=SPV422…Y7VW fee=3420 tx=9b9d6e3ca8a6e05383a45dd14a81fe9ce214f7d1ad4d94ff028de5fe9a177352
+[w1] ok vote-bearish wallet=SPT1F7…5DTG fee=3102 tx=eddacf2449e29120796c406b90ed6e1af6484144274b628027f3a611925db3e1
+[w1] ok vote-bearish wallet=SP1GMR…CED4 fee=2796 tx=0192256023e737f017df7d383ce812a38540f682dbd6385263e9eef39acf698b
+[w1] ok vote-bullish wallet=SP2504…WEQM fee=3106 tx=3ecefa96ac83d508e7d162cb690e5f3d7bfb4575b18345323cce44365f3dbc29
+[w1] ok vote-bearish wallet=SP1VEW…DKCS fee=3119 tx=71b9e2dcaf087bd38436b4a0be5eeaafe1c1a3652d7fc83ab7d28e57e965cc76
+[w1] fail vote-bearish wallet=SPV422…Y7VW err=fetch failed
+[w1] ok vote-bearish wallet=SPMF12…QVQ1 fee=3328 tx=6c6035e2632e00d3fb89809ab8fab56f6819f5595c74d944e186639858c95b2b
+[w1] ok vote-bullish wallet=SP2KVK…NJQ5 fee=3389 tx=2ab8f916fa33d1985b2f16230d5163190747c6b5f21dace76946375b993b6a29
+[w1] ok vote-bearish wallet=SP2WBV…5B3G fee=3437 tx=5390f8ea35b98b74329f46ada62d2e703adba7d95ecd77ad94b1fcb46ce5dc70
+[w1] ok vote-bullish wallet=SP3NG5…6D0V fee=2708 tx=4a00635b6c9c14b90cd2e99d57475c4cbf93f4e9e0aba15dae368f289798866a
+[w1] ok vote-bearish wallet=SPQT7K…JKX2 fee=3296 tx=2d0aeeeb7568bfeda0ed13d6a664a858ddac573b556e6f82a79bd945b961d9dd
+[w1] ok vote-bullish wallet=SP3A5S…G9BV fee=3411 tx=2e21ca111db4902ecf4c16c0347c807b4d0122b9cfd18661a6c9822a048243f8
+[w1] ok vote-bullish wallet=SP784M…FQNR fee=2948 tx=4c99ae0a642b16bb99f53957ebf6fa8a1ed2c9c6de605072266489865d726b7b
+[w1] ok vote-bullish wallet=SP3ZNW…AZVJ fee=2756 tx=23fcc859be9a163fb314eeac15c7febf9f87a1b1ec118aac8e937f27f7ed4062
+
+[shutdown] SIGINT - draining...
+
+=== final ===
+attempted: 119  ok: 118  fail: 1
+
+=== friend-farmer 2026-05-12T14:35:54.502Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP3ZNW…AZVJ fee=3419 tx=baa4ff8a33bf9c093eddabc86fd9d5ae19c6115cc1bd1c64bec8706d584b2d82
+[w1] ok vote-bullish wallet=SP1BFD…GG1E fee=3212 tx=cdabab19ecdeaabfdeccb520906053b4d3e1ef9aa3003288992b64d1b66f271c
+[w1] ok vote-bullish wallet=SP1PW0…1XCW fee=2761 tx=7ba639fad9caf6155c81d967075aced3356ce8b71da9c15e00104b89a0facc95
+[w1] ok vote-bullish wallet=SP1SWQ…Z5TK fee=3094 tx=14e68a1806a161b4272f066ca2d1de1bf6533185fc249e90534ed838f4c11ece
+[w1] ok vote-bearish wallet=SPK8RR…9PN9 fee=2553 tx=e6067d4a64fdbeaa13d79e20bf8fd8910cb301cfe2b88a5100a9b01c5c41e34d
+[w1] ok vote-bullish wallet=SP0AP1…JJRG fee=2969 tx=09f5b42ae5d748f7cd53374b671f682e22927d653b90aaa454e00663ec285334
+[w1] ok vote-bullish wallet=SPHER5…3KWW fee=3292 tx=ca824fc4d3cdf4603b856bb596b4c07e583a9a6d669d399da09a05f5af0b5bb3
+[w1] ok vote-bearish wallet=SPE0Q0…TR4W fee=2596 tx=798b9d3a8ab875f2dc83ff41f1bdc70e24a554a80af227eb36d5ebc8f6c2c412
+[w1] ok vote-bullish wallet=SP1FAF…93K6 fee=2583 tx=d02b3c73cdbd9c34df2fb2a554a030c6a1bb3715d71fc0794068e85f83045eb4
+[w1] ok vote-bullish wallet=SP31BP…Q7T6 fee=3359 tx=abf40658e3c0f925e9b5892de5d15c563cf41e25af040b4817e81424ab5815b0
+[w1] ok vote-bullish wallet=SP1VGH…KQ0D fee=2846 tx=0d8204365bc5263e8c95394f04815c80310650dd68943aaf36db10af843ccfe5
+[w1] ok vote-bullish wallet=SP3W6V…V22E fee=2707 tx=20aa4d1407d304ce2c1cd8ab536d84b5dbfe9ff02d3e0eb847b3766cbbe2e172
+[w1] ok vote-bullish wallet=SP3QRQ…3YGS fee=2550 tx=efed28ec105a6b758401045f1f0800fdf711bdebd93c14acb6c8fc71eea6a3b3
+[w1] ok vote-bullish wallet=SP2RZC…4E5H fee=3389 tx=2379e2ae6ec00745868b117a12cf4d01a266df15128bff2f8b7d2683ba33b408
+[w1] fail vote-bullish wallet=SP1SWQ…Z5TK err=fetch failed
+[w1] ok vote-bullish wallet=SPB303…HQN4 fee=3165 tx=232d160b8e8feb803e0da9772a480b0d446f77b77d4000694283e4c9b9cc9cc2
+[w1] ok vote-bearish wallet=SP2T3N…A4GH fee=3306 tx=b78dcac7d6426890bc2e3555ad75f3e306effd0c6c63fa871c11064f8681db54
+[w1] ok vote-bearish wallet=SP2G2M…FC1B fee=2928 tx=9a2cb51d60c8e4a1fe9ae0799addcad79f228108c2f08d23488718b63ade5e99
+[w1] ok vote-bearish wallet=SP1G1T…YM18 fee=3117 tx=1503f27cc9a401340cab7bb302ed2bb3109a3ed2a336e289067d2b9b07dfe987
+[w1] ok vote-bullish wallet=SPD27T…3ZY6 fee=3093 tx=3ac09691ead09b88c96673abd1f34a5be91afec923d20b5e03b4ebaad8c86875
+[w1] ok vote-bullish wallet=SP1VGE…K8SM fee=2868 tx=53659afb8b9e29a29bfdf69812f3d11f155269d9ada0294ce12c3dc582898195
+[w1] fail vote-bullish wallet=SP2RZC…4E5H err=fetch failed
+[w1] ok vote-bearish wallet=SP1PXH…QAK9 fee=2729 tx=c0100631f7dacf335590235d45485425856cb8c3b24142360df3e326ce54a1db
+
+=== friend-farmer 2026-05-12T17:26:03.675Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP15M9…8RK4 fee=3355 tx=d4dd3a8718a62ca1f3568326af338688f4b11124d4dc3ba5154b1d5ea802474f
+[w1] ok vote-bullish wallet=SPRY2C…JFNP fee=2853 tx=e4b7376a25085ee9b5073603c85f5ee7758489e18d86936bf652704b1ab00c62
+[w1] ok vote-bullish wallet=SPHMJ7…DJN6 fee=3290 tx=b46670f5ea75e20d673e43a2cf86e9783f56e6ebea6f710e9cdac8c638ebef93
+[w1] ok vote-bearish wallet=SP3Z52…G55F fee=3285 tx=eaffd17b4825c7f6c56984957e2c7f82ccd312cc0c2fbfc5448101bc41ad1675
+[w1] ok vote-bearish wallet=SP3JFG…ATHY fee=2726 tx=2566c7f65c960e0c1ed48ffdb24c1bb0a184ba4755a395913652c4198f8290f8
+[w1] ok vote-bearish wallet=SP37M6…5TYB fee=3199 tx=94a388f8b6acbcce7774f401e53ff87a5e377598087bca4ebda7300bad55f87f
+[w1] ok vote-bearish wallet=SP13EC…8ZH8 fee=2775 tx=75a47d04db79070ed46ead6147e050cb625aa41676f02e060449f24e88f77e23
+[w1] ok vote-bearish wallet=SP3X2H…SNZN fee=3331 tx=d3894b36ff8b2409fc3a236c75bd77d9105cb7f92e63498e684574666773fe61
+[w1] ok vote-bearish wallet=SP3EDZ…MSV5 fee=2784 tx=a5a4bc865d2285d6fcd3d661fd846015191b51196bbf526a06533147e6c54745
+[w1] ok vote-bullish wallet=SP2T3N…A4GH fee=2847 tx=492d5fef72a96fe9107f8badfaea02058f8233795f6801e030df26ba9947b657
+[w1] ok vote-bullish wallet=SP2JQ5…7D67 fee=3246 tx=53bd7ad70e630b5bbfe8a4f73de71741f67d8ffb027680ef1309c01785fcbcc4
+[w1] ok vote-bullish wallet=SPZ1ZZ…VCTT fee=2807 tx=846956e8a7736e38db6e533b24c5dec305b1536d90774b4bf5ae75ab3d357cdd
+[w1] ok vote-bearish wallet=SPE0Q0…TR4W fee=3342 tx=24550907a94adb33e5dd7d0cccd184c9148567b48c0beaed5f14addab5059df2
+[w1] ok vote-bullish wallet=SP2N4D…0CM5 fee=2993 tx=76e5222fe4d59d1aa08a2706f2762de66d48acaf8e39237d4050a3950c5b6fae
+[w1] ok vote-bearish wallet=SPV422…Y7VW fee=3106 tx=49e6b53ea0fec787623554e624d067c7e082945b7527e71c5b845c0eca2ae207
+[w1] ok vote-bullish wallet=SP3RPJ…V5BY fee=3213 tx=965fde7bee5f0be8442544546c259b4a38e9f8325265431c559933e61353e007
+[w1] ok vote-bearish wallet=SP3HR5…2S0C fee=3284 tx=5554bc4fcfaa1b91ac7a54ba13b6d8963ea51fe7f67a2ef6214d8a199d8e4901
+[w1] ok vote-bearish wallet=SP3NWE…A9WH fee=2863 tx=d54f0c0087e5e30be02b8d5e1803cbe485e67bd8bdb52ee4c52b7f1970376679
+[w1] ok vote-bullish wallet=SP8AWE…2CDQ fee=2555 tx=a94704a6be97ed427de83395af43c5468f61f710a5118fb0b06ed9f4b03763cb
+
+[shutdown] SIGINT - draining...
+
+=== final ===
+attempted: 161  ok: 158  fail: 3
+
+=== friend-farmer 2026-05-12T20:40:32.959Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SPNFCD…PJCT fee=3115 tx=a0bb533c65b980d09d8fa562b0213d48116105c65f2804ec8df02167eb86e706
+[w1] ok vote-bullish wallet=SP2HS5…SQ94 fee=2714 tx=0484d43344a94291a80521f416e00f1f6f0b3d6083aa9005dceb558f18f0452a
+[w1] ok vote-bullish wallet=SPK8RR…9PN9 fee=2641 tx=5a1356c644715b5841a36209625a66438e1fb6433dada004b275eff24ecf508e
+[w1] ok vote-bearish wallet=SP1XSD…HWGJ fee=3298 tx=79cef34a9c8de653d9201842f8d7eb83a9ef226195973ed8172b0a7ca859c482
+[w1] ok vote-bearish wallet=SP361Q…Q0K0 fee=3405 tx=834423efaa98aef944f3e8014b3c420f53312c674de16a63df490eae70b69582
+[w1] ok vote-bearish wallet=SP2B0T…W1T4 fee=3172 tx=1b285d05a4d88c9b0a14c7e152dbd6834ee8f2612f52483bb3f4322e8f5beeb1
+[w1] ok vote-bearish wallet=SP28FC…GN7T fee=3096 tx=6acdad6968620a8dffc89a073d6f8bd4b3b65a817cff720f2cd7bc09efbb2925
+[w1] ok vote-bullish wallet=SPYDE8…N174 fee=3257 tx=8fce21f47e29468f07b341e25e6518132611cd7a08c230eed490fb808b7f9fbe
+[w1] ok vote-bearish wallet=SP482K…A43J fee=3317 tx=540af0c6bdd8ccfc7b2147c88051e35caf525c3c3fe094672d429517bd38a7e9
+[w1] ok vote-bearish wallet=SP2N1E…1AKM fee=3222 tx=d8c2f92811cb867e1e2d38df6ebb7ff05efd0d45915fb7444a731537368920c5
+[w1] ok vote-bullish wallet=SP138B…2YJ7 fee=2706 tx=c0a976d3e8e06050b7151a706e4d13f8ffc7fbe298b5d762143242c9fa1a3b48
+[w1] ok vote-bullish wallet=SP3V64…79KH fee=3238 tx=53dccb4e0a15791d2030fd8c4033b37c3ac61280a9fb9c2d83359ff12c4dbb0c
+[w1] ok vote-bullish wallet=SP1P9C…YQE3 fee=3282 tx=c67d0702b3fa6eb6d97346bce5dc4d70ab2c1fb26ebf3259527d8ff9cbd24530
+[w1] ok vote-bearish wallet=SP3TF2…0NBM fee=2859 tx=e611f0971d9b3daaf4f5c1675381b25265836b8ccfe07bbd094617e68226c026
+[w1] ok vote-bearish wallet=SP3W6V…V22E fee=3408 tx=bc95deec1f7b0f319b48957d1b654bfb29b00cc699c552e6e0353ec8b7096945
+[w1] ok vote-bullish wallet=SP1VC4…ZY21 fee=3021 tx=5b60f21d79672ae5be4e2581a3f1c617b08976c6f633a4da34796b755e0cf571
+[w1] ok vote-bullish wallet=SP1BFD…GG1E fee=3241 tx=b57a2b1e6a87f2842a593a596d617a779c104ae1981d0d5455dc459a50b4f396
+[w1] ok vote-bullish wallet=SP3V64…79KH fee=3108 tx=de32a0e3fa778ef8a9fdd875bbf30c28b738b94797a71196dd6ccb1fe85a8237
+[w1] ok vote-bearish wallet=SP28TR…5ZJ4 fee=3021 tx=12710bb0e356d3d7b7aa4da25488edf6f958ebef404b4ffadf79be5b5a684f72
+[w1] ok vote-bearish wallet=SP2T3N…A4GH fee=2997 tx=64acf9bc249d618446f8be8d86e1c2022cd3638bd5693d86add7c54af33c89cd
+[w1] ok vote-bearish wallet=SP3A59…M4ZB fee=3324 tx=59bbbd67bb7185713cfa5f0599f45c4c5c708289224bf7c877b378e20c2d92e5
+[w1] ok vote-bearish wallet=SPQCKE…9J1D fee=3421 tx=0aea7106239bc7f270b33f750baf2ab1cc67f708e449bb4ee55ec1c44e2bb18c
+[w1] ok vote-bullish wallet=SPBQNK…8YCX fee=2736 tx=b047f8b8ce5d74bc0287f401dee7c610e18778b5d64379ea8ae309e0d954aa0a
+[w1] ok vote-bullish wallet=SP9TQ2…D9S3 fee=2984 tx=843f4747db04ee6908bc80016399af400d2bf457fdb1afc4114b52d40e071ac3
+[w1] ok vote-bearish wallet=SPB303…HQN4 fee=3311 tx=cfc56a9ad5e274e6841d5efe935cbac3c746f3a5326b198a77c9826b8cbd22dc
+[w1] ok vote-bearish wallet=SP1VGE…K8SM fee=3239 tx=526eadfb3cf0406d59a14ce0e3f3c1ae969c52c24e3cc17149c60cf6f2dc1ff6
+[w1] ok vote-bearish wallet=SP2N4D…0CM5 fee=2581 tx=2940d42124678955d8086f3fe3126aa9b52f1e0be87a6aa1462934c0eb9626d4
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-13T10:15:06.048Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+loaded 200 wallets from divine-keys.csv
+[w1] ok vote-bullish wallet=SP3ZNW…AZVJ fee=3259 tx=57f65d61c801e34cc539d60d2e01760f4270e7c1796c075bc43b04b730ec249e
+[w1] ok vote-bearish wallet=SP3GH8…XQ81 fee=2636 tx=bfcd4540874f560fe5772a394acfcf5f7379ffe1606a208a0c2859f7ed93fdeb
+[w1] ok vote-bearish wallet=SPVTMJ…PSWP fee=3109 tx=b38e8447a83ccfedc036d845cabd2213824ed180b9d3476b6279af9eabb1786c
+[w1] ok vote-bullish wallet=SP1SY6…QX9A fee=3330 tx=03fc87c687f8c27b9e593bcf3cf279d11587facb1a4f593a9b29536b6e5ec613
+[w1] ok vote-bullish wallet=SPBMRP…NSB5 fee=2911 tx=94d044825f80a8743e0e960bf28b7446a5b7971f0ab963d036b498ae39c437e2
+[w1] ok vote-bearish wallet=SP1A6Q…Q3ZD fee=2677 tx=13f975c88d7fad663a50e339fa2befffdc41f1ec512efdfb36bca01cad388067
+[w1] ok vote-bullish wallet=SP3QKD…7FYE fee=2735 tx=60b5e41bea6190da2b62a2f154f38611847746f8a6fedea1e58e3f271d682a69
+[w1] ok vote-bearish wallet=SP1NRP…F8SW fee=2805 tx=92f79b5668e7f1ff070b982d19b546fffbb19823caf5bdd4545e24e9196a0e78
+[w1] ok vote-bullish wallet=SPHMJ7…DJN6 fee=3331 tx=34ab5e9d113cdec7e5dfc2af2afd838bc338bc09a6fad9a7ced4f1f22b0eeeda
+[w1] ok vote-bearish wallet=SP1SVQ…76KZ fee=2581 tx=7a9fded764595b4c55144a8bbda24bd86dd88d321e138f53174126e41042cf8a
+[w1] ok vote-bearish wallet=SP2504…WEQM fee=2802 tx=c082b274e1a9be1cb452b4f52579b8546ddaa1c2f083ae7846e334eb33bcf193
+[w1] ok vote-bearish wallet=SP1Z2C…03XJ fee=2790 tx=4373cc29285f47bf7c0d896af3ae0091d08323b6f5cbe5e0a2a374209d2a399d
+[w1] ok vote-bullish wallet=SP13G8…2N6D fee=2781 tx=3c272805caf0a7f92ce92b1a8835a58c427333872378f43230ddee208b798ae1
+[w1] ok vote-bearish wallet=SPE0Q0…TR4W fee=2628 tx=8dbe546c0b0b1281f3e22c3ed152db8662b96e5d800e1548dd7aa16193ec14dd
+[w1] ok vote-bullish wallet=SP3PCC…N4HH fee=3394 tx=0951d6863da5f6de29e0d1dabd93eb9b19476f2d5dc34c3fe7525ce51853cabb
+[w1] ok vote-bearish wallet=SP1A6Q…Q3ZD fee=3140 tx=e9b6b0dc1c3cc91806b4a6706430e4b4583c3002eb116d27011c2e9b5aa79ad0
+[w1] ok vote-bearish wallet=SP1YET…WH7K fee=3449 tx=9eb830129cfe338de0bdb8b5ea4c30eacb5072f0bb71f69a025c3e3977cf9d81
+[w1] ok vote-bullish wallet=SP3EHJ…VTJF fee=2692 tx=6e28853e7f8ec7f922f469b5fd5bcaeafdbcf7f6225dbb178b92e71b44306ef2
+[w1] ok vote-bullish wallet=SP3PCC…N4HH fee=3208 tx=791c7c80fffdc2f6e2c9116b43c061fd549a04ea885b1d516e8b3a75c950caa3
+[w1] ok vote-bearish wallet=SPD365…ZQ57 fee=3016 tx=4fdc00909f38fabca4c60102fb548c5ff9db39667223fa8f1a552b19f5d4cadd
+[w1] ok vote-bearish wallet=SP2WD2…349M fee=2911 tx=a63c80bbc82cd281545d555561b2de1db28147d7063592107408af89055b7e97
+[w1] ok vote-bearish wallet=SP8AWE…2CDQ fee=3155 tx=06b6e102f013e50baa8022502fa70cb52ff3d399c8c126f36ad4f393fbd1d6b6
+[w1] ok vote-bearish wallet=SP7C4V…D693 fee=3205 tx=e21188873a9373e6440ad65e09fff20d4f0681ffc2569cc0043da41975a2c3d2
+[w1] ok vote-bearish wallet=SP1KEF…AAER fee=2879 tx=7cc9f92a8da7145bf2a775d07df05793913572eb1c41c4618db06121b46131ed
+[w1] ok vote-bearish wallet=SP1SWQ…4V7J fee=3299 tx=14fea5287a3a0dcf0ccfad018c22be6547f0534b442c2e7cc02fda2da7537b25
+[w1] ok vote-bearish wallet=SPVQ62…SZDV fee=2966 tx=8a24d7c76f24414d894a4d5ff8593522a09a1e9373cd11b461522ac85d76d9d8
+[w1] ok vote-bearish wallet=SP254N…734Y fee=3015 tx=d561e4b531416e6f5239ff8b6975c70901883363ab2aad500e85f56b6527a6ea
+[w1] ok vote-bullish wallet=SP2G2M…FC1B fee=3359 tx=e585a021294435b6a8204f105ec842293f84b8fec2c77de54e8f3bf0c62fed78
+[w1] ok vote-bullish wallet=SP1F6C…5X72 fee=3040 tx=2063084505de8bad2c9b16c3c1812fcd2db40704ed09ffe1c30023b15885ab6b
+[w1] ok vote-bullish wallet=SPNFCD…PJCT fee=2851 tx=069d6608eb1e33fe23f0e2c366e0b7dcbbd57ff2f55e781dd25599568f776a59
+[w1] ok vote-bullish wallet=SPFMKA…HBVN fee=3107 tx=f7b41d47de462275c04938e93c16ee38f6a2819aa45219560a09d0123c330f6d
+[w1] ok vote-bearish wallet=SP1VGH…KQ0D fee=2843 tx=dd2964cd98fcd3ab08b5a2263229495ec9a5877c49e687c225628367e14137e0
+[w1] ok vote-bullish wallet=SP2A6G…FDXN fee=2801 tx=7e1ec3ca3d4bb1f95b665df2f16c2057a3f424e5f21313b59ab6205943f9cd09
+[w1] ok vote-bullish wallet=SP3HR5…2S0C fee=3373 tx=1f17dd0cd767a3ef4b443eddefe6096bd328e64ee7c162b74d09c8cbe0e71ec0
+[w1] ok vote-bullish wallet=SP2YGZ…1R8R fee=3048 tx=ffefe5d66bb0067519458e19514365efecae8168d16cabf14029fcafe9e34e3b
+[w1] ok vote-bearish wallet=SP3KTQ…W399 fee=3436 tx=e21067436d2ee48dcd827cfa9fcfa6b98be85809401a16e2d1850540131aca5c
+[w1] fail vote-bullish wallet=SP2G2M…FC1B err=fetch failed
+[w1] ok vote-bullish wallet=SP3EDZ…MSV5 fee=3326 tx=ac7faf11d9a5743493fdf8629ca5ebe9404fdce3964d00792748642086cb5f4b
+[w1] ok vote-bearish wallet=SPFMKA…HBVN fee=3359 tx=adb20c87fbd71c0ad64a0a9e44a90b27dbdde9612c8e2237d3c4eab95da525eb
+[w1] ok vote-bearish wallet=SP7C4V…D693 fee=3167 tx=6e5081a29a612b9512f543e1e6143cb42830dafc9ec6c904823d6a4930b681d3
+[w1] ok vote-bearish wallet=SP1P9C…YQE3 fee=2596 tx=b0bfbc2b6a85fe77eecab310e90cad01d638a50a14fa1ed3667dccadfb4fe355
+[w1] ok vote-bearish wallet=SP1DJY…A1BP fee=2897 tx=6dbdcfe9452c76e294f17a9e4f59f5b1ef34f338767ab8689dc90a6df086a272
+[w1] fail vote-bullish wallet=SP1SY6…QX9A err=broadcast 503: upstream connect error or disconnect/reset before headers. reset reason: connection timeout
+[w1] ok vote-bearish wallet=SP2G2M…FC1B fee=2957 tx=6ae65eff0705517ca4c5443210a463a3284a5ca19b535d4f5ab7373c1f71615f
+[w1] ok vote-bullish wallet=SP32JS…712X fee=2800 tx=0b23965213d97f84360e4b05b2a280363d6de5dbf0d49a964e75174d02b5519e
+[w1] ok vote-bearish wallet=SPQSVJ…H05B fee=3364 tx=91ecb1f76d8a1f0586d674adb779824b8c500e11180298f81c4199e275f07b97
+[w1] ok vote-bearish wallet=SP15BP…PFVS fee=2881 tx=689015fbbbc101b74fb1480943e4b57af4383ab61781f35ef013a488d0165e64
+[w1] ok vote-bullish wallet=SP3RPJ…V5BY fee=2974 tx=37690dd82db05fa4a9076ecde9b5d0cf5b292d4c054b44bd36682079b9c478b5
+[w1] ok vote-bearish wallet=SP1SWQ…4V7J fee=2691 tx=286dba2c46da160bcd6086e4c62a6d30409b2ba33dd025a240869f80a8312478
+[w1] ok vote-bearish wallet=SP2WY0…NS8H fee=2730 tx=0f1183c4bb550d7de93844bf12078867742b108a1585faea91d6cdeb03acc7fd
+[w1] ok vote-bearish wallet=SP2504…WEQM fee=2564 tx=2ece807bd9ab3c9cb3e6854408183bbe14a142cec7bba017d8a0cb94ab025735
+[w1] ok vote-bearish wallet=SPQT7K…JKX2 fee=3248 tx=9e862747eccb7412256020a22ae9f16bc88b16ff4e96a3513b2ddb7bd88efa24
+[w1] ok vote-bullish wallet=SP3NG5…6D0V fee=3285 tx=bc8cd51042367109019f68852c09acb5c5783f16ff5cd37aa09667453e51755f
+[w1] ok vote-bearish wallet=SP1M4E…D8Q1 fee=2601 tx=2fdbb007c2f449bfd078971d16c9789369f01316231b7bb830c9aa787b00bc2a
+[w1] ok vote-bearish wallet=SP38PW…JC7S fee=2576 tx=824ae63ca411a642e732cffed89dcd6b13a6b0a1cb2e76e25d5fd867cae8bfd7
+
+[shutdown] SIGINT - draining...
+
+=== friend-farmer 2026-05-13T13:41:50.375Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+[fatal] ENOENT: no such file or directory, open 'C:\Users\DELL\Desktop\stacksense\divine-keys.csv'
+
+=== friend-farmer 2026-05-13T15:22:33.415Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+[fatal] ENOENT: no such file or directory, open 'C:\Users\DELL\Desktop\stacksense\divine-keys.csv'
+
+=== friend-farmer 2026-05-13T15:25:00.824Z ===
+api=https://api.mainnet.hiro.so  contract=SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips
+[fatal] ENOENT: no such file or directory, open 'C:\Users\DELL\Desktop\stacksense\divine-keys.csv'

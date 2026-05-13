@@ -1,0 +1,648 @@
+{
+  "startedAt": "2026-05-11T22:32:30.280Z",
+  "walletsState": {
+    "0": {
+      "lastVoteTs": 1778607860784,
+      "votesCast": 2
+    },
+    "1": {
+      "lastVoteTs": 1778558330078,
+      "votesCast": 1
+    },
+    "3": {
+      "lastVoteTs": 1778671746131,
+      "votesCast": 3
+    },
+    "4": {
+      "lastVoteTs": 1778619642859,
+      "votesCast": 1
+    },
+    "5": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "6": {
+      "lastVoteTs": 1778670640537,
+      "votesCast": 3
+    },
+    "8": {
+      "lastVoteTs": 1778558408740,
+      "votesCast": 1
+    },
+    "10": {
+      "lastVoteTs": 1778603665899,
+      "votesCast": 2
+    },
+    "11": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "12": {
+      "lastVoteTs": 1778619153050,
+      "votesCast": 2
+    },
+    "13": {
+      "lastVoteTs": 1778565129301,
+      "votesCast": 1
+    },
+    "14": {
+      "lastVoteTs": 1778600430865,
+      "votesCast": 2
+    },
+    "15": {
+      "lastVoteTs": 1778671893184,
+      "votesCast": 2
+    },
+    "16": {
+      "lastVoteTs": 1778669854270,
+      "votesCast": 2
+    },
+    "17": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "19": {
+      "lastVoteTs": 1778598380711,
+      "votesCast": 1
+    },
+    "20": {
+      "lastVoteTs": 1778618513905,
+      "votesCast": 1
+    },
+    "21": {
+      "lastVoteTs": 1778582360422,
+      "votesCast": 2
+    },
+    "24": {
+      "lastVoteTs": 1778671037598,
+      "votesCast": 2
+    },
+    "26": {
+      "lastVoteTs": 1778551063748,
+      "votesCast": 1
+    },
+    "27": {
+      "lastVoteTs": 1778538810840,
+      "votesCast": 1
+    },
+    "29": {
+      "lastVoteTs": 1778579627228,
+      "votesCast": 1
+    },
+    "30": {
+      "lastVoteTs": 1778670973153,
+      "votesCast": 3
+    },
+    "31": {
+      "lastVoteTs": 1778668142854,
+      "votesCast": 3
+    },
+    "32": {
+      "lastVoteTs": 1778582187256,
+      "votesCast": 3
+    },
+    "33": {
+      "lastVoteTs": 1778671579489,
+      "votesCast": 3
+    },
+    "34": {
+      "lastVoteTs": 1778667307683,
+      "votesCast": 3
+    },
+    "35": {
+      "lastVoteTs": 1778581055551,
+      "votesCast": 1
+    },
+    "36": {
+      "lastVoteTs": 1778618916415,
+      "votesCast": 1
+    },
+    "38": {
+      "lastVoteTs": 1778669525770,
+      "votesCast": 4
+    },
+    "40": {
+      "lastVoteTs": 1778550066976,
+      "votesCast": 1
+    },
+    "41": {
+      "lastVoteTs": 1778618578016,
+      "votesCast": 2
+    },
+    "42": {
+      "lastVoteTs": 1778608092843,
+      "votesCast": 2
+    },
+    "43": {
+      "lastVoteTs": 1778667460098,
+      "votesCast": 1
+    },
+    "44": {
+      "lastVoteTs": 1778580905582,
+      "votesCast": 1
+    },
+    "45": {
+      "lastVoteTs": 1778671350268,
+      "votesCast": 1
+    },
+    "46": {
+      "lastVoteTs": 1778598556523,
+      "votesCast": 1
+    },
+    "47": {
+      "lastVoteTs": 1778667901218,
+      "votesCast": 2
+    },
+    "48": {
+      "lastVoteTs": 1778620149210,
+      "votesCast": 2
+    },
+    "49": {
+      "lastVoteTs": 1778669927678,
+      "votesCast": 2
+    },
+    "50": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "51": {
+      "lastVoteTs": 1778564743183,
+      "votesCast": 2
+    },
+    "52": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "54": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "56": {
+      "lastVoteTs": 1778551222141,
+      "votesCast": 1
+    },
+    "57": {
+      "lastVoteTs": 1778667831155,
+      "votesCast": 1
+    },
+    "58": {
+      "lastVoteTs": 1778620236795,
+      "votesCast": 1
+    },
+    "59": {
+      "lastVoteTs": 1778606845297,
+      "votesCast": 1
+    },
+    "61": {
+      "lastVoteTs": 1778671491757,
+      "votesCast": 2
+    },
+    "62": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "63": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "64": {
+      "lastVoteTs": 1778670890712,
+      "votesCast": 2
+    },
+    "65": {
+      "lastVoteTs": 1778539270177,
+      "votesCast": 1
+    },
+    "66": {
+      "lastVoteTs": 1778618756955,
+      "votesCast": 2
+    },
+    "67": {
+      "lastVoteTs": 1778579855212,
+      "votesCast": 1
+    },
+    "70": {
+      "lastVoteTs": 1778671659965,
+      "votesCast": 1
+    },
+    "71": {
+      "lastVoteTs": 1778667523692,
+      "votesCast": 1
+    },
+    "72": {
+      "lastVoteTs": 1778565044879,
+      "votesCast": 1
+    },
+    "73": {
+      "lastVoteTs": 1778550427745,
+      "votesCast": 1
+    },
+    "74": {
+      "lastVoteTs": 1778619471694,
+      "votesCast": 1
+    },
+    "75": {
+      "lastVoteTs": 1778618998152,
+      "votesCast": 2
+    },
+    "76": {
+      "lastVoteTs": 1778668813834,
+      "votesCast": 1
+    },
+    "77": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "78": {
+      "lastVoteTs": 1778565519341,
+      "votesCast": 1
+    },
+    "80": {
+      "lastVoteTs": 1778580007436,
+      "votesCast": 1
+    },
+    "81": {
+      "lastVoteTs": 1778619741208,
+      "votesCast": 3
+    },
+    "82": {
+      "lastVoteTs": 1778538820200,
+      "votesCast": 1
+    },
+    "83": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "84": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "85": {
+      "lastVoteTs": 1778619824116,
+      "votesCast": 3
+    },
+    "87": {
+      "lastVoteTs": 1778620059123,
+      "votesCast": 1
+    },
+    "89": {
+      "lastVoteTs": 1778596790936,
+      "votesCast": 2
+    },
+    "90": {
+      "lastVoteTs": 1778538764326,
+      "votesCast": 1
+    },
+    "92": {
+      "lastVoteTs": 1778620386154,
+      "votesCast": 2
+    },
+    "93": {
+      "lastVoteTs": 1778551299354,
+      "votesCast": 1
+    },
+    "94": {
+      "lastVoteTs": 1778669301989,
+      "votesCast": 2
+    },
+    "96": {
+      "lastVoteTs": 1778619081626,
+      "votesCast": 1
+    },
+    "98": {
+      "lastVoteTs": 1778620475093,
+      "votesCast": 2
+    },
+    "101": {
+      "lastVoteTs": 1778581466265,
+      "votesCast": 1
+    },
+    "102": {
+      "lastVoteTs": 1778600518976,
+      "votesCast": 1
+    },
+    "103": {
+      "lastVoteTs": 1778596727064,
+      "votesCast": 3
+    },
+    "106": {
+      "lastVoteTs": 1778668738037,
+      "votesCast": 2
+    },
+    "107": {
+      "lastVoteTs": 1778668584249,
+      "votesCast": 1
+    },
+    "108": {
+      "lastVoteTs": 1778550786325,
+      "votesCast": 1
+    },
+    "109": {
+      "lastVoteTs": 1778580528968,
+      "votesCast": 3
+    },
+    "111": {
+      "lastVoteTs": 1778551382053,
+      "votesCast": 1
+    },
+    "112": {
+      "lastVoteTs": 1778550129105,
+      "votesCast": 2
+    },
+    "113": {
+      "lastVoteTs": 1778667599321,
+      "votesCast": 2
+    },
+    "115": {
+      "lastVoteTs": 1778598619550,
+      "votesCast": 2
+    },
+    "116": {
+      "lastVoteTs": 1778619977791,
+      "votesCast": 3
+    },
+    "117": {
+      "lastVoteTs": 1778668664261,
+      "votesCast": 2
+    },
+    "118": {
+      "lastVoteTs": 1778606766273,
+      "votesCast": 2
+    },
+    "119": {
+      "lastVoteTs": 1778598864646,
+      "votesCast": 2
+    },
+    "120": {
+      "lastVoteTs": 1778607536814,
+      "votesCast": 2
+    },
+    "121": {
+      "lastVoteTs": 1778670563962,
+      "votesCast": 2
+    },
+    "122": {
+      "lastVoteTs": 1778538786687,
+      "votesCast": 1
+    },
+    "123": {
+      "lastVoteTs": 1778619559417,
+      "votesCast": 4
+    },
+    "124": {
+      "lastVoteTs": 1778596931469,
+      "votesCast": 1
+    },
+    "125": {
+      "lastVoteTs": 1778669219614,
+      "votesCast": 1
+    },
+    "126": {
+      "lastVoteTs": 1778581627234,
+      "votesCast": 1
+    },
+    "127": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "128": {
+      "lastVoteTs": 1778562145490,
+      "votesCast": 1
+    },
+    "129": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "131": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "132": {
+      "lastVoteTs": 1778619231132,
+      "votesCast": 2
+    },
+    "133": {
+      "lastVoteTs": 1778671425441,
+      "votesCast": 1
+    },
+    "134": {
+      "lastVoteTs": 1778582675959,
+      "votesCast": 2
+    },
+    "135": {
+      "lastVoteTs": 1778581388877,
+      "votesCast": 1
+    },
+    "136": {
+      "lastVoteTs": 1778669448015,
+      "votesCast": 2
+    },
+    "137": {
+      "lastVoteTs": 1778668442928,
+      "votesCast": 2
+    },
+    "138": {
+      "lastVoteTs": 1778549903158,
+      "votesCast": 2
+    },
+    "139": {
+      "lastVoteTs": 1778618671629,
+      "votesCast": 1
+    },
+    "140": {
+      "lastVoteTs": 1778549977959,
+      "votesCast": 1
+    },
+    "141": {
+      "lastVoteTs": 1778550932250,
+      "votesCast": 1
+    },
+    "142": {
+      "lastVoteTs": 1778565374833,
+      "votesCast": 1
+    },
+    "143": {
+      "lastVoteTs": 1778550494934,
+      "votesCast": 1
+    },
+    "145": {
+      "lastVoteTs": 1778598946274,
+      "votesCast": 2
+    },
+    "146": {
+      "lastVoteTs": 1778558758256,
+      "votesCast": 2
+    },
+    "147": {
+      "lastVoteTs": 1778607607452,
+      "votesCast": 2
+    },
+    "148": {
+      "lastVoteTs": 1778671218499,
+      "votesCast": 3
+    },
+    "149": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "150": {
+      "lastVoteTs": 1778607148147,
+      "votesCast": 3
+    },
+    "152": {
+      "lastVoteTs": 1778541434446,
+      "votesCast": 1
+    },
+    "153": {
+      "lastVoteTs": 1778669071158,
+      "votesCast": 3
+    },
+    "154": {
+      "lastVoteTs": 1778672053060,
+      "votesCast": 1
+    },
+    "157": {
+      "lastVoteTs": 1778669694077,
+      "votesCast": 2
+    },
+    "158": {
+      "lastVoteTs": 1778541128363,
+      "votesCast": 1
+    },
+    "159": {
+      "lastVoteTs": 1778564899960,
+      "votesCast": 2
+    },
+    "160": {
+      "lastVoteTs": 1778582596231,
+      "votesCast": 1
+    },
+    "162": {
+      "lastVoteTs": 1778607078953,
+      "votesCast": 1
+    },
+    "163": {
+      "lastVoteTs": 1778580688966,
+      "votesCast": 2
+    },
+    "164": {
+      "lastVoteTs": 1778580362929,
+      "votesCast": 1
+    },
+    "166": {
+      "lastVoteTs": 1778620549316,
+      "votesCast": 2
+    },
+    "167": {
+      "lastVoteTs": 1778549757571,
+      "votesCast": 1
+    },
+    "168": {
+      "lastVoteTs": 1778671976315,
+      "votesCast": 1
+    },
+    "169": {
+      "lastVoteTs": 1778581126949,
+      "votesCast": 1
+    },
+    "170": {
+      "lastVoteTs": 1778619898302,
+      "votesCast": 1
+    },
+    "171": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "172": {
+      "lastVoteTs": 1778607321794,
+      "votesCast": 3
+    },
+    "173": {
+      "lastVoteTs": 1778582276127,
+      "votesCast": 1
+    },
+    "174": {
+      "lastVoteTs": 1778668890937,
+      "votesCast": 2
+    },
+    "175": {
+      "lastVoteTs": 1778667387082,
+      "votesCast": 2
+    },
+    "176": {
+      "lastVoteTs": 1778667967694,
+      "votesCast": 3
+    },
+    "180": {
+      "lastVoteTs": 1778668208726,
+      "votesCast": 2
+    },
+    "181": {
+      "lastVoteTs": 1778550639974,
+      "votesCast": 1
+    },
+    "182": {
+      "lastVoteTs": 1778670017223,
+      "votesCast": 1
+    },
+    "183": {
+      "lastVoteTs": 1778671821482,
+      "votesCast": 4
+    },
+    "184": {
+      "lastVoteTs": 1778607016055,
+      "votesCast": 1
+    },
+    "185": {
+      "lastVoteTs": 1778580442895,
+      "votesCast": 1
+    },
+    "186": {
+      "lastVoteTs": 0,
+      "votesCast": 0
+    },
+    "188": {
+      "lastVoteTs": 1778669763774,
+      "votesCast": 1
+    },
+    "189": {
+      "lastVoteTs": 1778607247460,
+      "votesCast": 2
+    },
+    "190": {
+      "lastVoteTs": 1778671283007,
+      "votesCast": 2
+    },
+    "191": {
+      "lastVoteTs": 1778667752438,
+      "votesCast": 2
+    },
+    "192": {
+      "lastVoteTs": 1778538795596,
+      "votesCast": 1
+    },
+    "193": {
+      "lastVoteTs": 1778668507147,
+      "votesCast": 1
+    },
+    "194": {
+      "lastVoteTs": 1778618827351,
+      "votesCast": 2
+    },
+    "195": {
+      "lastVoteTs": 1778668283440,
+      "votesCast": 3
+    },
+    "196": {
+      "lastVoteTs": 1778620317258,
+      "votesCast": 1
+    },
+    "199": {
+      "lastVoteTs": 1778565453325,
+      "votesCast": 1
+    }
+  },
+  "totalAttempted": 243,
+  "totalSucceeded": 238,
+  "totalFailed": 5
+}
