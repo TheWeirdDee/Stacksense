@@ -11,8 +11,11 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
-    "build:web": "npm run build --workspace=apps/web"
+    "build:web": "npm run build --workspace=apps/web",
+    "divine": "npx tsx --max-old-space-size=4096 private/scripts/divine.ts"
+
   },
+
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
