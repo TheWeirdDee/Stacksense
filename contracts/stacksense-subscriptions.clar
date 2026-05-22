@@ -153,3 +153,4 @@
     (ok true)
   )
 )
+;; PR: auto-generated branch pr/subscriptions-contract
