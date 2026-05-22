@@ -13,6 +13,7 @@ import subscriptionsRoutes from './routes/subscriptions.js';
 import alertsRoutes from './routes/alerts.js';
 import developersRoutes from './routes/developers.js';
 import subscriptionContractRoutes from './routes/subscriptionContract.js';
+import projectRoutes from './routes/project.js';
 
 dotenv.config({ path: '../../.env' });
 dotenv.config();
@@ -57,6 +58,7 @@ app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/stats', statsRoutes);
 app.use('/api/v1/subscription-contract', subscriptionContractRoutes);
+app.use('/api/v1/project', projectRoutes);
 
 async function updateSTXPrice() {
   try {
