@@ -9,6 +9,9 @@ import { setupWebSocket } from './ws/server.js';
 import feedRoutes from './routes/feed.js';
 import walletRoutes from './routes/wallet.js';
 import statsRoutes from './routes/stats.js';
+import subscriptionsRoutes from './routes/subscriptions.js';
+import alertsRoutes from './routes/alerts.js';
+import developersRoutes from './routes/developers.js';
 
 dotenv.config({ path: '../../.env' });
 dotenv.config();
@@ -42,6 +45,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use('/api/v1/subscriptions', subscriptionsRoutes);
+app.use('/api/v1/alerts', alertsRoutes);
+app.use('/api/v1/developers', developersRoutes);
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/stats', statsRoutes);
