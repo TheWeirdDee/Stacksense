@@ -2,6 +2,7 @@ import axios from 'axios';
 import { redisClient, connectRedis } from '../redis/client.js';
 import { matchTransaction } from '../engine/matcher.js';
 import { broadcastEvent, getClientCount } from '../ws/server.js';
+import { broadcastToWebhooks } from '../routes/alerts.js';
 import { sendHighConvictionAlert } from '../integrations/telegram.js';
 import dotenv from 'dotenv';
 
@@ -78,6 +79,9 @@ async function processTransaction(tx: any) {
       await redisClient.lTrim('events:recent', 0, 499);
       
       broadcastEvent(event);
+      
+      // Broadcast to webhook subscribers
+      await broadcastToWebhooks(event);
       
       if ((event.is_anomaly && (event.multiplier ?? 0) >= 5.0) || event.wallet_archetype === 'Whale Wallet') {
         sendHighConvictionAlert(event);
