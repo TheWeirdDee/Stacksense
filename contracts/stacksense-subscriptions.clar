@@ -12,10 +12,10 @@
 (define-constant TIER-PRO u1)
 (define-constant TIER-ENTERPRISE u2)
 
-(define-constant TIER-PRO-COST u1000000)      ;; 1 STX/month
+(define-constant TIER-PRO-COST u1000000)         ;; 1 STX/month
 (define-constant TIER-ENTERPRISE-COST u10000000) ;; 10 STX/month
 
-(define-constant SUBSCRIPTION-DURATION u2592000) ;; 30 days in seconds
+(define-constant SUBSCRIPTION-DURATION u4320) ;; ~30 days in blocks (~10 min/block)
 
 (define-map subscriptions
   { subscriber: principal }
@@ -55,8 +55,8 @@
 ;; Subscribe to Pro tier
 (define-public (subscribe-pro (api-key (buff 32)))
   (let (
-    (current-block block-height)
-    (expires (+ stacks-block-time SUBSCRIPTION-DURATION))
+    (current-block stacks-block-height)
+    (expires (+ stacks-block-height SUBSCRIPTION-DURATION))
   )
     (try! (stx-transfer? TIER-PRO-COST tx-sender CONTRACT-OWNER))
     (map-set subscriptions
@@ -77,8 +77,8 @@
 ;; Subscribe to Enterprise tier
 (define-public (subscribe-enterprise (api-key (buff 32)) (webhook-url (string-utf8 255)))
   (let (
-    (current-block block-height)
-    (expires (+ stacks-block-time SUBSCRIPTION-DURATION))
+    (current-block stacks-block-height)
+    (expires (+ stacks-block-height SUBSCRIPTION-DURATION))
   )
     (try! (stx-transfer? TIER-ENTERPRISE-COST tx-sender CONTRACT-OWNER))
     (map-set subscriptions
@@ -101,9 +101,9 @@
   (let (
     (current (unwrap! (map-get? subscriptions { subscriber: tx-sender }) (err ERR-UNAUTHORIZED)))
     (cost (if (is-eq tier TIER-PRO) TIER-PRO-COST TIER-ENTERPRISE-COST))
-    (expires (+ stacks-block-time SUBSCRIPTION-DURATION))
+    (expires (+ stacks-block-height SUBSCRIPTION-DURATION))
   )
-    (asserta (is-eq (get tier current) tier) (err ERR-INVALID-TIER))
+    (asserts! (is-eq (get tier current) tier) (err ERR-INVALID-TIER))
     (try! (stx-transfer? cost tx-sender CONTRACT-OWNER))
     (map-set subscriptions
       { subscriber: tx-sender }
@@ -118,7 +118,7 @@
   (let (
     (sub (unwrap! (map-get? subscriptions { subscriber: subscriber }) (err ERR-UNAUTHORIZED)))
   )
-    (asserta (< stacks-block-time (get expires-at sub)) (err ERR-SUBSCRIPTION-EXPIRED))
+    (asserts! (< stacks-block-height (get expires-at sub)) (err ERR-SUBSCRIPTION-EXPIRED))
     (map-set subscriptions
       { subscriber: subscriber }
       (merge sub { requests-used: (+ (get requests-used sub) u1) })
@@ -140,7 +140,7 @@
 ;; Check if subscription is active
 (define-read-only (is-subscription-active (subscriber principal))
   (match (map-get? subscriptions { subscriber: subscriber })
-    sub (< stacks-block-time (get expires-at sub))
+    sub (< stacks-block-height (get expires-at sub))
     false
   )
 )
@@ -148,7 +148,7 @@
 ;; Withdraw contract revenue
 (define-public (withdraw (amount uint))
   (begin
-    (asserta (is-eq tx-sender CONTRACT-OWNER) (err ERR-UNAUTHORIZED))
+    (asserts! (is-eq tx-sender CONTRACT-OWNER) (err ERR-UNAUTHORIZED))
     (try! (stx-transfer? amount CONTRACT-OWNER tx-sender))
     (ok true)
   )
