@@ -212,4 +212,101 @@ export async function getDeveloperStats(stacksAddress: string) {
 
   return null;
 }
+
+export interface RepoStats {
+  owner: string;
+  repo: string;
+  totalCommits: number;
+  ecosystemCommits: number;
+  contributors: number;
+  stars: number;
+  openIssues: number;
+  lastPushedAt: string;
+  ecosystemRatio: number;
+}
+
+/**
+ * Fetch repository-level stats for a given GitHub repo.
+ * This is how talent.app measures GitHub activity — per-repo, not per-user.
+ */
+export async function getRepoStats(owner: string, repo: string): Promise<RepoStats> {
+  try {
+    const token = process.env.GITHUB_TOKEN;
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const base = GITHUB_API_BASE;
+
+    // Fetch repo metadata + contributor stats in parallel
+    const [repoRes, contributorsRes, commitsRes] = await Promise.allSettled([
+      axios.get(`${base}/repos/${owner}/${repo}`, { headers, timeout: 8000 }),
+      axios.get(`${base}/repos/${owner}/${repo}/contributors`, {
+        headers,
+        params: { per_page: 100 },
+        timeout: 8000,
+      }),
+      axios.get(`${base}/repos/${owner}/${repo}/commits`, {
+        headers,
+        params: { per_page: 100 },
+        timeout: 8000,
+      }),
+    ]);
+
+    const repoData = repoRes.status === 'fulfilled' ? repoRes.value.data : {};
+    const contributorsData =
+      contributorsRes.status === 'fulfilled' ? contributorsRes.value.data : [];
+    const commitsData = commitsRes.status === 'fulfilled' ? commitsRes.value.data : [];
+
+    // Count total commits from contributors
+    const totalCommits: number = Array.isArray(contributorsData)
+      ? contributorsData.reduce((sum: number, c: any) => sum + (c.contributions || 0), 0)
+      : commitsData.length;
+
+    // Count ecosystem-related commits by scanning messages
+    let ecosystemCommits = 0;
+    if (Array.isArray(commitsData)) {
+      for (const commit of commitsData) {
+        const msg: string = commit?.commit?.message?.toLowerCase() || '';
+        const isEco = STACKS_KEYWORDS.some((kw) => msg.includes(kw));
+        if (isEco) ecosystemCommits++;
+      }
+    }
+
+    // If the repo itself is in the Stacks ecosystem, count all commits as ecosystem
+    const repoFullName = `${owner}/${repo}`.toLowerCase();
+    const isEcoRepo = STACKS_ECOSYSTEM_REPOS.some(
+      (r) => r.toLowerCase() === repoFullName
+    );
+    if (isEcoRepo) ecosystemCommits = totalCommits;
+
+    return {
+      owner,
+      repo,
+      totalCommits,
+      ecosystemCommits,
+      contributors: Array.isArray(contributorsData) ? contributorsData.length : 0,
+      stars: repoData.stargazers_count || 0,
+      openIssues: repoData.open_issues_count || 0,
+      lastPushedAt: repoData.pushed_at || new Date().toISOString(),
+      ecosystemRatio: totalCommits > 0 ? ecosystemCommits / totalCommits : 0,
+    };
+  } catch (err: any) {
+    console.error(`[GitHub] Failed to fetch repo stats for ${owner}/${repo}:`, err.message);
+    return {
+      owner,
+      repo,
+      totalCommits: 0,
+      ecosystemCommits: 0,
+      contributors: 0,
+      stars: 0,
+      openIssues: 0,
+      lastPushedAt: new Date().toISOString(),
+      ecosystemRatio: 0,
+    };
+  }
+}
 // PR: auto-generated branch pr/github-integration
