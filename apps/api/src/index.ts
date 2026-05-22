@@ -12,9 +12,14 @@ import statsRoutes from './routes/stats.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
 import alertsRoutes from './routes/alerts.js';
 import developersRoutes from './routes/developers.js';
+import subscriptionContractRoutes from './routes/subscriptionContract.js';
 
 dotenv.config({ path: '../../.env' });
 dotenv.config();
+
+export const CONTRACT_NAME = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'signal-tips';
+export const SUBSCRIPTION_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTRACT_ADDRESS || '';
+export const SUBSCRIPTION_CONTRACT_NAME = process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTRACT_NAME || 'stacksense-subscriptions';
 
 const app = express();
 const server = http.createServer(app);
@@ -51,6 +56,7 @@ app.use('/api/v1/developers', developersRoutes);
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/stats', statsRoutes);
+app.use('/api/v1/subscription-contract', subscriptionContractRoutes);
 
 async function updateSTXPrice() {
   try {
