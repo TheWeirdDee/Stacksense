@@ -1,421 +1,544 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useWallet } from '@/lib/wallet';
 import axios from 'axios';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { ArrowLeft, Cpu, Flame, Terminal, Plus, Trash, Globe, ShieldCheck, AlertCircle } from 'lucide-react';
 
+const Nav = dynamic(() => import('@/components/Nav'), { ssr: false });
 const API = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002';
 
-const DEFAULT_OWNER = 'TheWeirdDee';
-const DEFAULT_REPO = 'Stacksense';
-const DEFAULT_NPM = 'stacksense-intel-divine';
 const DEFAULT_CONTRACT = 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips';
 
-interface DeveloperStats {
-  username: string;
-  stats: {
-    totalCommits: number;
-    ecosystemCommits: number;
-    ecosystemRatio: number;
+interface InspectStats {
+  totalTransactions: number;
+  uniqueCallers: number;
+  feesGeneratedStx: string;
+  contractDeployer: string;
+  deploymentDate: string;
+  source: string;
+}
+
+interface InspectTx {
+  txId: string;
+  sender: string;
+  timestamp: string;
+  status: 'success' | 'failed';
+  fee: number;
+  functionCalled: string;
+  explorerUrl: string;
+}
+
+interface WebhookAlert {
+  id: string;
+  subscriberAddress: string;
+  webhookUrl: string;
+  filters: {
+    minStxAmount?: number;
+    signals?: string[];
   };
+  active: boolean;
+  createdAt: string;
 }
 
-interface ProjectScore {
-  scoring: { estimatedTier: string; totalScore: number; onchainScore: number; githubScore: number; npmScore: number };
-  github: { totalCommits: number; ecosystemCommits: number; contributors: number; ecosystemRatio: number };
-  onchain: { totalTransactions: number; uniqueCallers: number; feesGeneratedStx: string; contractDeployments: number };
-  npm: { monthlyDownloads: number; weeklyDownloads: number };
-}
+type TabType = 'inspect' | 'webhooks';
 
-const TIER_COLOR: Record<string, string> = {
-  'Top 10': '#22C55E', 'Top 25': '#3B82F6', 'Top 50': '#F59E0B', Unranked: '#6B7280',
-};
-
-type Tab = 'project' | 'github';
-
-export default function DevelopersPage() {
+function DeveloperHubContent() {
   const { address, connected, connect } = useWallet();
-  const [tab, setTab] = useState<Tab>('project');
+  const searchParams = useSearchParams();
+  const initialContract = searchParams.get('contractId') || DEFAULT_CONTRACT;
 
-  // Project tab state
-  const [contractInput, setContractInput] = useState(DEFAULT_CONTRACT);
-  const [githubOwner, setGithubOwner] = useState(DEFAULT_OWNER);
-  const [githubRepo, setGithubRepo] = useState(DEFAULT_REPO);
-  const [npmPackage, setNpmPackage] = useState(DEFAULT_NPM);
-  const [projectScore, setProjectScore] = useState<ProjectScore | null>(null);
-  const [projectLoading, setProjectLoading] = useState(false);
-  const [projectError, setProjectError] = useState('');
+  const formatAddress = (addr: string) => {
+    if (!addr) return '';
+    return addr.slice(0, 6) + '...' + addr.slice(-6);
+  };
 
-  // GitHub individual tab state
-  const [username, setUsername] = useState('');
-  const [devLoading, setDevLoading] = useState(false);
-  const [devStats, setDevStats] = useState<DeveloperStats | null>(null);
-  const [devError, setDevError] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>('inspect');
 
-  // ─── Project tab handlers ────────────────────────────────────────────────
-  const handleRegisterProject = async () => {
-    if (!address) { connect(); return; }
-    setProjectLoading(true);
-    setProjectError('');
+  // Inspector State
+  const [contractInput, setContractInput] = useState(initialContract);
+  const [inspectLoading, setInspectLoading] = useState(false);
+  const [inspectStats, setInspectStats] = useState<InspectStats | null>(null);
+  const [inspectTxs, setInspectTxs] = useState<InspectTx[]>([]);
+  const [inspectError, setInspectError] = useState('');
+
+  // Webhooks State
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookContract, setWebhookContract] = useState(initialContract);
+  const [minStxFilter, setMinStxFilter] = useState('0');
+  const [signalFilter, setSignalFilter] = useState<string>('All');
+  const [webhooksList, setWebhooksList] = useState<WebhookAlert[]>([]);
+  const [webhooksLoading, setWebhooksLoading] = useState(false);
+  const [webhookError, setWebhookError] = useState('');
+  const [webhookSuccess, setWebhookSuccess] = useState('');
+
+  // Auto-run inspector on mount if contractId param exists
+  useEffect(() => {
+    const cId = searchParams.get('contractId');
+    if (cId) {
+      setContractInput(cId);
+      setWebhookContract(cId);
+      handleInspect(cId);
+    } else {
+      handleInspect(DEFAULT_CONTRACT);
+    }
+  }, [searchParams]);
+
+  // Load webhooks when wallet connects
+  useEffect(() => {
+    if (address) {
+      fetchWebhooks();
+    }
+  }, [address]);
+
+  // Inspect Contract Handler
+  const handleInspect = async (cId: string = contractInput) => {
+    if (!cId.trim()) {
+      setInspectError('Please enter a valid contract ID (address.name)');
+      return;
+    }
+    setInspectLoading(true);
+    setInspectError('');
     try {
-      const [addr, name] = contractInput.split('.');
-      const contracts = [
-        { address: addr, name },
-        { address: 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV', name: 'subcription-tips' },
-      ];
-      await axios.post(`${API}/api/v1/project/register`, {
-        stacksAddress: address,
-        githubOwner,
-        githubRepo,
-        npmPackage,
-        contracts,
+      const res = await axios.get(`${API}/api/v1/project/inspect`, {
+        params: { contractId: cId.trim() }
       });
-      const { data } = await axios.get(`${API}/api/v1/project/score`);
-      setProjectScore(data);
-    } catch (e: any) {
-      setProjectError(e.response?.data?.error || 'Failed to register project');
+      setInspectStats(res.data.stats);
+      setInspectTxs(res.data.recentTransactions);
+      setWebhookContract(cId.trim());
+    } catch (err: any) {
+      console.error('[Inspect] Error:', err);
+      setInspectError(err.response?.data?.error || 'Failed to inspect contract. Ensure address format is correct.');
     } finally {
-      setProjectLoading(false);
+      setInspectLoading(false);
     }
   };
 
-  const handleSyncProject = async () => {
-    setProjectLoading(true);
+  // Fetch Webhooks List
+  const fetchWebhooks = async () => {
+    if (!address) return;
+    setWebhooksLoading(true);
     try {
-      await axios.post(`${API}/api/v1/project/sync`);
-      const { data } = await axios.get(`${API}/api/v1/project/score`);
-      setProjectScore(data);
-    } catch (e: any) {
-      setProjectError(e.response?.data?.error || 'Failed to sync');
+      const res = await axios.get(`${API}/api/v1/alerts/list/${address}`);
+      setWebhooksList(res.data.webhooks || []);
+    } catch (err) {
+      console.error('[Webhooks] List fetch failed:', err);
     } finally {
-      setProjectLoading(false);
+      setWebhooksLoading(false);
     }
   };
 
-  // ─── GitHub individual tab handlers ──────────────────────────────────────
-  const handleRegisterDev = async () => {
-    if (!address) { connect(); return; }
-    if (!username.trim()) { setDevError('Please enter your GitHub username'); return; }
-    setDevLoading(true);
-    setDevError('');
+  // Register Webhook
+  const handleRegisterWebhook = async () => {
+    if (!address) {
+      connect();
+      return;
+    }
+    if (!webhookUrl.trim() || !webhookUrl.startsWith('http')) {
+      setWebhookError('Please enter a valid Webhook URL starting with http:// or https://');
+      return;
+    }
+    setWebhookError('');
+    setWebhookSuccess('');
     try {
-      const { data } = await axios.post(`${API}/api/v1/developers/register`, {
-        username: username.trim(),
-        stacksAddress: address,
+      const signals = signalFilter === 'All' ? [] : [signalFilter.toLowerCase()];
+      const filters = {
+        minStxAmount: parseFloat(minStxFilter) || 0,
+        signals: signals.length > 0 ? signals : undefined,
+        protocols: [webhookContract.split('.')[1] || 'Native STX']
+      };
+
+      await axios.post(`${API}/api/v1/alerts/create`, {
+        subscriberAddress: address,
+        webhookUrl: webhookUrl.trim(),
+        filters
       });
-      setDevStats(data);
-      setUsername('');
-    } catch (e: any) {
-      setDevError(e.response?.data?.error || 'Failed to register. Please try again.');
-    } finally {
-      setDevLoading(false);
+
+      setWebhookSuccess('Webhook alert registered successfully!');
+      setWebhookUrl('');
+      fetchWebhooks();
+    } catch (err: any) {
+      console.error('[Webhooks] Registration failed:', err);
+      setWebhookError(err.response?.data?.error || 'Failed to register webhook alert');
     }
   };
 
-  const handleSyncDev = async () => {
-    if (!devStats) return;
-    setDevLoading(true);
+  // Disable Webhook
+  const handleDeleteWebhook = async (id: string) => {
     try {
-      const { data } = await axios.post(`${API}/api/v1/developers/sync/${devStats.username}`);
-      setDevStats({ ...devStats, stats: data.result.stats });
-    } catch (e: any) {
-      setDevError(e.response?.data?.error || 'Failed to sync activity');
-    } finally {
-      setDevLoading(false);
+      await axios.post(`${API}/api/v1/alerts/disable/${id}`);
+      fetchWebhooks();
+    } catch (err) {
+      console.error('[Webhooks] Disable failed:', err);
     }
   };
-
-  const tierColor = projectScore ? (TIER_COLOR[projectScore.scoring.estimatedTier] ?? '#6B7280') : '#22C55E';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: '40px 20px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>
-          Developer Hub
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 32 }}>
-          Track project-level and individual developer contributions to the Stacks Builder Rewards leaderboard.
-        </p>
+    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Nav />
 
-        {/* Tab switcher */}
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--bg-border)', marginBottom: 32 }}>
-          {(['project', 'github'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: tab === t ? '2px solid #22C55E' : '2px solid transparent',
-                color: tab === t ? '#22C55E' : 'var(--text-secondary)',
-                padding: '10px 24px',
-                cursor: 'pointer',
-                fontWeight: tab === t ? 700 : 400,
-                fontSize: 14,
-                marginBottom: -1,
-              }}
-            >
-              {t === 'project' ? '🏗 My Project' : '🧑‍💻 My GitHub'}
-            </button>
-          ))}
+      {/* Main Container */}
+      <div style={{ flex: 1, maxWidth: 900, width: '100%', margin: '0 auto', padding: '24px 20px 60px' }}>
+        
+        {/* Back Link */}
+        <div style={{ marginBottom: 24 }}>
+          <Link href="/feed" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', transition: 'color 0.2s' }} className="hover:text-primary">
+            <ArrowLeft size={16} /> Back to Feed
+          </Link>
         </div>
 
-        {/* ─── PROJECT TAB ─────────────────────────────────────────────── */}
-        {tab === 'project' && (
-          <div>
-            {!projectScore ? (
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 32 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Register Your Project</h2>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
-                  Link your GitHub repo, NPM package, and contracts to see your combined Stacks Builder Rewards score.
-                </p>
+        {/* Header Title */}
+        <div style={{ marginBottom: 36 }}>
+          <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.025em' }}>
+            🏗 Clarity Developer Hub
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+            Real-time diagnostics for Stacks smart contracts. Inspect contract metrics, trace caller history, and hook up live event notifications.
+          </p>
+        </div>
 
-                {!connected ? (
-                  <button
-                    onClick={connect}
-                    style={{ background: '#22C55E', color: '#000', border: 'none', padding: '12px 24px', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Connect Wallet to Register
-                  </button>
-                ) : (
+        {/* Tabs switcher */}
+        <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--bg-border)', marginBottom: 28, paddingBottom: 1 }}>
+          {[
+            { id: 'inspect', label: '🏗 Smart Contract Inspector', icon: Cpu },
+            { id: 'webhooks', label: '⚡ Live Webhooks & Streams', icon: Globe }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isActive ? '2px solid #22C55E' : '2px solid transparent',
+                  color: isActive ? '#22C55E' : 'var(--text-secondary)',
+                  padding: '10px 16px',
+                  cursor: 'pointer',
+                  fontWeight: isActive ? 600 : 400,
+                  fontSize: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: -2,
+                }}
+              >
+                <Icon size={16} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ─── TAB 1: Smart Contract Inspector ────────────────────────────────── */}
+        {activeTab === 'inspect' && (
+          <div>
+            {/* Input Search Block */}
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 20, marginBottom: 28 }}>
+              <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8, fontWeight: 500 }}>
+                Stacks Clarity Contract ID (address.name)
+              </label>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  value={contractInput}
+                  onChange={(e) => setContractInput(e.target.value)}
+                  placeholder="e.g. SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips"
+                  onKeyDown={(e) => e.key === 'Enter' && handleInspect()}
+                  style={{
+                    flex: 1,
+                    minWidth: 260,
+                    padding: '10px 14px',
+                    borderRadius: 6,
+                    border: '1px solid var(--bg-border)',
+                    background: 'var(--bg-base)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: 13,
+                  }}
+                />
+                <button
+                  onClick={() => handleInspect()}
+                  disabled={inspectLoading}
+                  style={{
+                    background: '#22C55E',
+                    color: '#000',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: 6,
+                    fontWeight: 700,
+                    cursor: inspectLoading ? 'not-allowed' : 'pointer',
+                    fontSize: 13,
+                    opacity: inspectLoading ? 0.7 : 1,
+                  }}
+                >
+                  {inspectLoading ? 'Querying Hiro API…' : 'Inspect Contract'}
+                </button>
+              </div>
+              {inspectError && (
+                <div style={{ color: '#EF4444', fontSize: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <AlertCircle size={14} /> {inspectError}
+                </div>
+              )}
+            </div>
+
+            {inspectStats && !inspectLoading && (
+              <div>
+                {/* Metrics Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
+                  {[
+                    { label: 'Total Calls', value: inspectStats.totalTransactions.toLocaleString(), color: '#3B82F6' },
+                    { label: 'Unique Callers', value: inspectStats.uniqueCallers.toLocaleString(), color: '#22C55E' },
+                    { label: 'Fees Generated', value: `${parseFloat(inspectStats.feesGeneratedStx).toFixed(2)} STX`, color: '#F59E0B' },
+                  ].map((stat) => (
+                    <div key={stat.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '16px 20px' }}>
+                      <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{stat.label}</p>
+                      <p style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</p>
+                    </div>
+                  ))}
+                  <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '16px 20px' }}>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>Deployment Date</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 8 }}>
+                      {new Date(inspectStats.deploymentDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Debugger log table */}
+                <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--bg-border)', display: 'flex', alignItems: 'center', gap: 8, background: '#131322' }}>
+                    <Terminal size={16} style={{ color: '#22C55E' }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>Live Transaction Debugger Log</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-base)', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace', marginLeft: 'auto' }}>
+                      {inspectStats.source === 'live_hiro_api' ? 'HIRO MAINNET LIVE' : 'SIMULATED DATA'}
+                    </span>
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--bg-border)', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th style={{ padding: '12px 20px', textAlign: 'left', fontWeight: 600 }}>Timestamp</th>
+                          <th style={{ padding: '12px 20px', textAlign: 'left', fontWeight: 600 }}>Function Call</th>
+                          <th style={{ padding: '12px 20px', textAlign: 'left', fontWeight: 600 }}>Caller Address</th>
+                          <th style={{ padding: '12px 20px', textAlign: 'center', fontWeight: 600 }}>Status</th>
+                          <th style={{ padding: '12px 20px', textAlign: 'right', fontWeight: 600 }}>Tx Fee</th>
+                          <th style={{ padding: '12px 20px', textAlign: 'right', fontWeight: 600 }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {inspectTxs.map((tx) => (
+                          <tr key={tx.txId} style={{ borderBottom: '1px solid var(--bg-border)', fontSize: 12 }}>
+                            <td style={{ padding: '12px 20px', color: 'var(--text-muted)' }}>
+                              {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </td>
+                            <td style={{ padding: '12px 20px', fontWeight: 600, color: '#3B82F6', fontFamily: 'JetBrains Mono, monospace' }}>
+                              {tx.functionCalled}()
+                            </td>
+                            <td style={{ padding: '12px 20px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>
+                              {formatAddress(tx.sender)}
+                            </td>
+                            <td style={{ padding: '12px 20px', textAlign: 'center' }}>
+                              <span style={{
+                                padding: '2px 8px',
+                                borderRadius: 4,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                background: tx.status === 'success' ? '#0F2E1A' : '#2E0F0F',
+                                color: tx.status === 'success' ? '#22C55E' : '#EF4444',
+                                border: tx.status === 'success' ? '1px solid #22C55E33' : '1px solid #EF444433'
+                              }}>
+                                {tx.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 20px', textAlign: 'right', color: 'var(--text-secondary)' }} className="mono">
+                              {tx.fee.toFixed(5)} STX
+                            </td>
+                            <td style={{ padding: '12px 20px', textAlign: 'right' }}>
+                              <a href={tx.explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#22C55E', textDecoration: 'none', fontSize: 11 }} className="hover:underline">
+                                Explorer ↗
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── TAB 2: Webhooks & Event Streams ────────────────────────────────── */}
+        {activeTab === 'webhooks' && (
+          <div>
+            {!connected ? (
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 32, textAlign: 'center' }}>
+                <Globe size={36} style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Wallet Connection Required</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
+                  Connect your Stacks wallet to register real-time event webhooks for your Clarity smart contracts.
+                </p>
+                <button
+                  onClick={connect}
+                  style={{ background: '#22C55E', color: '#000', border: 'none', padding: '12px 24px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                
+                {/* Create Webhook Form */}
+                <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 24 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Plus size={16} style={{ color: '#22C55E' }} /> Register New Webhook Alert
+                  </h3>
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {[
-                      { label: 'Primary Contract (address.name)', value: contractInput, setter: setContractInput, hint: 'SP3DBM7…signal-tips' },
-                      { label: 'GitHub Org / Username', value: githubOwner, setter: setGithubOwner, hint: 'TheWeirdDee' },
-                      { label: 'GitHub Repo', value: githubRepo, setter: setGithubRepo, hint: 'Stacksense' },
-                      { label: 'NPM Package', value: npmPackage, setter: setNpmPackage, hint: 'stacksense-intel-divine' },
-                    ].map(({ label, value, setter, hint }) => (
-                      <div key={label}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Contract to Monitor
+                      </label>
+                      <input
+                        value={webhookContract}
+                        onChange={(e) => setWebhookContract(e.target.value)}
+                        placeholder="e.g. SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips"
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'JetBrains Mono, monospace', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Webhook Destination URL (POST endpoint)
+                      </label>
+                      <input
+                        value={webhookUrl}
+                        onChange={(e) => setWebhookUrl(e.target.value)}
+                        placeholder="https://api.yourdomain.com/webhooks/stacksense"
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+                      <div>
                         <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
-                          {label}
+                          Min Transfer Threshold (STX)
                         </label>
                         <input
-                          value={value}
-                          onChange={(e) => setter(e.target.value)}
-                          placeholder={hint}
-                          style={{
-                            width: '100%', padding: '10px 12px', borderRadius: 6,
-                            border: '1px solid var(--bg-border)', background: 'var(--bg-base)',
-                            color: 'var(--text-primary)', fontSize: 13,
-                            fontFamily: 'JetBrains Mono, monospace', boxSizing: 'border-box',
-                          }}
+                          type="number"
+                          value={minStxFilter}
+                          onChange={(e) => setMinStxFilter(e.target.value)}
+                          placeholder="e.g. 50"
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box' }}
                         />
                       </div>
-                    ))}
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                          Signal Severity Filter
+                        </label>
+                        <select
+                          value={signalFilter}
+                          onChange={(e) => setSignalFilter(e.target.value)}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box' }}
+                        >
+                          <option value="All">All Signals</option>
+                          <option value="Bullish">Bullish Only</option>
+                          <option value="Risk">Risk Only</option>
+                          <option value="Anomaly">Anomaly Only</option>
+                        </select>
+                      </div>
+                    </div>
 
                     <button
-                      onClick={handleRegisterProject}
-                      disabled={projectLoading}
+                      onClick={handleRegisterWebhook}
                       style={{
                         background: '#22C55E', color: '#000', border: 'none',
                         padding: '12px 24px', borderRadius: 6,
-                        cursor: projectLoading ? 'not-allowed' : 'pointer',
-                        fontWeight: 700, opacity: projectLoading ? 0.6 : 1, fontSize: 14,
+                        cursor: 'pointer', fontWeight: 700, fontSize: 13,
+                        marginTop: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6
                       }}
                     >
-                      {projectLoading ? 'Scanning…' : 'Register & Scan Project'}
+                      <Plus size={16} /> Register Alert Webhook
                     </button>
                   </div>
-                )}
 
-                {projectError && (
-                  <div style={{ background: '#2E0F0F', border: '1px solid #EF4444', borderRadius: 6, padding: 12, color: '#EF4444', marginTop: 16, fontSize: 13 }}>
-                    {projectError}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div>
-                {/* Tier banner */}
-                <div style={{ background: 'var(--bg-surface)', border: `2px solid ${tierColor}`, borderRadius: 10, padding: 24, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-                  <div>
-                    <p style={{ fontSize: 11, color: 'var(--text-secondary)', letterSpacing: 1, marginBottom: 4 }}>ESTIMATED TIER</p>
-                    <p style={{ fontSize: 36, fontWeight: 800, color: tierColor }}>{projectScore.scoring.estimatedTier}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                      Combined score: <strong style={{ color: 'var(--text-primary)' }}>{projectScore.scoring.totalScore.toLocaleString()}</strong>
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <a
-                      href="https://talent.app/~/earn/stacks-builder-rewards-may"
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ background: 'transparent', border: '1px solid #22C55E', color: '#22C55E', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
-                    >
-                      View on talent.app ↗
-                    </a>
-                    <button
-                      onClick={handleSyncProject}
-                      disabled={projectLoading}
-                      style={{ background: 'var(--bg-base)', border: '1px solid var(--bg-border)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: 6, cursor: projectLoading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, opacity: projectLoading ? 0.6 : 1 }}
-                    >
-                      {projectLoading ? 'Syncing…' : '↻ Refresh'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Score pills */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
-                  {[
-                    { label: 'ONCHAIN SCORE', value: projectScore.scoring.onchainScore.toLocaleString(), color: '#F59E0B', icon: '🟡' },
-                    { label: 'GITHUB SCORE', value: projectScore.scoring.githubScore.toLocaleString(), color: '#22C55E', icon: '🟢' },
-                    { label: 'NPM SCORE', value: projectScore.scoring.npmScore.toLocaleString(), color: '#3B82F6', icon: '🔵' },
-                  ].map(({ label, value, color, icon }) => (
-                    <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: '16px 20px' }}>
-                      <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{icon} {label}</p>
-                      <p style={{ fontSize: 24, fontWeight: 700, color }}>{value}</p>
+                  {webhookError && (
+                    <div style={{ color: '#EF4444', fontSize: 12, marginTop: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <AlertCircle size={14} /> {webhookError}
                     </div>
-                  ))}
-                </div>
-
-                {/* Detail rows */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
-                  <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: 20 }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: '#22C55E' }}>🟢 GitHub</h3>
-                    {[
-                      ['Ecosystem commits', projectScore.github.ecosystemCommits],
-                      ['Total commits', projectScore.github.totalCommits],
-                      ['Contributors', projectScore.github.contributors],
-                      ['Ecosystem ratio', `${(projectScore.github.ecosystemRatio * 100).toFixed(1)}%`],
-                    ].map(([k, v]) => (
-                      <div key={String(k)} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>{k}</span>
-                        <span style={{ fontWeight: 600 }}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: 20 }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: '#F59E0B' }}>🟡 Onchain</h3>
-                    {[
-                      ['Mainnet transactions', projectScore.onchain.totalTransactions],
-                      ['Unique callers', projectScore.onchain.uniqueCallers],
-                      ['Fees generated', `${projectScore.onchain.feesGeneratedStx} STX`],
-                      ['Contract deployments', projectScore.onchain.contractDeployments],
-                    ].map(([k, v]) => (
-                      <div key={String(k)} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>{k}</span>
-                        <span style={{ fontWeight: 600 }}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, padding: 20 }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: '#3B82F6' }}>🔵 NPM</h3>
-                    {[
-                      ['Monthly downloads', projectScore.npm.monthlyDownloads.toLocaleString()],
-                      ['Weekly downloads', projectScore.npm.weeklyDownloads.toLocaleString()],
-                    ].map(([k, v]) => (
-                      <div key={String(k)} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>{k}</span>
-                        <span style={{ fontWeight: 600 }}>{v}</span>
-                      </div>
-                    ))}
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--bg-border)' }}>
-                      <a href="https://www.npmjs.com/package/stacksense-intel-divine" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#3B82F6', textDecoration: 'none' }}>
-                        stacksense-intel-divine ↗
-                      </a>
+                  )}
+                  {webhookSuccess && (
+                    <div style={{ color: '#22C55E', fontSize: 12, marginTop: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ShieldCheck size={14} /> {webhookSuccess}
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                <button onClick={() => setProjectScore(null)} style={{ marginTop: 20, background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', color: 'var(--text-primary)', padding: '10px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>
-                  Re-register
-                </button>
+                {/* Active Webhooks List */}
+                <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 24 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 18 }}>Active Webhook Stream Alert Rules</h3>
+
+                  {webhooksLoading ? (
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading configured alerts…</div>
+                  ) : webhooksList.length === 0 ? (
+                    <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>No webhook streams configured yet. Create one above to receive Stacks event payloads.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {webhooksList.map((wh) => (
+                        <div key={wh.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-base)', border: '1px solid var(--bg-border)', borderRadius: 6, padding: '14px 18px', flexWrap: 'wrap', gap: 14 }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ width: 8, height: 8, borderRadius: '50%', background: wh.active ? '#22C55E' : 'var(--text-muted)' }} />
+                              {wh.webhookUrl}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 6 }}>
+                              Filters: Min STX: {wh.filters.minStxAmount || 0} · Signals: {wh.filters.signals?.join(', ') || 'All'}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                              Registered on: {new Date(wh.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteWebhook(wh.id)}
+                            style={{
+                              background: 'transparent', border: '1px solid #EF444433',
+                              color: '#EF4444', padding: '6px 12px', borderRadius: 4,
+                              cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4
+                            }}
+                            className="hover:bg-red-950"
+                          >
+                            <Trash size={12} /> Disable
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
           </div>
         )}
 
-        {/* ─── GITHUB INDIVIDUAL TAB ──────────────────────────────────── */}
-        {tab === 'github' && (
-          <div>
-            {!devStats ? (
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: 32 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Register Your GitHub Account</h2>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
-                  Track your personal contributions to the Stacks ecosystem.
-                </p>
-
-                {!connected ? (
-                  <button onClick={connect} style={{ background: '#22C55E', color: '#000', border: 'none', padding: '12px 24px', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
-                    Connect Wallet to Register
-                  </button>
-                ) : (
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>GitHub Username</label>
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g., torvalds"
-                      onKeyDown={(e) => e.key === 'Enter' && handleRegisterDev()}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--bg-border)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: 14, fontFamily: 'JetBrains Mono, monospace', boxSizing: 'border-box', marginBottom: 16 }}
-                    />
-                    <button
-                      onClick={handleRegisterDev}
-                      disabled={devLoading || !username.trim()}
-                      style={{ background: '#22C55E', color: '#000', border: 'none', padding: '12px 24px', borderRadius: 6, cursor: devLoading || !username.trim() ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: devLoading || !username.trim() ? 0.6 : 1 }}
-                    >
-                      {devLoading ? 'Registering…' : 'Register & Scan'}
-                    </button>
-                  </div>
-                )}
-
-                {devError && (
-                  <div style={{ background: '#2E0F0F', border: '1px solid #EF4444', borderRadius: 6, padding: 12, color: '#EF4444', marginTop: 16, fontSize: 13 }}>
-                    {devError}
-                  </div>
-                )}
-
-                <div style={{ marginTop: 32, paddingTop: 32, borderTop: '1px solid var(--bg-border)' }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>What We Track</h3>
-                  <ul style={{ listStyle: 'none', padding: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
-                    {[
-                      ['📊', 'Commits to Stacks Ecosystem', 'Contributions to stacks-blockchain, Clarity, Clarinet, etc.'],
-                      ['🔗', 'Total Public Commits', 'Your overall development activity'],
-                      ['⭐', 'Stacks Relevance Score', 'How much of your work is Bitcoin L2/Clarity focused'],
-                      ['🏆', 'Leaderboard Impact', 'Your rank in the Stacks Builder Rewards program'],
-                    ].map(([icon, title, desc]) => (
-                      <li key={String(title)} style={{ marginBottom: 14 }}>
-                        {icon} <strong>{title}</strong> — {desc}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div style={{ background: 'var(--bg-surface)', border: '1px solid #22C55E', borderRadius: 10, padding: 32, marginBottom: 24 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                    <div>
-                      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>@{devStats.username}</h2>
-                      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Stacks Builder Rewards contributor</p>
-                    </div>
-                    <button onClick={handleSyncDev} disabled={devLoading} style={{ background: 'transparent', border: '1px solid #22C55E', color: '#22C55E', padding: '8px 16px', borderRadius: 6, cursor: devLoading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 13, opacity: devLoading ? 0.6 : 1 }}>
-                      {devLoading ? 'Syncing…' : 'Refresh Stats'}
-                    </button>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-                    {[
-                      ['TOTAL COMMITS', devStats.stats.totalCommits.toLocaleString()],
-                      ['STACKS ECOSYSTEM', devStats.stats.ecosystemCommits.toLocaleString()],
-                      ['ECOSYSTEM RATIO', `${(devStats.stats.ecosystemRatio * 100).toFixed(1)}%`],
-                    ].map(([label, value]) => (
-                      <div key={String(label)} style={{ background: 'var(--bg-base)', borderRadius: 6, padding: 16 }}>
-                        <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{label}</p>
-                        <p style={{ fontSize: 24, fontWeight: 700, color: '#22C55E' }}>{value}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <button onClick={() => setDevStats(null)} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', color: 'var(--text-primary)', padding: '10px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>
-                  Register Another Account
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
+  );
+}
+
+export default function DevelopersPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ background: 'var(--bg-base)', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--text-secondary)' }}>
+        Loading Developer Hub...
+      </div>
+    }>
+      <DeveloperHubContent />
+    </Suspense>
   );
 }
