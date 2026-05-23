@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@/lib/wallet';
 import axios from 'axios';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+
+const Nav = dynamic(() => import('@/components/Nav'), { ssr: false });
+
+const API = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002';
 
 interface Tier {
   tier: string;
@@ -39,7 +46,7 @@ export default function SubscriptionsPage() {
     if (!address) return;
     try {
       setLoading(true);
-      const response = await axios.get(`/api/v1/subscriptions/subscription/${address}`);
+      const response = await axios.get(`${API}/api/v1/subscriptions/subscription/${address}`);
       setSubscription(response.data);
     } catch (err) {
       console.error('Error fetching subscription:', err);
@@ -60,7 +67,7 @@ export default function SubscriptionsPage() {
 
       // In production, this would call a backend endpoint that integrates with the Clarity contract
       // For now, showing the flow
-      const response = await axios.post('/api/v1/subscriptions/api-keys/generate', {
+      const response = await axios.post(`${API}/api/v1/subscriptions/api-keys/generate`, {
         tier: selectedTier,
         subscriberAddress: address,
       });
@@ -89,8 +96,17 @@ export default function SubscriptionsPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: '40px 20px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ background: 'var(--bg-base)', minHeight: '100vh' }}>
+      <Nav />
+      
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 0' }}>
+        <Link href="/feed" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', transition: 'color 0.2s' }} className="hover:text-primary">
+          <ArrowLeft size={16} /> Back to Feed
+        </Link>
+      </div>
+
+      <div style={{ minHeight: 'calc(100vh - 120px)', padding: '20px 20px 40px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <h1 style={{ fontSize: 32, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
           API Subscriptions
         </h1>
@@ -293,6 +309,7 @@ export default function SubscriptionsPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
