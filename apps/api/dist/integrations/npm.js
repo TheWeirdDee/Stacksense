@@ -1,9 +1,6 @@
 import axios from 'axios';
 const NPM_DOWNLOADS_API = 'https://api.npmjs.org/downloads';
-/**
- * Fetch monthly download stats for an NPM package.
- * Uses the public npm downloads API — no auth required.
- */
+
 export async function getNpmDownloads(packageName) {
     try {
         const [monthlyRes, weeklyRes, rangeRes] = await Promise.all([
