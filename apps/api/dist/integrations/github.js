@@ -59,7 +59,7 @@ export async function trackGitHubActivity(username) {
                 total: existing.total + commits.length,
                 ecosystem: existing.ecosystem + newEcosystemCount,
                 commits: [...(existing.commits || []), ...commits],
-            }), { EX: 604800 } // 7 days
+            }), { EX: 604800 }
             );
         }
         return {
