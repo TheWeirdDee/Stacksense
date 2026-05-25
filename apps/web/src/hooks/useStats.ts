@@ -4,7 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { GlobalStats } from '@/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://stacksense-production-7a6f.up.railway.app';
+import { getApiUrl } from '@/lib/config';
+
+const API_BASE = getApiUrl();
 
 export function useStats() {
   return useQuery<GlobalStats>({
