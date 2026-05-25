@@ -8,8 +8,10 @@ import FeedCard from '@/components/FeedCard'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 
-const API = process.env.NEXT_PUBLIC_API_BASE ?? 'https://stacksense-production-7a6f.up.railway.app'
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'wss://stacksense-production-7a6f.up.railway.app/ws'
+import { getApiUrl, getWsUrl } from '@/lib/config'
+
+const API = getApiUrl()
+const WS_URL = getWsUrl()
 
 const SIGNALS = ['All', 'Bullish', 'Neutral', 'Risk', 'Anomaly']
 const PROTOCOLS = ['All', 'ALEX', 'Arkadiko', 'Velar', 'sBTC Bridge', 'Native STX', 'StackSense']
@@ -371,25 +373,22 @@ export default function FeedPage() {
             ? '240px 1fr'
             : '1fr',
         flex: 1,
-        height: 'calc(100vh - 56px)',
-        overflow: 'hidden',
       }}>
 
         {(isDesktop || isTablet || showSidebar) && (
           <div style={{
             width: isDesktop ? 280 : isTablet ? 240 : '100%',
-            height: '100%',
+            position: isMobile && showSidebar ? 'fixed' : 'sticky',
+            top: 56,
+            height: isMobile && showSidebar ? '100%' : 'calc(100vh - 56px)',
             overflowY: 'auto',
             borderRight: '1px solid var(--bg-border)',
             background: 'var(--bg-base)',
             ...(isMobile && showSidebar ? {
-              position: 'fixed',
-              top: 56,
               left: 0,
               right: 0,
               bottom: 0,
               zIndex: 98,
-              background: 'var(--bg-base)',
             } : {}),
           }}>
             <SidebarContent />
@@ -469,7 +468,9 @@ export default function FeedPage() {
         {isDesktop && (
           <div style={{
             width: 300,
-            height: '100%',
+            position: 'sticky',
+            top: 56,
+            height: 'calc(100vh - 56px)',
             overflowY: 'auto',
             borderLeft: '1px solid var(--bg-border)',
           }}>
