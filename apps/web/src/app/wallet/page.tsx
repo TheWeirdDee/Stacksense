@@ -5,9 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
+import { getApiUrl } from '@/lib/config'
 import { useWindowSize } from '@/hooks/useWindowSize'
 
-const API = process.env.NEXT_PUBLIC_API_BASE ?? 'https://stacksense-production-7a6f.up.railway.app'
+const API = getApiUrl()
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
