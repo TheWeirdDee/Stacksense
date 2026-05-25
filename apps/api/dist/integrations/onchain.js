@@ -7,10 +7,7 @@ function hirojHeaders() {
         h['x-api-key'] = HIRO_API_KEY;
     return h;
 }
-/**
- * Fetch transaction stats for a single contract (address.name).
- * Pages through up to 500 transactions to count unique callers + fees.
- */
+
 export async function getContractStats(address, name) {
     const contractId = `${address}.${name}`;
     let offset = 0;
