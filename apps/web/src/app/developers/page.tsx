@@ -8,8 +8,10 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowLeft, Cpu, Flame, Terminal, Plus, Trash, Globe, ShieldCheck, AlertCircle } from 'lucide-react';
 
+import { getApiUrl } from '@/lib/config';
+
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false });
-const API = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002';
+const API = getApiUrl();
 
 const DEFAULT_CONTRACT = 'SP3DBM7M6CEM4BW7XQX5VGH7KRC64FD11X3N1D2DV.signal-tips';
 
