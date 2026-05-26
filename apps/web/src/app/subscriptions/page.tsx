@@ -1,5 +1,8 @@
-'use client';
+import { redirect } from 'next/navigation'
 
+ 
+export default function SubscriptionsRedirect() {
+  redirect('/api/plans')
 import { useState, useEffect } from 'react';
 import { useWallet } from '@/lib/wallet';
 import axios from 'axios';
