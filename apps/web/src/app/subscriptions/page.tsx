@@ -58,7 +58,13 @@ export default function SubscriptionsPage() {
     if (!address) return;
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/api/v1/subscriptions/subscription/${address}`);
+      // Load API key from localStorage if available
+      const storedApiKey = typeof window !== 'undefined' ? localStorage.getItem(`stacksense-api-key:${address}`) : null;
+      const headers = storedApiKey ? { 'x-api-key': storedApiKey } : {};
+      
+      const response = await axios.get(`${API}/api/v1/subscriptions/subscription/${address}`, {
+        headers,
+      });
       setSubscription(response.data);
     } catch (err) {
       console.error('Error fetching subscription:', err);
@@ -91,13 +97,18 @@ export default function SubscriptionsPage() {
           subscriberAddress: address,
         });
 
+        // Save API key to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`stacksense-api-key:${address}`, response.data.apiKey);
+        }
+
         setSubscription({
-          ...subscription!,
           tier: 'free',
           tierInfo: response.data.tierInfo,
           isActive: true,
           expiresAt: response.data.expiresAt,
           requestsLimit: response.data.requestsLimit,
+          requestsUsed: 0,
         });
 
         setGeneratedApiKey(response.data.apiKey);
@@ -146,13 +157,18 @@ export default function SubscriptionsPage() {
               txId: confirmedTxId,
             });
 
+            // Save API key to localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`stacksense-api-key:${address}`, response.data.apiKey);
+            }
+
             setSubscription({
-              ...subscription!,
               tier,
               tierInfo: response.data.tierInfo,
               isActive: true,
               expiresAt: response.data.expiresAt,
               requestsLimit: response.data.requestsLimit,
+              requestsUsed: 0,
             });
 
             setGeneratedApiKey(response.data.apiKey);
@@ -549,22 +565,44 @@ export default function SubscriptionsPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => { setShowKeyModal(false); setPaymentStep('idle'); }}
-              style={{
-                width: '100%',
-                background: '#22C55E',
-                color: '#000',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: 14,
-              }}
-            >
-              Done
-            </button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => { setShowKeyModal(false); setPaymentStep('idle'); }}
+                style={{
+                  flex: 1,
+                  background: '#22C55E',
+                  color: '#000',
+                  border: 'none',
+                  padding: '12px 16px',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}
+              >
+                Done
+              </button>
+              <Link
+                href="/api-keys"
+                style={{
+                  flex: 1,
+                  background: 'none',
+                  color: '#3B82F6',
+                  border: '1px solid #3B82F6',
+                  padding: '12px 16px',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                View API Keys Dashboard
+              </Link>
+            </div>
           </div>
         </div>
       )}
