@@ -51,7 +51,11 @@ export default function Nav() {
         {isDesktop && (
           <div style={{ display: 'flex', gap: 4, alignItems: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             {NAV_LINKS.map(({ label, href }) => {
-              const active = pathname === href || (href.includes('?my=true') && pathname === '/feed')
+              const active = pathname === href
+                || (href === '/feed' && pathname === '/feed')
+                || (href === '/api' && pathname?.startsWith('/api'))
+                || (href.includes('?my=true') && pathname === '/feed');
+
               return (
                 <Link key={href} href={href} style={{
                   color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
