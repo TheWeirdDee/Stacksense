@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { label: 'Analyze', href: '/wallet' },
   { label: 'Leaderboard', href: '/leaderboard' },
   { label: 'Developers', href: '/developers' },
-  { label: 'API', href: '/subscriptions' },
+  { label: 'API', href: '/api' },
   { label: 'Methodology', href: '/about' },
 ]
 
