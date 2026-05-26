@@ -62,16 +62,19 @@ router.get('/list/:subscriberAddress', async (req, res) => {
     const webhookIds = await redisClient.sMembers(`subscriber:${subscriberAddress}:webhooks`);
 
     const webhooks: WebhookAlert[] = [];
-    for (const id of webhookIds) {
-      const data = await redisClient.get(`webhook:${id}`);
-      if (data) {
-        webhooks.push(JSON.parse(data));
+    if (webhookIds && webhookIds.length > 0) {
+      for (const id of webhookIds) {
+        const data = await redisClient.get(`webhook:${id}`);
+        if (data) {
+          webhooks.push(JSON.parse(data));
+        }
       }
     }
 
     res.json({ webhooks });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch webhooks' });
+  } catch (error: any) {
+    console.error('[Alerts] List fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch webhooks', details: error.message });
   }
 });
 
