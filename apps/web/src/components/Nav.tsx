@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { label: 'Leaderboard', href: '/leaderboard' },
   { label: 'Developers', href: '/developers' },
   { label: 'API', href: '/subscriptions' },
+  { label: 'API Keys', href: '/api-keys' },
   { label: 'Methodology', href: '/about' },
 ]
 
