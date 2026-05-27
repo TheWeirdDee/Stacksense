@@ -4,8 +4,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { cacheGet } from '../utils/cache';
-import { validateApiKey, validateAddress } from '../utils/errors';
+import { cacheGet } from '../utils/cache.js';
+import { validateApiKey, validateAddress } from '../utils/errors.js';
 
 export interface AuthRequest extends Request {
   apiKeyData?: {
@@ -73,7 +73,7 @@ export function optionalAuth(
 
   if (apiKey && validateApiKey(apiKey)) {
     // Attach if valid, otherwise continue without auth
-    cacheGet(`api-key:${apiKey}`).then((data) => {
+    cacheGet(`api-key:${apiKey}`).then((data: AuthRequest['apiKeyData'] | null) => {
       if (data) {
         req.apiKeyData = data as AuthRequest['apiKeyData'];
       }

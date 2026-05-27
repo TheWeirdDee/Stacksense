@@ -3,9 +3,9 @@
  * Subscription management business logic
  */
 
-import { cacheGet, cacheSet, cacheDelete } from './cache';
-import { logger } from './logger';
-import { REDIS_TTL } from '../constants';
+import { cacheGet, cacheSet, cacheDelete } from '../utils/cache.js';
+import { logger } from '../utils/logger.js';
+import { REDIS_TTL } from '../constants.js';
 
 export interface SubscriptionData {
   tier: 'free' | 'pro' | 'enterprise';
