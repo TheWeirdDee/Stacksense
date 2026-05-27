@@ -1,0 +1,56 @@
+/**
+ * Middleware - Rate Limiting
+ * Basic rate limiting middleware
+ */
+
+import { Request, Response, NextFunction } from 'express';
+import { cacheIncrement, cacheGet, cacheSet } from '../utils/cache';
+import { REDIS_TTL } from '../constants';
+
+export interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  keyGenerator?: (req: Request) => string;
+}
+
+const defaultConfig: RateLimitConfig = {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100,
+  keyGenerator: (req) => req.ip || 'unknown',
+};
+
+export function rateLimit(config: Partial<RateLimitConfig> = {}) {
+  const finalConfig = { ...defaultConfig, ...config };
+
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const key = `rate-limit:${finalConfig.keyGenerator?.(req)}`;
+      const windowKey = `${key}:${Math.floor(Date.now() / finalConfig.windowMs)}`;
+
+      const current = await cacheIncrement(windowKey);
+
+      if (current === 1) {
+        await cacheSet(windowKey, 1, Math.ceil(finalConfig.windowMs / 1000));
+      }
+
+      res.set('X-RateLimit-Limit', finalConfig.maxRequests.toString());
+      res.set('X-RateLimit-Remaining', Math.max(0, finalConfig.maxRequests - current).toString());
+      res.set('X-RateLimit-Reset', new Date(Date.now() + finalConfig.windowMs).toISOString());
+
+      if (current > finalConfig.maxRequests) {
+        res.status(429).json({
+          success: false,
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Too many requests',
+          retryAfter: finalConfig.windowMs,
+        });
+        return;
+      }
+
+      next();
+    } catch (error) {
+      console.error('Rate limit error:', error);
+      next();
+    }
+  };
+}
