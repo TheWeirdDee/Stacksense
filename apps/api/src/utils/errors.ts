@@ -4,7 +4,7 @@
  */
 
 import { Response } from 'express';
-import { HTTP_STATUS, ERROR_MESSAGES } from '../constants';
+import { HTTP_STATUS, ERROR_MESSAGES } from '../constants.js';
 
 export class ApiError extends Error {
   constructor(
