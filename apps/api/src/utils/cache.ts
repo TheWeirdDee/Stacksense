@@ -3,7 +3,7 @@
  * Redis caching helpers and utilities
  */
 
-import redis from '../redis/client.js';
+import { redisClient as redis } from '../redis/client.js';
 import { REDIS_TTL } from '../constants.js';
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
