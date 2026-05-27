@@ -73,7 +73,7 @@ export function optionalAuth(
 
   if (apiKey && validateApiKey(apiKey)) {
     // Attach if valid, otherwise continue without auth
-    cacheGet(`api-key:${apiKey}`).then((data: AuthRequest['apiKeyData'] | null) => {
+    cacheGet<AuthRequest['apiKeyData']>(`api-key:${apiKey}`).then((data) => {
       if (data) {
         req.apiKeyData = data as AuthRequest['apiKeyData'];
       }
