@@ -63,7 +63,7 @@ export async function getContractStats(
       offset += limit;
     }
   } catch (err: any) {
-    console.error(`[Onchain] Failed to fetch txs for ${contractId}:`, err.message);
+    console.error(`[Onchain] Failed to fetch txs for ${contractId}:`, err?.message || err);
   }
 
   return {
@@ -106,7 +106,7 @@ export async function getWalletDeployments(address: string): Promise<number> {
 
     return deployCount;
   } catch (err: any) {
-    console.error(`[Onchain] Failed to fetch deployments for ${address}:`, err.message);
+    console.error(`[Onchain] Failed to fetch deployments for ${address}:`, err?.message || err);
     return 0;
   }
 }
