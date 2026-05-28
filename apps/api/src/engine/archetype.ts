@@ -10,6 +10,9 @@ const HIRO_API_KEY = process.env.HIRO_API_KEY;
 export type Archetype = 'Whale Wallet' | 'LP Farmer' | 'New Wallet' | 'DeFi User' | 'Active Wallet' | 'Unclassified Wallet';
 
 export async function getArchetype(address: string): Promise<string> {
+  if (!address || typeof address !== 'string' || !address.startsWith('SP')) {
+    return 'Unclassified Wallet';
+  }
   const cacheKey = `archetype:${address}`;
   try {
     const cached = await redisClient.get(cacheKey);
@@ -38,7 +41,7 @@ async function getWalletHistory(address: string): Promise<any[]> {
     console.log(`[Archetype] ${address.slice(0, 8)} has ${results.length} recent txns`);
     return results;
   } catch (e: any) {
-    console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e.message);
+    console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e?.message || e);
     return [];
   }
 }
