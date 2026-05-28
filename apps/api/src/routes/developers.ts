@@ -12,6 +12,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'username and stacksAddress are required' });
     }
 
+    if (typeof username !== 'string' || username.length > 39) {
+      return res.status(400).json({ error: 'Invalid GitHub username' });
+    }
+
+    if (typeof stacksAddress !== 'string' || !stacksAddress.startsWith('SP')) {
+      return res.status(400).json({ error: 'Invalid Stacks address' });
+    }
+
     const result = await registerDeveloper(username, stacksAddress);
     res.json(result);
   } catch (error: any) {
