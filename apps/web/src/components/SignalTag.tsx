@@ -5,7 +5,8 @@ const MAP = {
   anomaly: { label: 'Anomaly', color: '#EF4444', bg: '#2E0F0F' },
 }
 
-export default function SignalTag({ signal, size = 'md' }: { signal: string; size?: 'sm' | 'md' }) {
+export default function SignalTag({ signal, size = 'md' }: { signal?: string; size?: 'sm' | 'md' }) {
+  if (!signal || typeof signal !== 'string') signal = 'neutral'
   const s = MAP[signal as keyof typeof MAP] ?? MAP.neutral
   const fs = size === 'sm' ? 10 : 11
   return (
