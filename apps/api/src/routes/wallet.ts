@@ -7,6 +7,9 @@ const router = express.Router();
 router.get('/:address', async (req, res) => {
   try {
     const { address } = req.params;
+    if (!address || typeof address !== 'string' || !address.startsWith('SP')) {
+      return res.status(400).json({ error: 'Invalid wallet address' });
+    }
     
     const details = await getDetailedArchetype(address);
     
