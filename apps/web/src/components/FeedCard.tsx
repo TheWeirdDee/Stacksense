@@ -29,6 +29,7 @@ export default function FeedCard({
   onTip,
   localStats = { bull: 0, bear: 0, tips: 0 }
 }: Props) {
+  if (!event) return null
   const { isMobile } = useWindowSize()
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
