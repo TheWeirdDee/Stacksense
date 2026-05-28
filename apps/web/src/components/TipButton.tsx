@@ -6,10 +6,14 @@ export default function TipButton({ eventId, title }: { eventId: string, title: 
   const [state, setState] = useState<'idle' | 'sent'>('idle')
 
   const handleTip = () => {
-    sendTip(ONE_STX, `StackSense signal tip: ${title.slice(0, 30)}`, () => {
-      setState('sent')
-      setTimeout(() => setState('idle'), 3000)
-    })
+    try {
+      sendTip(ONE_STX, `StackSense signal tip: ${String(title || '').slice(0, 30)}`, () => {
+        setState('sent')
+        setTimeout(() => setState('idle'), 3000)
+      })
+    } catch (err) {
+      console.error('Tip failed:', err)
+    }
   }
 
   return (
