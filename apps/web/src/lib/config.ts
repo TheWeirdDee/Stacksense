@@ -17,6 +17,10 @@ export const getApiUrl = (): string => {
   }
   const isLocal = getIsLocalhost();
   const envVal = process.env.NEXT_PUBLIC_API_BASE;
+  if (envVal && !envVal.startsWith('http')) {
+    console.warn('[Config] Ignoring invalid NEXT_PUBLIC_API_BASE value');
+    return defaultVal;
+  }
   
   if (isLocal) {
     return envVal || 'http://localhost:3002';
