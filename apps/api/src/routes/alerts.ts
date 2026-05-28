@@ -27,6 +27,12 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: 'subscriberAddress and webhookUrl are required' });
     }
 
+    try {
+      new URL(webhookUrl);
+    } catch {
+      return res.status(400).json({ error: 'webhookUrl must be a valid URL' });
+    }
+
     const webhookId = crypto.randomBytes(16).toString('hex');
     const alert: WebhookAlert = {
       id: webhookId,
