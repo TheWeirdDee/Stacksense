@@ -34,8 +34,12 @@ router.post('/register', async (req, res) => {
       contracts = DEFAULT_CONTRACTS,
     } = req.body;
 
-    if (!stacksAddress) {
+    if (!stacksAddress || typeof stacksAddress !== 'string' || !stacksAddress.startsWith('SP')) {
       return res.status(400).json({ error: 'stacksAddress is required' });
+    }
+
+    if (!Array.isArray(contracts) || contracts.length === 0) {
+      return res.status(400).json({ error: 'contracts must be a non-empty array' });
     }
 
     const project = {
