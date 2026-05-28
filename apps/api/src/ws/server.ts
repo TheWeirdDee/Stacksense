@@ -34,9 +34,11 @@ export function setupWebSocket(server: Server) {
 
     ws.on('message', (data) => {
       try {
-        const msg = JSON.parse(data.toString())
+        const msg = JSON.parse(data.toString()) as { type?: string }
         if (msg.type === 'pong') return
-      } catch {}
+      } catch (err) {
+        console.warn('[WS] Invalid client payload ignored:', err)
+      }
     })
 
     ws.on('close', () => {
