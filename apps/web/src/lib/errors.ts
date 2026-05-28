@@ -68,8 +68,12 @@ export function isRetryableError(error: unknown): boolean {
 }
 
 export function logError(error: unknown, context?: string): void {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(`[Error${context ? ` - ${context}` : ''}]`, error);
+  try {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`[Error${context ? ` - ${context}` : ''}]`, error);
+    }
+  } catch (e) {
+    // swallow logging errors
   }
 }
 
