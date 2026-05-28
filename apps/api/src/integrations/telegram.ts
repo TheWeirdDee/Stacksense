@@ -18,6 +18,11 @@ if (token && chatId) {
 export async function sendHighConvictionAlert(event: any) {
   if (!bot || !chatId) return;
 
+  if (!event || !event.title) {
+    console.warn('[Telegram] Missing event payload');
+    return;
+  }
+
   const message = `
 🚨 *HIGH CONVICTION SIGNAL* 🚨
 
@@ -35,6 +40,6 @@ ${event.description}
   try {
     await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
-    console.error('[Telegram] Failed to send alert:', error);
+    console.error('[Telegram] Failed to send alert:', error?.message || error);
   }
 }
