@@ -36,6 +36,7 @@ async function pollTransactions() {
     type: ['contract_call', 'token_transfer'],
     unanchored: false,
   };
+  const requestOptions = { headers, timeout: 7000, params };
   
   const headers: Record<string, string> = {};
   if (HIRO_API_KEY) {
@@ -43,7 +44,7 @@ async function pollTransactions() {
   }
   
   try {
-    const response = await axios.get(url, { params, headers });
+    const response = await axios.get(url, requestOptions);
     const transactions = response.data.results;
     
     let newCount = 0;
@@ -65,7 +66,7 @@ async function pollTransactions() {
       console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped`);
     }
   } catch (error) {
-    console.error('[Poller] Fetch error:', error);
+      console.error('[Poller] Fetch error:', error?.message || error);
   }
 }
 
@@ -89,8 +90,8 @@ async function processTransaction(tx: any) {
 
       console.log(`[Poller] Broadcast to ${getClientCount()} WebSocket clients`)
     }
-  } catch (error) {
-    console.error(`Error processing tx ${tx.tx_id}:`, error);
+  } catch (error: any) {
+    console.error(`Error processing tx ${tx.tx_id}:`, error.message || error);
   }
 }
 // PR: auto-generated branch pr/poller-webhooks
