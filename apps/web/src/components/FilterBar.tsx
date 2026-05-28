@@ -18,6 +18,7 @@ export default function FilterBar({
   activeProtocol, 
   setActiveProtocol 
 }: FilterBarProps) {
+  if (!setActiveSignal || !setActiveProtocol) return null;
   return (
     <div className="space-y-6">
       <div>
