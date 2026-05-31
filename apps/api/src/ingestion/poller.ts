@@ -36,12 +36,12 @@ async function pollTransactions() {
     type: ['contract_call', 'token_transfer'],
     unanchored: false,
   };
-  const requestOptions = { headers, timeout: 7000, params };
-  
   const headers: Record<string, string> = {};
   if (HIRO_API_KEY) {
     headers['x-api-key'] = HIRO_API_KEY;
   }
+
+  const requestOptions = { headers, timeout: 7000, params };
   
   try {
     const response = await axios.get(url, requestOptions);
@@ -65,7 +65,7 @@ async function pollTransactions() {
     if (newCount > 0 || skippedCount > 0) {
       console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped`);
     }
-  } catch (error) {
+  } catch (error: any) {
       console.error('[Poller] Fetch error:', error?.message || error);
   }
 }
