@@ -39,7 +39,7 @@ ${event.description}
 
   try {
     await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Telegram] Failed to send alert:', error?.message || error);
   }
 }
