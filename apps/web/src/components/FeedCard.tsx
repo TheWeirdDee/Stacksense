@@ -11,6 +11,7 @@ import {
 } from '@/lib/contract'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import type { FeedEvent } from '@/lib/types'
+import { Star, Eye } from 'lucide-react'
 
 interface Props {
   event: FeedEvent
@@ -18,6 +19,10 @@ interface Props {
   onVote?: (direction: 'bull' | 'bear') => void
   onTip?: () => void
   localStats?: { bull: number, bear: number, tips: number }
+  isBookmarked?: boolean
+  isWatched?: boolean
+  onToggleBookmark?: () => void
+  onToggleWatch?: () => void
 }
 
 type ActionState = 'idle' | 'pending' | 'done'
@@ -27,7 +32,11 @@ export default function FeedCard({
   showActions = false,
   onVote,
   onTip,
-  localStats = { bull: 0, bear: 0, tips: 0 }
+  localStats = { bull: 0, bear: 0, tips: 0 },
+  isBookmarked = false,
+  isWatched = false,
+  onToggleBookmark,
+  onToggleWatch,
 }: Props) {
   if (!event) return null
   const { isMobile } = useWindowSize()
@@ -81,14 +90,54 @@ export default function FeedCard({
             {timeAgo(event.timestamp)}
           </span>
         </div>
-        <a
-          href={event.explorer_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11, color: 'var(--brand-text)', textDecoration: 'none', flexShrink: 0 }}
-        >
-          Explorer ↗
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {onToggleWatch && (
+            <button
+              onClick={onToggleWatch}
+              title={isWatched ? 'Remove address from watchlist' : 'Add address to watchlist'}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: isWatched ? '#3B82F6' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                padding: 0,
+                transition: 'color 0.15s, transform 0.1s',
+              }}
+            >
+              <Eye size={14} style={{ fill: isWatched ? 'rgba(59, 130, 246, 0.2)' : 'none' }} />
+            </button>
+          )}
+          
+          {onToggleBookmark && (
+            <button
+              onClick={onToggleBookmark}
+              title={isBookmarked ? 'Remove bookmark' : 'Bookmark transaction'}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: isBookmarked ? '#F59E0B' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                padding: 0,
+                transition: 'color 0.15s, transform 0.1s',
+              }}
+            >
+              <Star size={14} style={{ fill: isBookmarked ? 'rgba(245, 158, 11, 0.2)' : 'none' }} />
+            </button>
+          )}
+
+          <a
+            href={event.explorer_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 11, color: 'var(--brand-text)', textDecoration: 'none', flexShrink: 0 }}
+          >
+            Explorer ↗
+          </a>
+        </div>
       </div>
 
       <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
