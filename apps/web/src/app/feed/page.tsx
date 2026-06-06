@@ -36,6 +36,9 @@ export default function FeedPage() {
   const [wsStatus, setWsStatus] = useState<WSStatus>('connecting')
   const [signalFilter, setSignalFilter] = useState('All')
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
+  const [libraryFilter, setLibraryFilter] = useState<'all' | 'bookmarks' | 'watchlist'>('all')
+  const [bookmarkedTxs, setBookmarkedTxs] = useState<string[]>([])
+  const [watchedWallets, setWatchedWallets] = useState<string[]>([])
   
   const [localVotes, setLocalVotes] = useState<Record<string, { bull: number, bear: number, tips: number }>>({})
   
@@ -46,6 +49,46 @@ export default function FeedPage() {
   const wsRef = useRef<WebSocket | null>(null)
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryCount = useRef(0)
+
+  useEffect(() => {
+    try {
+      const storedBookmarks = localStorage.getItem('stacksense-bookmarks')
+      if (storedBookmarks) setBookmarkedTxs(JSON.parse(storedBookmarks))
+      
+      const storedWatchlist = localStorage.getItem('stacksense-watchlist')
+      if (storedWatchlist) setWatchedWallets(JSON.parse(storedWatchlist))
+    } catch (err) {
+      console.error('Failed to load bookmarks/watchlist:', err)
+    }
+  }, [])
+
+  const handleToggleBookmark = (txId: string) => {
+    setBookmarkedTxs(prev => {
+      const next = prev.includes(txId)
+        ? prev.filter(id => id !== txId)
+        : [...prev, txId]
+      localStorage.setItem('stacksense-bookmarks', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const handleToggleWatch = (walletAddress: string) => {
+    setWatchedWallets(prev => {
+      const next = prev.includes(walletAddress)
+        ? prev.filter(addr => addr !== walletAddress)
+        : [...prev, walletAddress]
+      localStorage.setItem('stacksense-watchlist', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const handleRemoveWatchedWallet = (walletAddress: string) => {
+    setWatchedWallets(prev => {
+      const next = prev.filter(addr => addr !== walletAddress)
+      localStorage.setItem('stacksense-watchlist', JSON.stringify(next))
+      return next
+    })
+  }
 
   useEffect(() => {
     fetch(`${API}/api/v1/feed?limit=50`)
@@ -173,7 +216,15 @@ export default function FeedPage() {
   const filtered = currentEvents.filter(e => {
     const sigMatch = signalFilter === 'All' || e.signal === signalFilter.toLowerCase()
     const protoMatch = !selectedProtocol || e.protocol.toLowerCase() === selectedProtocol.toLowerCase()
-    return sigMatch && protoMatch
+    
+    let libMatch = true
+    if (libraryFilter === 'bookmarks') {
+      libMatch = bookmarkedTxs.includes(e.tx_id)
+    } else if (libraryFilter === 'watchlist') {
+      libMatch = watchedWallets.includes(e.wallet_address)
+    }
+    
+    return sigMatch && protoMatch && libMatch
   })
 
   const statusColor = wsStatus === 'live' ? '#22C55E' : wsStatus === 'connecting' ? '#F59E0B' : '#EF4444'
@@ -191,6 +242,87 @@ export default function FeedPage() {
         </div>
       )}
       <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Library
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[
+              { id: 'all', label: 'All Events', count: null },
+              { id: 'bookmarks', label: 'Bookmarked TXs', count: bookmarkedTxs.length },
+              { id: 'watchlist', label: 'Watched Wallets', count: watchedWallets.length },
+            ].map(item => {
+              const active = libraryFilter === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setLibraryFilter(item.id as any); if(isMobile) setShowSidebar(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '7px 10px', borderRadius: 6, border: 'none',
+                    background: active ? 'var(--bg-elevated)' : 'transparent',
+                    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontSize: 13, cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
+                  <span>{item.label}</span>
+                  <span style={{ fontSize: 11, color: active ? 'var(--brand-text)' : 'var(--text-muted)', fontWeight: active ? 600 : 400 }}>
+                    {item.count !== null ? item.count : ''}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: 'var(--bg-border)' }} />
+
+        {watchedWallets.length > 0 && (
+          <>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+                Watched Addresses
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {watchedWallets.map(addr => (
+                  <div
+                    key={addr}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--bg-border)',
+                      fontSize: 11,
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+                      {addr.slice(0, 6)}...{addr.slice(-6)}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveWatchedWallet(addr)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        fontSize: 10,
+                        padding: '2px 4px',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ height: 1, background: 'var(--bg-border)' }} />
+          </>
+        )}
+
         <div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
             Signal
@@ -460,6 +592,10 @@ export default function FeedPage() {
                 onVote={(dir) => handleLocalVote(event.id, dir)}
                 onTip={() => handleLocalTip(event.id)}
                 localStats={localVotes[event.id]}
+                isBookmarked={bookmarkedTxs.includes(event.tx_id)}
+                isWatched={watchedWallets.includes(event.wallet_address)}
+                onToggleBookmark={() => handleToggleBookmark(event.tx_id)}
+                onToggleWatch={() => handleToggleWatch(event.wallet_address)}
               />
             ))}
           </div>
