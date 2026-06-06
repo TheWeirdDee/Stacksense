@@ -40,7 +40,7 @@ class ApiClient {
           code: error.code || 'UNKNOWN_ERROR',
           message: error.message,
           statusCode: error.response?.status || 0,
-          details: error.response?.data,
+          details: error.response?.data as any,
         };
         return Promise.reject(apiError);
       }
