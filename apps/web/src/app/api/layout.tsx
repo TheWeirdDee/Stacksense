@@ -6,9 +6,7 @@ import { ReactNode } from 'react';
 import Nav from '@/components/Nav';
 
 const SECTIONS = [
-  { label: 'Overview', href: '/api' },
-  { label: 'API Keys', href: '/api/keys' },
-  { label: 'Plans', href: '/api/plans' },
+  { label: 'Console', href: '/api' },
   { label: 'Documentation', href: '/api/docs' },
 ];
 

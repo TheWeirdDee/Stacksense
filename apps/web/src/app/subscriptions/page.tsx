@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function SubscriptionsRedirect() {
-  redirect('/api/plans')
+  redirect('/api')
 }
