@@ -140,12 +140,13 @@ export default function ApiPlansPage() {
       const { openContractCall, AppConfig, UserSession } = await import('@stacks/connect');
       const { StacksMainnet } = await import('@stacks/network');
       const { bufferCV, stringUtf8CV, createSTXPostCondition, FungibleConditionCode } = await import('@stacks/transactions');
+      type ClarityValue = ReturnType<typeof bufferCV> | ReturnType<typeof stringUtf8CV>;
 
       const appConfig = new AppConfig(['store_write', 'publish_data']);
       const userSession = new UserSession({ appConfig });
       const addressString = address;
       const apiKeyBytes = hexToBytes(generatedKey);
-      const functionArgs = [bufferCV(apiKeyBytes)];
+      const functionArgs: ClarityValue[] = [bufferCV(apiKeyBytes)];
 
       if (tier === 'enterprise') {
         functionArgs.push(stringUtf8CV(''));
@@ -334,51 +335,52 @@ export default function ApiPlansPage() {
           </div>
         )}
 
-        {!connected ? (
-          <button onClick={connect} style={{ background: '#22C55E', color: '#000', border: 'none', padding: '12px 24px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, marginBottom: 40 }}>
-            Connect Wallet to View Plans
-          </button>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
-            {(['free', 'pro', 'enterprise'] as SubscriptionTier[]).map((tierName) => {
-              const tier = tiers[tierName];
-              const isCurrent = subscription?.tier === tierName;
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
+          {(['free', 'pro', 'enterprise'] as SubscriptionTier[]).map((tierName) => {
+            const tier = tiers[tierName];
+            const isCurrent = subscription?.tier === tierName;
 
-              return (
-                <div key={tierName} style={{ background: 'var(--bg-surface)', border: isCurrent ? '2px solid #22C55E' : tierName === 'pro' ? '1px solid #3B82F6' : '1px solid var(--bg-border)', borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-                  {tierName === 'pro' && !isCurrent && (
-                    <div style={{ position: 'absolute', top: 12, right: -28, background: '#3B82F6', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 32px', transform: 'rotate(45deg)', letterSpacing: '0.05em' }}>
-                      POPULAR
-                    </div>
-                  )}
-
-                  <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase' }}>{tier.tier}</h3>
-                  <div style={{ marginBottom: 24 }}>
-                    <p style={{ fontSize: 32, fontWeight: 700, marginBottom: 4 }}>{tier.monthlyCost > 0 ? `${tier.monthlyCost} STX` : 'Free'}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>/month</p>
+            return (
+              <div key={tierName} style={{ background: 'var(--bg-surface)', border: isCurrent ? '2px solid #22C55E' : tierName === 'pro' ? '1px solid #3B82F6' : '1px solid var(--bg-border)', borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                {tierName === 'pro' && !isCurrent && (
+                  <div style={{ position: 'absolute', top: 12, right: -28, background: '#3B82F6', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 32px', transform: 'rotate(45deg)', letterSpacing: '0.05em' }}>
+                    POPULAR
                   </div>
+                )}
 
-                  <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24, flex: 1 }}>
-                    <li style={{ marginBottom: 12, fontSize: 14 }}>✓ {tier.monthlyRequests.toLocaleString()} requests/month</li>
-                    {tier.webhookEnabled && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Webhook support</li>}
-                    {tier.prioritySupport && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Priority support</li>}
-                    {tier.customRules && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Custom rules</li>}
-                  </ul>
-
-                  {isCurrent ? (
-                    <button disabled style={{ background: 'var(--bg-border)', color: 'var(--text-secondary)', border: 'none', padding: '12px 16px', borderRadius: 6, cursor: 'not-allowed', fontWeight: 600 }}>
-                      Current Plan
-                    </button>
-                  ) : (
-                    <button onClick={() => handleUpgrade(tierName)} disabled={loading} style={{ background: tierName === 'pro' ? '#3B82F6' : '#22C55E', color: '#fff', border: 'none', padding: '12px 16px', borderRadius: 6, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: loading && activePlan !== tierName ? 0.7 : 1, transition: 'opacity 0.2s, transform 0.1s' }}>
-                      {getButtonLabel(tierName)}
-                    </button>
-                  )}
+                <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase' }}>{tier.tier}</h3>
+                <div style={{ marginBottom: 24 }}>
+                  <p style={{ fontSize: 32, fontWeight: 700, marginBottom: 4 }}>{tier.monthlyCost > 0 ? `${tier.monthlyCost} STX` : 'Free'}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>/month</p>
                 </div>
-              );
-            })}
-          </div>
-        )}
+
+                <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24, flex: 1 }}>
+                  <li style={{ marginBottom: 12, fontSize: 14 }}>✓ {tier.monthlyRequests.toLocaleString()} requests/month</li>
+                  {tier.webhookEnabled && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Webhook support</li>}
+                  {tier.prioritySupport && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Priority support</li>}
+                  {tier.customRules && <li style={{ marginBottom: 12, fontSize: 14 }}>✓ Custom rules</li>}
+                </ul>
+
+                {!connected ? (
+                  <button
+                    onClick={connect}
+                    style={{ background: 'var(--bg-elevated, #1e1e2e)', color: 'var(--text-secondary)', border: '1px solid var(--bg-border)', padding: '12px 16px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+                  >
+                    Connect wallet to subscribe
+                  </button>
+                ) : isCurrent ? (
+                  <button disabled style={{ background: 'var(--bg-border)', color: 'var(--text-secondary)', border: 'none', padding: '12px 16px', borderRadius: 6, cursor: 'not-allowed', fontWeight: 600 }}>
+                    Current Plan
+                  </button>
+                ) : (
+                  <button onClick={() => handleUpgrade(tierName)} disabled={loading} style={{ background: tierName === 'pro' ? '#3B82F6' : '#22C55E', color: '#fff', border: 'none', padding: '12px 16px', borderRadius: 6, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: loading && activePlan !== tierName ? 0.7 : 1, transition: 'opacity 0.2s, transform 0.1s' }}>
+                    {getButtonLabel(tierName)}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         {error && (
           <div style={{ background: '#2E0F0F', border: '1px solid #EF4444', borderRadius: 8, padding: 16, color: '#EF4444', marginBottom: 24, fontSize: 14, lineHeight: 1.5 }}>
