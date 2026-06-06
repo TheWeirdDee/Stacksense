@@ -10,10 +10,7 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
-    "build:web": "npm run build --workspace=apps/web",
-    "divine": "npx tsx --max-old-space-size=4096 private/scripts/divine.ts",
-    "npm-boost": "npx tsx private/scripts/npm-boost.ts"
-
+    "build:web": "npm run build --workspace=apps/web"
   },
 
   "devDependencies": {
