@@ -14,8 +14,6 @@ const NAV_LINKS = [
   { label: 'Leaderboard', href: '/leaderboard' },
   { label: 'Developers', href: '/developers' },
   { label: 'API', href: '/api' },
-  { label: 'API', href: '/subscriptions' },
-  { label: 'API Keys', href: '/api-keys' },
   { label: 'Methodology', href: '/about' },
 ]
 
@@ -26,6 +24,11 @@ export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const short = address ? address.slice(0, 4) + '...' + address.slice(-4) : null
+
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if (link.label === 'My Activity') return connected
+    return true
+  })
 
   return (
     <>
@@ -52,11 +55,12 @@ export default function Nav() {
 
         {isDesktop && (
           <div style={{ display: 'flex', gap: 4, alignItems: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            {NAV_LINKS.map(({ label, href }) => {
-              const active = pathname === href
-                || (href === '/feed' && pathname === '/feed')
+            {visibleLinks.map(({ label, href }) => {
+              const active =
+                (href === '/feed' && pathname === '/feed' && !pathname?.includes('?my=true'))
+                || (href === '/feed?my=true' && pathname === '/feed')
                 || (href === '/api' && pathname?.startsWith('/api'))
-                || (href.includes('?my=true') && pathname === '/feed');
+                || (href !== '/feed' && href !== '/feed?my=true' && href !== '/api' && pathname === href);
 
               return (
                 <Link key={href} href={href} style={{
@@ -151,7 +155,7 @@ export default function Nav() {
           background: 'var(--bg-surface)', borderBottom: '1px solid var(--bg-border)',
           zIndex: 99, padding: '8px 0',
         }}>
-          {NAV_LINKS.map(({ label, href }) => (
+          {visibleLinks.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
