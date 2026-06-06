@@ -5,8 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
+import ProtocolFlow from '@/components/ProtocolFlow'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { ComposedChart, Area, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 import { getApiUrl, getWsUrl } from '@/lib/config'
 
@@ -41,6 +43,9 @@ export default function FeedPage() {
   const [watchedWallets, setWatchedWallets] = useState<string[]>([])
   
   const [localVotes, setLocalVotes] = useState<Record<string, { bull: number, bear: number, tips: number }>>({})
+  const [showPulseChart, setShowPulseChart] = useState(false)
+  const [pulseData, setPulseData] = useState<any[]>([])
+  const [pulseLoading, setPulseLoading] = useState(false)
   
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -135,6 +140,19 @@ export default function FeedPage() {
     const t = setInterval(load, 30_000)
     return () => clearInterval(t)
   }, [])
+
+  useEffect(() => {
+    if (showPulseChart) {
+      setPulseLoading(true)
+      fetch(`${API}/api/v1/stats/pulse`)
+        .then(r => r.json())
+        .then(data => {
+          setPulseData(data)
+          setPulseLoading(false)
+        })
+        .catch(() => setPulseLoading(false))
+    }
+  }, [showPulseChart])
 
   const connect_ws = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
@@ -553,6 +571,17 @@ export default function FeedPage() {
             
             {!isMyActivity && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => setShowPulseChart(!showPulseChart)}
+                  style={{
+                    padding: '5px 14px', borderRadius: 6, border: '1px solid var(--bg-border)',
+                    background: showPulseChart ? 'var(--brand)' : 'transparent',
+                    color: showPulseChart ? '#fff' : 'var(--text-secondary)',
+                    fontSize: 12, cursor: 'pointer',
+                  }}
+                >
+                  Pulse Chart
+                </button>
                 {paused && buffered.length > 0 && <span style={{ fontSize: 11, color: 'var(--brand-text)' }}>{buffered.length} new</span>}
                 <button
                   onClick={paused ? resume : () => setPaused(true)}
@@ -568,6 +597,68 @@ export default function FeedPage() {
           </div>
 
           <div style={{ overflowY: 'auto', flex: 1 }}>
+            {showPulseChart && !isMyActivity && (
+              <div style={{
+                background: 'var(--bg-surface)',
+                borderBottom: '1px solid var(--bg-border)',
+                padding: '24px 20px',
+                height: 280,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Stacks Network Pulse</h3>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>24-hour activity density, STX volume and average transaction fees</span>
+                  </div>
+                </div>
+                {pulseLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-secondary)', fontSize: 13 }}>
+                    Syncing live network pulse...
+                  </div>
+                ) : pulseData.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-muted)', fontSize: 13 }}>
+                    No stats available for this cycle.
+                  </div>
+                ) : (
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={pulseData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
+                        <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
+                        <YAxis yAxisId="left" stroke="#7C3AED" fontSize={10} tickLine={false} />
+                        <YAxis yAxisId="right" orientation="right" stroke="#10B981" fontSize={10} tickLine={false} />
+                        <Tooltip
+                          contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 8, fontSize: 12 }}
+                          labelStyle={{ color: 'var(--text-secondary)', fontWeight: 600 }}
+                        />
+                        <Area yAxisId="left" type="monotone" dataKey="volume" name="STX Volume" stroke="#7C3AED" fillOpacity={1} fill="url(#colorVolume)" strokeWidth={2} />
+                        <Bar yAxisId="left" dataKey="count" name="Matched Txs" fill="var(--bg-border)" opacity={0.3} barSize={16} />
+                        <Line yAxisId="right" type="monotone" dataKey="avgFee" name="Avg Fee (STX)" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!isMyActivity && !apiError && !loading && (
+              <div style={{ padding: '24px 20px 0' }}>
+                <ProtocolFlow
+                  events={events}
+                  selectedProtocol={selectedProtocol}
+                  onSelectProtocol={(p) => setSelectedProtocol(p)}
+                />
+              </div>
+            )}
+            
             {apiError && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Backend not connected.</div>}
             {isMyActivity && myLoading && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Loading your activity...</div>}
             
