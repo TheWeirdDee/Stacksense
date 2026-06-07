@@ -11,7 +11,7 @@ export interface ContractConfig {
 
 export const SUBSCRIPTION_CONTRACT: ContractConfig = {
   address: process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTRACT_ADDRESS || '',
-  name: process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTRACT_NAME || 'subscription-tips',
+  name: process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTRACT_NAME || 'subcription-tips',
   network: (process.env.NEXT_PUBLIC_NETWORK as 'mainnet' | 'testnet' | 'devnet') || 'mainnet',
 };
 
