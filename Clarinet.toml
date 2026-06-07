@@ -8,3 +8,9 @@ requirements = []
 path = "contracts/signal-tips.clar"
 clarity_version = 4
 epoch = 3.3
+
+[contracts.subcription-tips]
+path = "contracts/stacksense-subscriptions.clar"
+clarity_version = 4
+epoch = 3.3
+
