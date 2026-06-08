@@ -1,4 +1,4 @@
-// Trigger deployment on Railway with all files present
+ 
 const isServer = typeof window === 'undefined';
 
 const getIsLocalhost = () => {
