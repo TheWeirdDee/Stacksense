@@ -1,7 +1,3 @@
-/**
- * Crypto Utilities
- * Cryptographic helpers for API keys and hashing
- */
 
 export function generateApiKeyHex(length = 32): string {
   const array = new Uint8Array(length);
