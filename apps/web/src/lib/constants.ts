@@ -1,7 +1,3 @@
-/**
- * API Constants
- * Centralized API endpoints and configuration
- */
 
 export const API_ENDPOINTS = {
   // Subscriptions
