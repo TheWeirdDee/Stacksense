@@ -27,7 +27,6 @@ class MetricsCollector {
       timestamp: Date.now(),
     });
 
-    // Trim old metrics
     if (history.length > this.maxHistorySize) {
       history.shift();
     }
