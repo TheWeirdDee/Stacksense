@@ -1,8 +1,3 @@
-/**
- * Logger for Frontend
- * Client-side logging utility
- */
-
 export enum LogLevel {
   DEBUG = 'DEBUG',
   INFO = 'INFO',
