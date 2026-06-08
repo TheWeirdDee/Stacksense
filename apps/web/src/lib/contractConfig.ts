@@ -1,7 +1,3 @@
-/**
- * Contract Configuration Types
- * Stacks blockchain smart contract constants and types
- */
 
 export interface ContractConfig {
   address: string;
