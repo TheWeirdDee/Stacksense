@@ -1,7 +1,4 @@
-/**
- * Wallet Types
- * Defines wallet connection and transaction structures
- */
+
 
 export interface WalletAddress {
   mainnet: string;
