@@ -1,7 +1,3 @@
-/**
- * Service: API Key Management
- * Handles all API key operations on frontend
- */
 
 import { apiClient } from '@/lib/apiClient';
 import { getApiKey, setApiKey, clearApiKey } from '@/lib/storage';
