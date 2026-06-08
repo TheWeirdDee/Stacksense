@@ -1,8 +1,3 @@
-/**
- * Format Utilities
- * Common formatting functions for display values
- */
-
 export function formatAddress(address: string, chars = 6): string {
   if (!address || address.length < chars * 2) return address;
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
