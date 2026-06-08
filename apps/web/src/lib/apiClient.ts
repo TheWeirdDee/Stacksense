@@ -1,7 +1,3 @@
-/**
- * API Client Module
- * Centralized API communication with error handling and request/response interceptors
- */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { getApiUrl } from '@/lib/config';
