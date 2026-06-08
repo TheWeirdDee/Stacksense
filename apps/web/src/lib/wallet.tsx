@@ -14,7 +14,6 @@ interface WalletContextType {
 const appConfig = new AppConfig(['store_write', 'publish_data'])
 const userSession = new UserSession({ appConfig })
 
-// Proactive fix for "JSON data version undefined" error
 if (typeof window !== 'undefined') {
   try {
     const session = localStorage.getItem('blockstack-session')
