@@ -1,7 +1,4 @@
-/**
- * Type Guards and Validators
- * Helper functions for runtime type checking
- */
+
 
 import type { SubscriptionTier, ApiKey, SubscriptionStatus } from '@/types/subscription';
 import type { WalletAddress, TransactionResponse } from '@/types/wallet';
