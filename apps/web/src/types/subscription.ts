@@ -1,8 +1,3 @@
-/**
- * Subscription Types
- * Defines subscription tier and plan structures
- */
-
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
 export interface Tier {
