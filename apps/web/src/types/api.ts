@@ -1,8 +1,3 @@
-/**
- * API Response Types
- * Defines all API response structures for type safety across the application
- */
-
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
