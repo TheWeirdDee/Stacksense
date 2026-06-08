@@ -1,8 +1,3 @@
-/**
- * Storage Utilities
- * Helpers for localStorage and session management
- */
-
 const STORAGE_PREFIX = 'stacksense';
 
 export function getStorageKey(key: string): string {
