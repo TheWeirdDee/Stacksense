@@ -1,8 +1,3 @@
-/**
- * Validation Utilities
- * Common validation functions for form inputs and API responses
- */
-
 export function isValidAddress(address: string): boolean {
   return /^(SP|SM)[A-Z0-9]{30,}$/.test(address);
 }
