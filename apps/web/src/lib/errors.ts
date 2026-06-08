@@ -1,8 +1,3 @@
-/**
- * Error Handling Utilities
- * Centralized error handling and user-friendly error messages
- */
-
 export class AppError extends Error {
   constructor(
     public code: string,
