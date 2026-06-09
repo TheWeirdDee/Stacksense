@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import FeedCard from '@/components/FeedCard'
 import ProtocolFlow from '@/components/ProtocolFlow'
+import ProtocolHealthStrip from '@/components/ProtocolHealthStrip'
+import EventDrawer from '@/components/EventDrawer'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { ComposedChart, Area, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -27,6 +29,7 @@ export default function FeedPage() {
 
   const [events, setEvents] = useState<any[]>([])
   const searchParams = useSearchParams()
+  const router = useRouter()
   const isMyActivity = searchParams.get('my') === 'true'
   
   const [myEvents, setMyEvents] = useState<any[]>([])
@@ -36,12 +39,13 @@ export default function FeedPage() {
   const [paused, setPaused] = useState(false)
   const [buffered, setBuffered] = useState<any[]>([])
   const [wsStatus, setWsStatus] = useState<WSStatus>('connecting')
-  const [signalFilter, setSignalFilter] = useState('All')
-  const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
+  const [signalFilter, setSignalFilter] = useState<string>(() => searchParams.get('signal') ?? 'All')
+  const [selectedProtocol, setSelectedProtocol] = useState<string | null>(() => searchParams.get('protocol') || null)
   const [libraryFilter, setLibraryFilter] = useState<'all' | 'bookmarks' | 'watchlist'>('all')
   const [bookmarkedTxs, setBookmarkedTxs] = useState<string[]>([])
   const [watchedWallets, setWatchedWallets] = useState<string[]>([])
   
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null)
   const [localVotes, setLocalVotes] = useState<Record<string, { bull: number, bear: number, tips: number }>>({})
   const [showPulseChart, setShowPulseChart] = useState(false)
   const [pulseData, setPulseData] = useState<any[]>([])
@@ -153,6 +157,15 @@ export default function FeedPage() {
         .catch(() => setPulseLoading(false))
     }
   }, [showPulseChart])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (isMyActivity) params.set('my', 'true')
+    if (signalFilter !== 'All') params.set('signal', signalFilter)
+    if (selectedProtocol) params.set('protocol', selectedProtocol)
+    const qs = params.toString()
+    router.replace(qs ? `/feed?${qs}` : '/feed', { scroll: false })
+  }, [signalFilter, selectedProtocol])
 
   const connect_ws = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
@@ -596,6 +609,13 @@ export default function FeedPage() {
             )}
           </div>
 
+          {!isMyActivity && (
+            <ProtocolHealthStrip
+              selectedProtocol={selectedProtocol}
+              onSelect={(p) => setSelectedProtocol(p)}
+            />
+          )}
+
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {showPulseChart && !isMyActivity && (
               <div style={{
@@ -676,18 +696,19 @@ export default function FeedPage() {
             )}
 
             {filtered.map(event => (
-              <FeedCard
-                key={event.id}
-                event={event}
-                showActions={!!address}
-                onVote={(dir) => handleLocalVote(event.id, dir)}
-                onTip={() => handleLocalTip(event.id)}
-                localStats={localVotes[event.id]}
-                isBookmarked={bookmarkedTxs.includes(event.tx_id)}
-                isWatched={watchedWallets.includes(event.wallet_address)}
-                onToggleBookmark={() => handleToggleBookmark(event.tx_id)}
-                onToggleWatch={() => handleToggleWatch(event.wallet_address)}
-              />
+              <div key={event.id} onClick={() => setSelectedEvent(event)} style={{ cursor: 'pointer' }}>
+                <FeedCard
+                  event={event}
+                  showActions={!!address}
+                  onVote={(dir) => handleLocalVote(event.id, dir)}
+                  onTip={() => handleLocalTip(event.id)}
+                  localStats={localVotes[event.id]}
+                  isBookmarked={bookmarkedTxs.includes(event.tx_id)}
+                  isWatched={watchedWallets.includes(event.wallet_address)}
+                  onToggleBookmark={() => handleToggleBookmark(event.tx_id)}
+                  onToggleWatch={() => handleToggleWatch(event.wallet_address)}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -725,6 +746,8 @@ export default function FeedPage() {
           </div>
         )}
       </div>
+
+      <EventDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} />
 
       {isTablet && showSentiment && (
         <div style={{
