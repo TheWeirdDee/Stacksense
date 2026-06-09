@@ -73,6 +73,21 @@ export default function LeaderboardPage() {
     return addr.slice(0, 6) + '...' + addr.slice(-6);
   };
 
+  const rankBadge = (i: number) => {
+    if (i === 0) return { label: '🥇', color: '#F59E0B' };
+    if (i === 1) return { label: '🥈', color: '#94A3B8' };
+    if (i === 2) return { label: '🥉', color: '#CD7F32' };
+    return { label: `#${i + 1}`, color: 'var(--text-muted)' };
+  };
+
+  const archetypeColor = (a: string) => {
+    if (a?.includes('Whale')) return { bg: '#7C3AED22', color: '#A78BFA', border: '#7C3AED44' };
+    if (a?.includes('LP'))    return { bg: '#06B6D422', color: '#67E8F9', border: '#06B6D444' };
+    if (a?.includes('DeFi'))  return { bg: '#F59E0B22', color: '#FCD34D', border: '#F59E0B44' };
+    if (a?.includes('New'))   return { bg: '#94A3B822', color: '#CBD5E1', border: '#94A3B844' };
+    return { bg: '#64748B22', color: '#94A3B8', border: '#64748B44' };
+  };
+
   return (
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
@@ -181,9 +196,11 @@ export default function LeaderboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.contracts.map((item, index) => (
+                    {data.contracts.map((item, index) => {
+                      const rank = rankBadge(index);
+                      return (
                       <tr key={item.contractId} style={{ borderBottom: index < data.contracts.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>#{index + 1}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <div>
                             <Link href={`/developers?contractId=${item.contractId}`} style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }} className="hover:underline">
@@ -200,7 +217,7 @@ export default function LeaderboardPage() {
                         <td style={{ padding: '16px 20px', textAlign: 'right', color: 'var(--text-secondary)' }} className="mono">{item.callers}</td>
                         <td style={{ padding: '16px 20px', textAlign: 'right', color: '#F59E0B', fontWeight: 600 }} className="mono">{item.fees.toFixed(2)} STX</td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
@@ -220,19 +237,26 @@ export default function LeaderboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.feeSpenders.map((item, index) => (
+                    {data.feeSpenders.map((item, index) => {
+                      const rank = rankBadge(index);
+                      const ac = archetypeColor(item.archetype);
+                      return (
                       <tr key={item.address} style={{ borderBottom: index < data.feeSpenders.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>#{index + 1}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <Link href={`/wallet?address=${item.address}`} style={{ color: '#22C55E', fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
                             {item.address}
                           </Link>
                         </td>
-                        <td style={{ padding: '16px 20px', color: 'var(--text-secondary)' }}>{item.archetype}</td>
+                        <td style={{ padding: '16px 20px' }}>
+                          {item.archetype ? (
+                            <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: ac.bg, color: ac.color, border: `1px solid ${ac.border}` }}>{item.archetype}</span>
+                          ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                        </td>
                         <td style={{ padding: '16px 20px', textAlign: 'right', fontWeight: 500 }} className="mono">{item.txCount}</td>
                         <td style={{ padding: '16px 20px', textAlign: 'right', color: '#F59E0B', fontWeight: 600 }} className="mono">{(item.totalFeeUstx / 1_000_000).toFixed(4)} STX</td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
@@ -252,9 +276,11 @@ export default function LeaderboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.whales.map((item, index) => (
+                    {data.whales.map((item, index) => {
+                      const rank = rankBadge(index);
+                      return (
                       <tr key={item.address} style={{ borderBottom: index < data.whales.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>#{index + 1}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <Link href={`/wallet?address=${item.address}`} style={{ color: '#22C55E', fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
                             {item.address}
@@ -266,7 +292,7 @@ export default function LeaderboardPage() {
                           {new Date(item.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
