@@ -7,7 +7,10 @@ function hirojHeaders() {
         h['x-api-key'] = HIRO_API_KEY;
     return h;
 }
-
+/**
+ * Fetch transaction stats for a single contract (address.name).
+ * Pages through up to 500 transactions to count unique callers + fees.
+ */
 export async function getContractStats(address, name) {
     const contractId = `${address}.${name}`;
     let offset = 0;
@@ -40,7 +43,7 @@ export async function getContractStats(address, name) {
         }
     }
     catch (err) {
-        console.error(`[Onchain] Failed to fetch txs for ${contractId}:`, err.message);
+        console.error(`[Onchain] Failed to fetch txs for ${contractId}:`, err?.message || err);
     }
     return {
         contractId,
@@ -79,7 +82,7 @@ export async function getWalletDeployments(address) {
         return deployCount;
     }
     catch (err) {
-        console.error(`[Onchain] Failed to fetch deployments for ${address}:`, err.message);
+        console.error(`[Onchain] Failed to fetch deployments for ${address}:`, err?.message || err);
         return 0;
     }
 }
