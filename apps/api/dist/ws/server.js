@@ -32,7 +32,9 @@ export function setupWebSocket(server) {
                 if (msg.type === 'pong')
                     return;
             }
-            catch { }
+            catch (err) {
+                console.warn('[WS] Invalid client payload ignored:', err);
+            }
         });
         ws.on('close', () => {
             console.log('[WS] Client disconnected. Total:', wss.clients.size);
