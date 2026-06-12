@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: 'Feed', href: '/feed' },
   { label: 'My Activity', href: '/feed?my=true' },
   { label: 'Analyze', href: '/wallet' },
+  { label: 'Pulse', href: '/pulse' },
   { label: 'Leaderboard', href: '/leaderboard' },
   { label: 'Developers', href: '/developers' },
   { label: 'API', href: '/api' },
