@@ -10,6 +10,12 @@ router.post('/create', async (req, res) => {
         if (!subscriberAddress || !webhookUrl) {
             return res.status(400).json({ error: 'subscriberAddress and webhookUrl are required' });
         }
+        try {
+            new URL(webhookUrl);
+        }
+        catch {
+            return res.status(400).json({ error: 'webhookUrl must be a valid URL' });
+        }
         const webhookId = crypto.randomBytes(16).toString('hex');
         const alert = {
             id: webhookId,
@@ -38,16 +44,19 @@ router.get('/list/:subscriberAddress', async (req, res) => {
         const { subscriberAddress } = req.params;
         const webhookIds = await redisClient.sMembers(`subscriber:${subscriberAddress}:webhooks`);
         const webhooks = [];
-        for (const id of webhookIds) {
-            const data = await redisClient.get(`webhook:${id}`);
-            if (data) {
-                webhooks.push(JSON.parse(data));
+        if (webhookIds && webhookIds.length > 0) {
+            for (const id of webhookIds) {
+                const data = await redisClient.get(`webhook:${id}`);
+                if (data) {
+                    webhooks.push(JSON.parse(data));
+                }
             }
         }
         res.json({ webhooks });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to fetch webhooks' });
+        console.error('[Alerts] List fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch webhooks', details: error.message });
     }
 });
 // Disable webhook
