@@ -43,6 +43,10 @@ export default function FeedCard({
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
+  const [showFiat, setShowFiat] = useState(false)
+
+  // Live fiat valuation derived from the event's CoinGecko-priced USD amount.
+  const unitPrice = event.stx_amount > 0 && event.usd_amount ? event.usd_amount / event.stx_amount : null
 
   const handleTip = () => {
     if (tipState !== 'idle') return
@@ -155,8 +159,44 @@ export default function FeedCard({
         flexWrap: 'wrap', 
         marginBottom: showActions ? 12 : 0 
       }}>
-        <span style={{ fontSize: 13, color: 'var(--text-mono)', fontFamily: 'JetBrains Mono, monospace' }}>
+        <span
+          style={{
+            position: 'relative',
+            fontSize: 13,
+            color: 'var(--text-mono)',
+            fontFamily: 'JetBrains Mono, monospace',
+            cursor: unitPrice ? 'help' : 'default',
+            borderBottom: unitPrice ? '1px dotted var(--bg-border)' : 'none',
+          }}
+          onMouseEnter={() => setShowFiat(true)}
+          onMouseLeave={() => setShowFiat(false)}
+        >
           {fmtSTX(event.stx_amount)} STX
+          {showFiat && unitPrice && (
+            <span
+              role="tooltip"
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 8px)',
+                left: 0,
+                zIndex: 20,
+                whiteSpace: 'nowrap',
+                background: 'var(--bg-elevated, #1a1a1a)',
+                border: '1px solid var(--bg-border)',
+                borderRadius: 8,
+                padding: '8px 10px',
+                fontFamily: 'Inter, sans-serif',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+              }}
+            >
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                ≈ {fmtUSD(event.usd_amount)}
+              </span>
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                @ {fmtUSD(unitPrice)} / STX · live
+              </span>
+            </span>
+          )}
         </span>
         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {fmtUSD(event.usd_amount)}
