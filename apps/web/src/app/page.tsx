@@ -5,6 +5,7 @@ const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import Link from 'next/link'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { Flame } from 'lucide-react'
 
 const TICKER = [
   { signal: 'bullish', label: 'Bullish', text: 'Whale Wallet added liquidity to ALEX', val: '142,000 STX' },
@@ -247,7 +248,7 @@ export default function LandingPage() {
               </div>
             ) : (
               [
-                { name: 'Leather', tag: 'Recommended · Browser extension', icon: '🔥', bg: '#1a0a00' },
+                { name: 'Leather', tag: 'Recommended · Browser extension', icon: <Flame size={18} color="#F7931A" />, bg: '#1a0a00' },
                 { name: 'Xverse',  tag: 'Mobile & browser',                 icon: '✦', bg: '#0a0a1a' },
               ].map(w => (
                 <div key={w.name} style={{
