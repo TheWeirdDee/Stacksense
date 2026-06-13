@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowLeft, Cpu, Flame, Award, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Cpu, Flame, Award, AlertCircle, Trophy, Medal } from 'lucide-react';
 
 import { getApiUrl } from '@/lib/config';
 
@@ -73,10 +73,10 @@ export default function LeaderboardPage() {
     return addr.slice(0, 6) + '...' + addr.slice(-6);
   };
 
-  const rankBadge = (i: number) => {
-    if (i === 0) return { label: '🥇', color: '#F59E0B' };
-    if (i === 1) return { label: '🥈', color: '#94A3B8' };
-    if (i === 2) return { label: '🥉', color: '#CD7F32' };
+  const rankBadge = (i: number): { label?: string; Icon?: typeof Medal; color: string } => {
+    if (i === 0) return { Icon: Medal, color: '#F59E0B' };
+    if (i === 1) return { Icon: Medal, color: '#94A3B8' };
+    if (i === 2) return { Icon: Medal, color: '#CD7F32' };
     return { label: `#${i + 1}`, color: 'var(--text-muted)' };
   };
 
@@ -105,8 +105,8 @@ export default function LeaderboardPage() {
         {/* Header Block */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-              🏆 Stacks On-Chain Leaderboard
+            <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.02em', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              <Trophy size={28} color="#F59E0B" /> Stacks On-Chain Leaderboard
             </h1>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               Real-time blockchain intelligence tracking smart contract metrics, gas spenders, and active whales.
@@ -141,9 +141,9 @@ export default function LeaderboardPage() {
         {/* Tab switchers */}
         <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--bg-border)', marginBottom: 24, paddingBottom: 1 }}>
           {[
-            { id: 'contracts', label: '🏆 Top Contracts', icon: Cpu },
-            { id: 'spend', label: '🔥 Gas Spenders', icon: Flame },
-            { id: 'whales', label: '🐋 Active Whales', icon: Award }
+            { id: 'contracts', label: 'Top Contracts', icon: Cpu },
+            { id: 'spend', label: 'Gas Spenders', icon: Flame },
+            { id: 'whales', label: 'Active Whales', icon: Award }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -200,7 +200,7 @@ export default function LeaderboardPage() {
                       const rank = rankBadge(index);
                       return (
                       <tr key={item.contractId} style={{ borderBottom: index < data.contracts.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.Icon ? <rank.Icon size={18} color={rank.color} /> : rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <div>
                             <Link href={`/developers?contractId=${item.contractId}`} style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }} className="hover:underline">
@@ -242,7 +242,7 @@ export default function LeaderboardPage() {
                       const ac = archetypeColor(item.archetype);
                       return (
                       <tr key={item.address} style={{ borderBottom: index < data.feeSpenders.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.Icon ? <rank.Icon size={18} color={rank.color} /> : rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <Link href={`/wallet?address=${item.address}`} style={{ color: '#22C55E', fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
                             {item.address}
@@ -280,7 +280,7 @@ export default function LeaderboardPage() {
                       const rank = rankBadge(index);
                       return (
                       <tr key={item.address} style={{ borderBottom: index < data.whales.length - 1 ? '1px solid var(--bg-border)' : 'none', fontSize: 13 }}>
-                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.label}</td>
+                        <td style={{ padding: '16px 20px', color: rank.color, fontWeight: 600 }}>{rank.Icon ? <rank.Icon size={18} color={rank.color} /> : rank.label}</td>
                         <td style={{ padding: '16px 20px' }}>
                           <Link href={`/wallet?address=${item.address}`} style={{ color: '#22C55E', fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
                             {item.address}
