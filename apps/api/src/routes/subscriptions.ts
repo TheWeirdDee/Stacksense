@@ -1,6 +1,7 @@
 import express from 'express';
 import { redisClient } from '../redis/client.js';
 import crypto from 'crypto';
+import { verifySubscriptionPayment } from '../utils/subscriptionVerify.js';
 
 const router = express.Router();
 
@@ -51,6 +52,21 @@ router.post('/api-keys/generate', async (req, res) => {
 
     if (!TIERS[tier]) {
       return res.status(400).json({ error: 'Invalid tier' });
+    }
+
+    // Paid tiers must be backed by a verified, unused on-chain payment whose
+    // sender matches the subscriber (proves both payment and wallet ownership).
+    if (TIERS[tier].monthlyCost > 0) {
+      const payment = await verifySubscriptionPayment(txId, subscriberAddress);
+      if (!payment.ok) {
+        return res.status(402).json({ error: payment.reason || 'Payment verification failed' });
+      }
+      // Replay protection — one payment tx can mint at most one key.
+      const replayKey = `used-subscription-tx:${txId}`;
+      const firstUse = await redisClient.set(replayKey, subscriberAddress, { NX: true, EX: 31536000 });
+      if (firstUse === null) {
+        return res.status(409).json({ error: 'This payment tx has already been used to issue a key' });
+      }
     }
 
     const apiKey = providedApiKey || crypto.randomBytes(32).toString('hex');
