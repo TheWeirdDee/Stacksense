@@ -11,6 +11,7 @@ import EventDrawer from '@/components/EventDrawer'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { ComposedChart, Area, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { SkeletonFeed } from '@/components/Skeleton'
 
 import { getApiUrl, getWsUrl } from '@/lib/config'
 
@@ -680,7 +681,8 @@ export default function FeedPage() {
             )}
             
             {apiError && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Backend not connected.</div>}
-            {isMyActivity && myLoading && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Loading your activity...</div>}
+            {loading && !apiError && !isMyActivity && filtered.length === 0 && <SkeletonFeed count={6} />}
+            {isMyActivity && myLoading && <SkeletonFeed count={4} />}
             
             {isMyActivity && !myLoading && myEvents.length === 0 && (
               <div style={{ padding: '60px 24px', textAlign: 'center' }}>
