@@ -2,6 +2,7 @@ import express from 'express';
 import axios from 'axios';
 import { redisClient } from '../redis/client.js';
 import crypto from 'crypto';
+import { checkWebhookUrl } from '../utils/ssrf.js';
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ interface WebhookAlert {
   };
   active: boolean;
   createdAt: string;
+  secret: string;
 }
 
 // Create a new webhook alert
@@ -27,13 +29,14 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: 'subscriberAddress and webhookUrl are required' });
     }
 
-    try {
-      new URL(webhookUrl);
-    } catch {
-      return res.status(400).json({ error: 'webhookUrl must be a valid URL' });
+    const safety = await checkWebhookUrl(webhookUrl);
+    if (!safety.ok) {
+      return res.status(400).json({ error: `webhookUrl rejected: ${safety.reason}` });
     }
 
     const webhookId = crypto.randomBytes(16).toString('hex');
+    // Per-webhook secret so receivers can verify the X-StackSense-Signature HMAC.
+    const secret = crypto.randomBytes(24).toString('hex');
     const alert: WebhookAlert = {
       id: webhookId,
       subscriberAddress,
@@ -41,6 +44,7 @@ router.post('/create', async (req, res) => {
       filters: filters || {},
       active: true,
       createdAt: new Date().toISOString(),
+      secret,
     };
 
     await redisClient.set(
@@ -53,8 +57,10 @@ router.post('/create', async (req, res) => {
 
     res.json({
       webhookId,
+      // Returned only once — receivers use it to verify payload signatures.
+      signingSecret: secret,
       message: 'Webhook alert created successfully',
-      alert,
+      alert: { ...alert, secret: undefined },
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create webhook alert' });
@@ -124,7 +130,7 @@ export async function broadcastToWebhooks(event: any) {
       if (!matches) continue;
 
       // Send webhook (fire and forget)
-      sendWebhook(alert.webhookUrl, event).catch((err) => {
+      sendWebhook(alert.webhookUrl, event, alert.secret).catch((err) => {
         console.error(`[Webhook] Failed to send to ${alert.webhookUrl}:`, err.message);
       });
 
@@ -156,14 +162,24 @@ function checkFilters(event: any, filters: any): boolean {
   return true;
 }
 
-async function sendWebhook(url: string, payload: any) {
-  return axios.post(url, payload, {
-    timeout: 5000,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-StackSense-Event': 'signal-detected',
-    },
-  });
+async function sendWebhook(url: string, payload: any, secret?: string) {
+  // Re-validate immediately before sending to mitigate DNS-rebinding.
+  const safety = await checkWebhookUrl(url);
+  if (!safety.ok) {
+    throw new Error(`blocked unsafe target: ${safety.reason}`);
+  }
+
+  const body = JSON.stringify(payload);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-StackSense-Event': 'signal-detected',
+  };
+  if (secret) {
+    const signature = crypto.createHmac('sha256', secret).update(body).digest('hex');
+    headers['X-StackSense-Signature'] = `sha256=${signature}`;
+  }
+
+  return axios.post(url, body, { timeout: 5000, headers, maxRedirects: 0 });
 }
 
 async function logWebhookDelivery(subscriberAddress: string) {

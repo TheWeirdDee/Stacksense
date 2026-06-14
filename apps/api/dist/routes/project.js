@@ -21,8 +21,11 @@ const SCORE_CACHE_TTL = 300; // 5 minutes
 router.post('/register', async (req, res) => {
     try {
         const { stacksAddress, githubOwner = DEFAULT_OWNER, githubRepo = DEFAULT_REPO, npmPackage = DEFAULT_NPM, contracts = DEFAULT_CONTRACTS, } = req.body;
-        if (!stacksAddress) {
+        if (!stacksAddress || typeof stacksAddress !== 'string' || !stacksAddress.startsWith('SP')) {
             return res.status(400).json({ error: 'stacksAddress is required' });
+        }
+        if (!Array.isArray(contracts) || contracts.length === 0) {
+            return res.status(400).json({ error: 'contracts must be a non-empty array' });
         }
         const project = {
             stacksAddress,

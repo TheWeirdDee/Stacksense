@@ -60,6 +60,7 @@ let activeClient = createClient({
     }
 });
 activeClient.on('error', (err) => {
+    console.error('[Redis] Client error:', err?.message || err);
 });
 export const redisClient = new Proxy({}, {
     get: (target, prop) => {
@@ -80,7 +81,7 @@ export async function connectRedis() {
         if (error instanceof Error && error.message.includes('already open')) {
             return;
         }
-        console.error('Failed to connect to Redis or connection timed out. Switching to in-memory fallback.');
+        console.error('Failed to connect to Redis or connection timed out. Switching to in-memory fallback.', error);
         activeClient = new MemoryClient();
     }
 }

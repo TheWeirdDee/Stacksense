@@ -4,6 +4,7 @@ import { matchTransaction } from '../engine/matcher.js';
 import { broadcastEvent, getClientCount } from '../ws/server.js';
 import { broadcastToWebhooks } from '../routes/alerts.js';
 import { sendHighConvictionAlert } from '../integrations/telegram.js';
+import { recordPollCycle, recordPollError } from '../utils/metrics.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
@@ -42,11 +43,13 @@ async function pollTransactions() {
   }
 
   const requestOptions = { headers, timeout: 7000, params };
-  
+
+  const startedAt = Date.now();
   try {
     const response = await axios.get(url, requestOptions);
+    const latencyMs = Date.now() - startedAt;
     const transactions = response.data.results;
-    
+
     let newCount = 0;
     let skippedCount = 0;
 
@@ -57,15 +60,18 @@ async function pollTransactions() {
         continue;
       }
       newCount++;
-      
+
       await processTransaction(tx);
       await redisClient.set(`seen:txid:${tx.tx_id}`, '1', { EX: 172800 });
     }
 
+    recordPollCycle({ latencyMs, fetched: transactions.length, newCount, skippedCount });
+
     if (newCount > 0 || skippedCount > 0) {
-      console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped`);
+      console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped | ${latencyMs}ms`);
     }
   } catch (error: any) {
+      recordPollError(error?.message || String(error));
       console.error('[Poller] Fetch error:', error?.message || error);
   }
 }

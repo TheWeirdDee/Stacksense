@@ -169,6 +169,41 @@ router.get('/leaderboard', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch leaderboard data' });
     }
 });
+router.get('/pulse', async (req, res) => {
+    try {
+        const eventsStr = await redisClient.lRange('events:recent', 0, -1);
+        const events = eventsStr.map((e) => JSON.parse(e));
+        // Group events into 2-hour buckets for the last 24 hours
+        const now = Date.now();
+        const buckets = {};
+        for (let i = 0; i < 12; i++) {
+            const bucketTime = new Date(now - i * 2 * 60 * 60 * 1000);
+            const label = bucketTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            buckets[i] = { label, count: 0, volume: 0, totalFee: 0 };
+        }
+        for (const e of events) {
+            const diffMs = now - new Date(e.timestamp).getTime();
+            const bucketIndex = Math.floor(diffMs / (2 * 60 * 60 * 1000));
+            if (bucketIndex >= 0 && bucketIndex < 12) {
+                buckets[bucketIndex].count += 1;
+                buckets[bucketIndex].volume += e.stx_amount || 0;
+                const approxFee = e.fee || 18000; // microSTX
+                buckets[bucketIndex].totalFee += approxFee;
+            }
+        }
+        const result = Object.values(buckets).reverse().map(b => ({
+            label: b.label,
+            count: b.count,
+            volume: Math.round(b.volume),
+            avgFee: b.count > 0 ? parseFloat((b.totalFee / b.count / 1_000_000).toFixed(6)) : 0.018 // in STX
+        }));
+        res.json(result);
+    }
+    catch (error) {
+        console.error('[Stats] Error compiling pulse stats:', error);
+        res.status(500).json({ error: 'Failed to compile network pulse' });
+    }
+});
 router.get('/', async (req, res) => {
     try {
         const statsStr = await redisClient.get('stats:current');

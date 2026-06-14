@@ -5,6 +5,9 @@ dotenv.config({ path: '../../.env' });
 const HIRO_API_BASE = process.env.HIRO_API_BASE || 'https://api.hiro.so';
 const HIRO_API_KEY = process.env.HIRO_API_KEY;
 export async function getArchetype(address) {
+    if (!address || typeof address !== 'string' || !address.startsWith('SP')) {
+        return 'Unclassified Wallet';
+    }
     const cacheKey = `archetype:${address}`;
     try {
         const cached = await redisClient.get(cacheKey);
@@ -32,7 +35,7 @@ async function getWalletHistory(address) {
         return results;
     }
     catch (e) {
-        console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e.message);
+        console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e?.message || e);
         return [];
     }
 }

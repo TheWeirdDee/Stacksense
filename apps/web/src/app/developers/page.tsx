@@ -6,7 +6,7 @@ import { useWallet } from '@/lib/wallet';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowLeft, Cpu, Flame, Terminal, Plus, Trash, Globe, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Cpu, Flame, Terminal, Plus, Trash, Globe, ShieldCheck, AlertCircle, HardHat } from 'lucide-react';
 
 import { getApiUrl } from '@/lib/config';
 
@@ -194,8 +194,8 @@ function DeveloperHubContent() {
 
         {/* Header Title */}
         <div style={{ marginBottom: 36 }}>
-          <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.025em' }}>
-            🏗 Clarity Developer Hub
+          <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.025em', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <HardHat size={28} /> Clarity Developer Hub
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
             Real-time diagnostics for Stacks smart contracts. Inspect contract metrics, trace caller history, and hook up live event notifications.
@@ -205,8 +205,8 @@ function DeveloperHubContent() {
         {/* Tabs switcher */}
         <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--bg-border)', marginBottom: 28, paddingBottom: 1 }}>
           {[
-            { id: 'inspect', label: '🏗 Smart Contract Inspector', icon: Cpu },
-            { id: 'webhooks', label: '⚡ Live Webhooks & Streams', icon: Globe }
+            { id: 'inspect', label: 'Smart Contract Inspector', icon: Cpu },
+            { id: 'webhooks', label: 'Live Webhooks & Streams', icon: Globe }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
