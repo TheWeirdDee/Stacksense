@@ -4,8 +4,14 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { cacheGet } from '../utils/cache.js';
 import { validateApiKey, validateAddress } from '../utils/errors.js';
+
+// Keys are stored hashed (sha256) at generation time, so look them up by hash.
+function hashKey(apiKey: string): string {
+  return crypto.createHash('sha256').update(apiKey).digest('hex');
+}
 
 export interface AuthRequest extends Request {
   apiKeyData?: {
@@ -41,7 +47,7 @@ export async function authenticate(
       return;
     }
 
-    const apiKeyData = await cacheGet(`api-key:${apiKey}`);
+    const apiKeyData = await cacheGet(`api-key:${hashKey(apiKey)}`);
 
     if (!apiKeyData) {
       res.status(401).json({
@@ -73,7 +79,7 @@ export function optionalAuth(
 
   if (apiKey && validateApiKey(apiKey)) {
     // Attach if valid, otherwise continue without auth
-    cacheGet<AuthRequest['apiKeyData']>(`api-key:${apiKey}`).then((data) => {
+    cacheGet<AuthRequest['apiKeyData']>(`api-key:${hashKey(apiKey)}`).then((data) => {
       if (data) {
         req.apiKeyData = data as AuthRequest['apiKeyData'];
       }
