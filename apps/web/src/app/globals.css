@@ -28,6 +28,27 @@
   --anom-bg: #2E0F0F;
 }
 
+/* Accessibility: visible keyboard focus ring (mouse clicks unaffected) */
+:focus-visible {
+  outline: 2px solid var(--brand-text);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--brand-text);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 html, body {
   background: var(--bg-base);
   color: var(--text-primary);
