@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import type { FeedEvent } from '@/lib/types'
+import ShareButton from './ShareButton'
+import { useToast } from './Toast'
 
 interface Props {
   event: FeedEvent | null
@@ -46,6 +48,7 @@ function fmtTime(iso: string): string {
 export default function EventDrawer({ event, onClose }: Props) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const { success } = useToast()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -57,6 +60,7 @@ export default function EventDrawer({ event, onClose }: Props) {
     if (!event) return
     navigator.clipboard.writeText(event.wallet_address).then(() => {
       setCopied(true)
+      success('Wallet address copied')
       setTimeout(() => setCopied(false), 1500)
     })
   }
@@ -105,6 +109,7 @@ export default function EventDrawer({ event, onClose }: Props) {
               <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Signal Detail</span>
               <button
                 onClick={onClose}
+                aria-label="Close signal detail"
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
               >✕</button>
             </div>
@@ -217,6 +222,9 @@ export default function EventDrawer({ event, onClose }: Props) {
                 >
                   Analyze Wallet →
                 </button>
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 2 }}>
+                  <ShareButton event={event} />
+                </div>
               </div>
             </div>
           </motion.div>
