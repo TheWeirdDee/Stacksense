@@ -14,6 +14,7 @@ import alertsRoutes from './routes/alerts.js';
 import developersRoutes from './routes/developers.js';
 import subscriptionContractRoutes from './routes/subscriptionContract.js';
 import projectRoutes from './routes/project.js';
+import { rateLimit } from './middleware/rateLimit.js';
 import statusRoutes from './routes/status.js';
 import networkRoutes from './routes/network.js';
 
@@ -62,6 +63,9 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Per-IP rate limiting across the public API surface.
+app.use('/api/v1', rateLimit({ windowMs: 60_000, maxRequests: 120 }));
 
 app.use('/api/v1/subscriptions', subscriptionsRoutes);
 app.use('/api/v1/alerts', alertsRoutes);
