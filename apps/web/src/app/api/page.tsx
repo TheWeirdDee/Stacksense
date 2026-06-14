@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useWallet } from '@/lib/wallet';
 import axios from 'axios';
-import { Key, Copy, Check, ShieldCheck, Loader2, X, AlertCircle, Terminal, HelpCircle } from 'lucide-react';
+import { Key, Copy, Check, ShieldCheck, Loader2, X, AlertCircle, AlertTriangle, Terminal, HelpCircle } from 'lucide-react';
 import { getApiUrl } from '@/lib/config';
 import { TREASURY_ADDRESS } from '@/lib/stx';
 
@@ -386,10 +386,11 @@ export default function ApiHubPage() {
     enterprise: { tier: 'Enterprise', monthlyRequests: 1000000, webhookEnabled: true, prioritySupport: true, customRules: true, monthlyCost: 10 },
   };
 
-  const getButtonLabel = (tierName: SubscriptionTier) => {
+  const spinner = <Loader2 size={14} className="animate-spin" style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />;
+  const getButtonLabel = (tierName: SubscriptionTier): ReactNode => {
     const isActive = activePlan === tierName;
-    if (loading && isActive && paymentStep === 'wallet') return '⏳ Confirm in Wallet…';
-    if (loading && isActive && paymentStep === 'generating') return '⏳ Generating Key…';
+    if (loading && isActive && paymentStep === 'wallet') return <>{spinner}Confirm in Wallet…</>;
+    if (loading && isActive && paymentStep === 'generating') return <>{spinner}Generating Key…</>;
     if (tierName === 'free') return 'Get Free Key';
     return `Subscribe — ${tiers[tierName].monthlyCost} STX/mo`;
   };
@@ -578,7 +579,7 @@ export default function ApiHubPage() {
           {/* Regenerated Key Display */}
           {newKeyAfterRegen && (
             <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: 18 }}>
-              <p style={{ margin: '0 0 8px', color: '#22C55E', fontWeight: 700, fontSize: 14 }}>⚠️ Save your new key</p>
+              <p style={{ margin: '0 0 8px', color: '#22C55E', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Save your new key</p>
               <p style={{ margin: '0 0 12px', color: 'var(--text-secondary)', fontSize: 13 }}>
                 This is the only time your full token will be shown. Keep it safe:
               </p>
@@ -742,7 +743,7 @@ export default function ApiHubPage() {
             </div>
 
             <div style={{ background: '#1A120C', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, padding: 12, marginBottom: 20 }}>
-              <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 600, margin: '0 0 4px' }}>⚠️ Store key securely</p>
+              <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 600, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} /> Store key securely</p>
               <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
                 This is the only time your unmasked token is displayed. If lost, you must rotate security credentials via the console dashboard.
               </p>

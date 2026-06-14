@@ -15,6 +15,8 @@ import developersRoutes from './routes/developers.js';
 import subscriptionContractRoutes from './routes/subscriptionContract.js';
 import projectRoutes from './routes/project.js';
 import { rateLimit } from './middleware/rateLimit.js';
+import statusRoutes from './routes/status.js';
+import networkRoutes from './routes/network.js';
 
 dotenv.config({ path: '../../.env' });
 dotenv.config();
@@ -73,6 +75,8 @@ app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/stats', statsRoutes);
 app.use('/api/v1/subscription-contract', subscriptionContractRoutes);
 app.use('/api/v1/project', projectRoutes);
+app.use('/api/v1/status', statusRoutes);
+app.use('/api/v1/network', networkRoutes);
 
 async function updateSTXPrice() {
   try {
