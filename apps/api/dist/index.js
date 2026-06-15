@@ -29,18 +29,23 @@ app.use(cors({
             'http://127.0.0.1:3000',
             process.env.FRONTEND_URL,
         ].filter(Boolean);
-        if (!origin || allowed.some(o => origin.startsWith(o))) {
-            callback(null, true);
+        if (!origin || allowed.some((o) => origin.startsWith(o))) {
+            return callback(null, true);
         }
-        else if (origin.includes('.vercel.app')) {
-            callback(null, true);
+        if (origin.includes('.vercel.app')) {
+            return callback(null, true);
         }
-        else {
-            callback(null, true);
-        }
+        return callback(new Error('Origin not allowed by CORS'));
     },
     credentials: true,
 }));
+app.set('trust proxy', 1);
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    next();
+});
 app.use(express.json());
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
