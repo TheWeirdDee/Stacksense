@@ -11,6 +11,8 @@ import EventDrawer from '@/components/EventDrawer'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { ComposedChart, Area, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { SkeletonFeed } from '@/components/Skeleton'
+import { Gem, Settings, BarChart3 } from 'lucide-react'
 
 import { getApiUrl, getWsUrl } from '@/lib/config'
 
@@ -453,7 +455,7 @@ export default function FeedPage() {
               <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>{sig.title}</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ fontSize: 11 }}>▲ {l.bull} <span style={{ color: 'var(--text-muted)' }}>/</span> ▼ {l.bear}</div>
-                <div style={{ fontSize: 11 }}>💎 {l.tips} tips</div>
+                <div style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Gem size={11} /> {l.tips} tips</div>
               </div>
               <div style={{ height: 3, background: 'var(--anom)', borderRadius: 1.5, display: 'flex', overflow: 'hidden' }}>
                 <div style={{ width: `${bullPercent}%`, background: 'var(--bull)', height: '100%' }} />
@@ -491,9 +493,10 @@ export default function FeedPage() {
               border: '1px solid var(--bg-border)',
               padding: '5px 12px', borderRadius: 6,
               fontSize: 12, cursor: 'pointer', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
             }}
           >
-            ⚙ Filters
+            <Settings size={13} /> Filters
           </button>
           {isTablet && (
              <button
@@ -504,9 +507,10 @@ export default function FeedPage() {
                 border: '1px solid var(--bg-border)',
                 padding: '5px 12px', borderRadius: 6,
                 fontSize: 12, cursor: 'pointer', flexShrink: 0,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}
             >
-              📊 Sentiment
+              <BarChart3 size={13} /> Sentiment
             </button>
           )}
           {SIGNALS.map(s => (
@@ -680,7 +684,8 @@ export default function FeedPage() {
             )}
             
             {apiError && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Backend not connected.</div>}
-            {isMyActivity && myLoading && <div style={{ padding: '40px 24px', textAlign: 'center' }}>Loading your activity...</div>}
+            {loading && !apiError && !isMyActivity && filtered.length === 0 && <SkeletonFeed count={6} />}
+            {isMyActivity && myLoading && <SkeletonFeed count={4} />}
             
             {isMyActivity && !myLoading && myEvents.length === 0 && (
               <div style={{ padding: '60px 24px', textAlign: 'center' }}>

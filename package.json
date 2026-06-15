@@ -2,7 +2,8 @@
   "name": "stacksense",
   "version": "1.0.1",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
@@ -10,7 +11,8 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
-    "build:web": "npm run build --workspace=apps/web"
+    "build:web": "npm run build --workspace=apps/web",
+    "build:sdk": "npm run build --workspace=packages/sdk"
   },
 
   "devDependencies": {
