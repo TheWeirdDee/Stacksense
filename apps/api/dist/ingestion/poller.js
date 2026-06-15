@@ -34,8 +34,9 @@ async function pollTransactions() {
     if (HIRO_API_KEY) {
         headers['x-api-key'] = HIRO_API_KEY;
     }
+    const requestOptions = { headers, timeout: 7000, params };
     try {
-        const response = await axios.get(url, { params, headers });
+        const response = await axios.get(url, requestOptions);
         const transactions = response.data.results;
         let newCount = 0;
         let skippedCount = 0;
@@ -54,7 +55,7 @@ async function pollTransactions() {
         }
     }
     catch (error) {
-        console.error('[Poller] Fetch error:', error);
+        console.error('[Poller] Fetch error:', error?.message || error);
     }
 }
 async function processTransaction(tx) {
@@ -74,7 +75,7 @@ async function processTransaction(tx) {
         }
     }
     catch (error) {
-        console.error(`Error processing tx ${tx.tx_id}:`, error);
+        console.error(`Error processing tx ${tx.tx_id}:`, error.message || error);
     }
 }
 // PR: auto-generated branch pr/poller-webhooks
