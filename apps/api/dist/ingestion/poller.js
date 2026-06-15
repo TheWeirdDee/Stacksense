@@ -36,6 +36,8 @@ async function pollTransactions() {
         headers['x-api-key'] = HIRO_API_KEY;
     }
     const requestOptions = { headers, timeout: 7000, params };
+    try {
+        const response = await axios.get(url, requestOptions);
     const startedAt = Date.now();
     try {
         const response = await axios.get(url, requestOptions);
