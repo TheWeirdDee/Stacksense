@@ -11,12 +11,13 @@ export const CONTRACT_NAME = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'signal-ti
 
 export async function contractTipSignal(
   signalId: string,
-  onFinish?: (txId: string) => void
+  onFinish?: (txId: string) => void,
+  onCancel?: () => void
 ) {
   const address = userSession.loadUserData().profile.stxAddress.mainnet;
 
   if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '' || CONTRACT_ADDRESS === 'YOUR_WALLET_ADDRESS') {
-    sendTip(ONE_STX, `tip:${signalId.slice(0, 28)}`, onFinish)
+    sendTip(ONE_STX, `tip:${signalId.slice(0, 28)}`, onFinish, onCancel)
     return
   }
 
@@ -36,17 +37,18 @@ export async function contractTipSignal(
       postConditions: [postCondition],
       appDetails: { name: 'StackSense', icon: '' },
       onFinish: (data: any) => { onFinish?.(data.txId) },
-      onCancel: () => {},
+      onCancel: () => { onCancel?.() },
       userSession,
     })
   } catch (e) {
-    sendTip(ONE_STX, signalId, onFinish)
+    sendTip(ONE_STX, signalId, onFinish, onCancel)
   }
 }
 
 export async function contractVoteBullish(
   signalId: string,
-  onFinish?: (txId: string) => void
+  onFinish?: (txId: string) => void,
+  onCancel?: () => void
 ) {
   if (!CONTRACT_ADDRESS) return
   try {
@@ -59,17 +61,19 @@ export async function contractVoteBullish(
       postConditions: [],
       appDetails: { name: 'StackSense', icon: '' },
       onFinish: (data: any) => { onFinish?.(data.txId) },
-      onCancel: () => {},
+      onCancel: () => { onCancel?.() },
       userSession,
     })
   } catch (e) {
     console.error('Vote bullish failed:', e)
+    onCancel?.()
   }
 }
 
 export async function contractVoteBearish(
   signalId: string,
-  onFinish?: (txId: string) => void
+  onFinish?: (txId: string) => void,
+  onCancel?: () => void
 ) {
   if (!CONTRACT_ADDRESS) return
   try {
@@ -82,11 +86,12 @@ export async function contractVoteBearish(
       postConditions: [],
       appDetails: { name: 'StackSense', icon: '' },
       onFinish: (data: any) => { onFinish?.(data.txId) },
-      onCancel: () => {},
+      onCancel: () => { onCancel?.() },
       userSession,
     })
   } catch (e) {
     console.error('Vote bearish failed:', e)
+    onCancel?.()
   }
 }
 
