@@ -24,7 +24,7 @@ export function fmtUSD(n: number): string {
 
 export const ONE_STX = '1000000'
 
-export function sendTip(amount: string, memo: string, onFinish?: (txId: string) => void) {
+export function sendTip(amount: string, memo: string, onFinish?: (txId: string) => void, onCancel?: () => void) {
   try {
     openSTXTransfer({
       network: new StacksMainnet(),
@@ -34,9 +34,10 @@ export function sendTip(amount: string, memo: string, onFinish?: (txId: string) 
       appDetails: { name: 'StackSense', icon: '' },
       userSession,
       onFinish: (data: any) => onFinish?.(data.txId),
-      onCancel: () => {},
+      onCancel: () => onCancel?.(),
     })
   } catch (err) {
     console.error('sendTip failed:', err)
+    onCancel?.()
   }
 }
