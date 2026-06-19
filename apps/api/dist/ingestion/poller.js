@@ -7,7 +7,7 @@ import { sendHighConvictionAlert } from '../integrations/telegram.js';
 import { recordPollCycle, recordPollError } from '../utils/metrics.js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' });
-const HIRO_API_BASE = process.env.HIRO_API_BASE || 'https://api.hiro.so';
+const HIRO_API_BASE = (process.env.HIRO_API_BASE || 'https://api.hiro.so').trim();
 const HIRO_API_KEY = process.env.HIRO_API_KEY;
 export async function startPoller() {
     await connectRedis();
