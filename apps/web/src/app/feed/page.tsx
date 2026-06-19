@@ -68,10 +68,23 @@ export default function FeedPage() {
       
       const storedWatchlist = localStorage.getItem('stacksense-watchlist')
       if (storedWatchlist) setWatchedWallets(JSON.parse(storedWatchlist))
+
+      const storedVotes = localStorage.getItem('stacksense-local-votes')
+      if (storedVotes) setLocalVotes(JSON.parse(storedVotes))
     } catch (err) {
-      console.error('Failed to load bookmarks/watchlist:', err)
+      console.error('Failed to load bookmarks/watchlist/votes:', err)
     }
   }, [])
+
+  useEffect(() => {
+    if (Object.keys(localVotes).length > 0) {
+      try {
+        localStorage.setItem('stacksense-local-votes', JSON.stringify(localVotes))
+      } catch (err) {
+        console.error('Failed to save local votes:', err)
+      }
+    }
+  }, [localVotes])
 
   const handleToggleBookmark = (txId: string) => {
     setBookmarkedTxs(prev => {
