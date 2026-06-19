@@ -14,8 +14,8 @@
     "build:web": "npm run build --workspace=apps/web",
     "build:sdk": "npm run build --workspace=packages/sdk"
   },
-
   "devDependencies": {
+    "@stacks/wallet-sdk": "^7.4.0",
     "concurrently": "^9.2.1"
   },
   "dependencies": {
