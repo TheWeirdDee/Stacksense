@@ -158,7 +158,7 @@ router.get('/inspect', async (req, res) => {
         if (!contractId || typeof contractId !== 'string' || !contractId.includes('.')) {
             return res.status(400).json({ error: 'A valid contractId (address.name) is required' });
         }
-        const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').replace(/\/+$/, '');
+        const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').trim().replace(/\/+$/, '');
         const HIRO_API_KEY = process.env.HIRO_API_KEY || '';
         const headers = { 'Content-Type': 'application/json' };
         if (HIRO_API_KEY)

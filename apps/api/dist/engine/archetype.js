@@ -2,7 +2,7 @@ import axios from 'axios';
 import { redisClient } from '../redis/client.js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' });
-const HIRO_API_BASE = process.env.HIRO_API_BASE || 'https://api.hiro.so';
+const HIRO_API_BASE = (process.env.HIRO_API_BASE || 'https://api.hiro.so').trim();
 const HIRO_API_KEY = process.env.HIRO_API_KEY;
 export async function getArchetype(address) {
     if (!address || typeof address !== 'string' || !address.startsWith('SP')) {

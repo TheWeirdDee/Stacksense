@@ -180,7 +180,7 @@ router.get('/inspect', async (req, res) => {
       return res.status(400).json({ error: 'A valid contractId (address.name) is required' });
     }
 
-    const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').replace(/\/+$/, '');
+    const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').trim().replace(/\/+$/, '');
     const HIRO_API_KEY = process.env.HIRO_API_KEY || '';
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (HIRO_API_KEY) headers['x-api-key'] = HIRO_API_KEY;

@@ -12,6 +12,7 @@ import {
 import { useWindowSize } from '@/hooks/useWindowSize'
 import type { FeedEvent } from '@/lib/types'
 import { Star, Eye } from 'lucide-react'
+import { useToast } from '@/components/Toast'
 
 interface Props {
   event: FeedEvent
@@ -40,6 +41,7 @@ export default function FeedCard({
 }: Props) {
   if (!event) return null
   const { isMobile } = useWindowSize()
+  const { toast } = useToast()
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
@@ -51,20 +53,62 @@ export default function FeedCard({
   const handleTip = () => {
     if (tipState !== 'idle') return
     setTipState('pending')
-    contractTipSignal(event.id, (txId) => {
-      setTipState('done')
-      onTip?.()
-    })
-    setTimeout(() => setTipState(s => s === 'pending' ? 'idle' : s), 15_000)
+    
+    const loadingToastId = toast(
+      `Broadcasting tip of 1 STX for "${event.title}"...`,
+      'loading',
+      undefined,
+      0
+    )
+
+    contractTipSignal(
+      event.id,
+      (txId) => {
+        setTipState('done')
+        onTip?.()
+        toast(
+          `🎉 Tip transaction broadcasted successfully!`,
+          'success',
+          { label: 'View Tx', href: `https://explorer.stacks.co/txid/${txId}?chain=mainnet` },
+          10000
+        )
+      },
+      () => {
+        setTipState('idle')
+        toast('Tip cancelled by user', 'info', undefined, 4000)
+      }
+    )
+    setTimeout(() => setTipState(s => s === 'pending' ? 'idle' : s), 20_000)
   }
 
   const handleVote = (direction: 'bullish' | 'bearish') => {
     if (voteState !== 'idle') return
     setVoteState(direction)
     const fn = direction === 'bullish' ? contractVoteBullish : contractVoteBearish
-    fn(event.id, (txId: string) => {
-      onVote?.(direction === 'bullish' ? 'bull' : 'bear')
-    })
+
+    const loadingToastId = toast(
+      `Broadcasting ${direction === 'bullish' ? 'bull' : 'bear'} vote for "${event.title}"...`,
+      'loading',
+      undefined,
+      0
+    )
+
+    fn(
+      event.id,
+      (txId: string) => {
+        onVote?.(direction === 'bullish' ? 'bull' : 'bear')
+        toast(
+          `🎉 Vote transaction broadcasted successfully!`,
+          'success',
+          { label: 'View Tx', href: `https://explorer.stacks.co/txid/${txId}?chain=mainnet` },
+          10000
+        )
+      },
+      () => {
+        setVoteState('idle')
+        toast('Vote cancelled by user', 'info', undefined, 4000)
+      }
+    )
   }
 
   const displayTips = localStats.tips || 0

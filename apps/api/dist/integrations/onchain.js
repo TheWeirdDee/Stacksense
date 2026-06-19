@@ -1,5 +1,5 @@
 import axios from 'axios';
-const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').replace(/\/+$/, '');
+const HIRO_API = (process.env.HIRO_API_BASE || 'https://api.hiro.so').trim().replace(/\/+$/, '');
 const HIRO_API_KEY = process.env.HIRO_API_KEY || '';
 function hirojHeaders() {
     const h = { 'Content-Type': 'application/json' };
