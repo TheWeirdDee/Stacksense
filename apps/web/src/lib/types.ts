@@ -13,4 +13,6 @@ export interface FeedEvent {
   wallet_archetype: string
   explorer_url: string
   rule_id: string
+  multiplier?: number
+  is_anomaly?: boolean
 }
