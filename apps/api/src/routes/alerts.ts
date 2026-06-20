@@ -3,6 +3,7 @@ import axios from 'axios';
 import { redisClient } from '../redis/client.js';
 import crypto from 'crypto';
 import { checkWebhookUrl } from '../utils/ssrf.js';
+import { sendDirectAlert } from '../integrations/telegram.js';
 
 const router = express.Router();
 
@@ -194,5 +195,79 @@ export async function getWebhookUsage(subscriberAddress: string): Promise<number
   return parseInt(count || '0', 10);
 }
 
+// ─── Telegram per-wallet subscriptions ─────────────────────────────────────
+
+// POST /api/v1/alerts/telegram/subscribe
+// Body: { walletAddress: string, chatId: string, label?: string }
+router.post('/telegram/subscribe', async (req, res) => {
+  const { walletAddress, chatId, label } = req.body;
+  if (!walletAddress || !chatId) {
+    return res.status(400).json({ error: 'walletAddress and chatId are required' });
+  }
+
+  const subId = crypto.randomBytes(12).toString('hex');
+  const sub = {
+    id: subId,
+    walletAddress,
+    chatId,
+    label: label || `Wallet ${walletAddress.slice(0, 8)}`,
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    await redisClient.set(`tg:sub:${subId}`, JSON.stringify(sub), { EX: 60 * 60 * 24 * 90 });
+    await redisClient.sAdd(`tg:wallet:${walletAddress}:subs`, subId);
+    await redisClient.sAdd(`tg:chat:${chatId}:subs`, subId);
+
+    // Confirm to the user via Telegram DM
+    await sendDirectAlert(chatId, {
+      title: 'Wallet Alert Activated',
+      description: `You will now receive alerts when ${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)} has significant activity on Stacks.`,
+      stx_amount: 0,
+      usd_amount: 0,
+      wallet_address: walletAddress,
+      wallet_archetype: 'Subscribed',
+      signal: 'neutral',
+      explorer_url: `https://explorer.stacks.co/address/${walletAddress}?chain=mainnet`,
+    });
+
+    res.json({ subId, message: 'Telegram alert subscription created' });
+  } catch {
+    res.status(500).json({ error: 'Failed to create Telegram subscription' });
+  }
+});
+
+// DELETE /api/v1/alerts/telegram/unsubscribe/:subId
+router.delete('/telegram/unsubscribe/:subId', async (req, res) => {
+  const { subId } = req.params;
+  try {
+    const raw = await redisClient.get(`tg:sub:${subId}`);
+    if (!raw) return res.status(404).json({ error: 'Subscription not found' });
+    const sub = JSON.parse(raw);
+    sub.active = false;
+    await redisClient.set(`tg:sub:${subId}`, JSON.stringify(sub), { EX: 60 * 60 * 24 * 90 });
+    res.json({ message: 'Unsubscribed' });
+  } catch {
+    res.status(500).json({ error: 'Failed to unsubscribe' });
+  }
+});
+
+// GET /api/v1/alerts/telegram/list/:chatId
+router.get('/telegram/list/:chatId', async (req, res) => {
+  const { chatId } = req.params;
+  try {
+    const subIds = await redisClient.sMembers(`tg:chat:${chatId}:subs`);
+    const subs = await Promise.all(
+      subIds.map(async id => {
+        const raw = await redisClient.get(`tg:sub:${id}`);
+        return raw ? JSON.parse(raw) : null;
+      })
+    );
+    res.json({ subscriptions: subs.filter(Boolean).filter((s: any) => s.active) });
+  } catch {
+    res.status(500).json({ error: 'Failed to list subscriptions' });
+  }
+});
+
 export default router;
-// PR: auto-generated branch pr/alerts-webhooks
