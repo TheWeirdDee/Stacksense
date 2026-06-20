@@ -11,7 +11,8 @@ import {
 } from '@/lib/contract'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import type { FeedEvent } from '@/lib/types'
-import { Star, Eye } from 'lucide-react'
+import { Star, Eye, Share2 } from 'lucide-react'
+import Link from 'next/link'
 import { useToast } from '@/components/Toast'
 
 interface Props {
@@ -177,10 +178,19 @@ export default function FeedCard({
             </button>
           )}
 
+          <Link
+            href={`/event/${event.tx_id}`}
+            onClick={e => e.stopPropagation()}
+            style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}
+            title="Permalink"
+          >
+            <Share2 size={11} />
+          </Link>
           <a
             href={event.explorer_url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
             style={{ fontSize: 11, color: 'var(--brand-text)', textDecoration: 'none', flexShrink: 0 }}
           >
             Explorer ↗
@@ -250,6 +260,23 @@ export default function FeedCard({
             <span style={{ color: 'var(--bg-border)' }}>·</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>
               {event.context}
+            </span>
+          </>
+        )}
+        {event.is_anomaly && event.multiplier && event.multiplier > 1 && (
+          <>
+            <span style={{ color: 'var(--bg-border)' }}>·</span>
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#EF4444',
+              background: '#2E0F0F',
+              border: '1px solid #EF444444',
+              borderRadius: 4,
+              padding: '1px 6px',
+              fontFamily: 'JetBrains Mono, monospace',
+            }}>
+              {event.multiplier.toFixed(1)}× above baseline
             </span>
           </>
         )}
