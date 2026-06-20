@@ -1,13 +1,19 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 const Nav = dynamic(() => import('@/components/Nav'), { ssr: false })
 import Link from 'next/link'
 import { useWallet } from '@/lib/wallet'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { Flame } from 'lucide-react'
+import { getApiUrl } from '@/lib/config'
+import { fmtSTX } from '@/lib/stx'
+import { timeAgo } from '@/lib/signals'
 
-const TICKER = [
+const API = getApiUrl()
+
+const STATIC_TICKER = [
   { signal: 'bullish', label: 'Bullish', text: 'Whale Wallet added liquidity to ALEX', val: '142,000 STX' },
   { signal: 'anomaly', label: 'Anomaly', text: 'Arkadiko vault liquidated', val: '50,000 STX' },
   { signal: 'risk',    label: 'Risk',    text: 'Large USDA burn — vault paydown', val: '89,000 STX' },
@@ -23,20 +29,76 @@ const SIG_STYLES: Record<string, { color: string; bg: string }> = {
   anomaly: { color: '#EF4444', bg: '#2E0F0F' },
 }
 
-const PREVIEW_EVENTS = [
-  { signal: 'bullish', title: 'Whale Wallet added liquidity to ALEX', desc: 'A large liquidity provision of 142,000 STX ($189,260) was detected on ALEX AMM v2.', amount: '142,000 STX', usd: '$189,260', ctx: '3.2× larger than 7-day avg', time: '2m ago' },
-  { signal: 'anomaly', title: 'Arkadiko Liquidation Event', desc: 'A vault was liquidated on Arkadiko. 50,000 STX of collateral was processed.', amount: '50,000 STX', usd: '$66,500', ctx: 'First liquidation in 4 days', time: '7m ago' },
-  { signal: 'risk',    title: 'Large USDA Burn — Vault Paydown', desc: 'DeFi User burned 89,000 STX worth of USDA — potential STX unlock incoming.', amount: '89,000 STX', usd: '$118,370', ctx: '2.1× above 30-day avg', time: '14m ago' },
-]
-
 const SIG_BORDER: Record<string, string> = {
   bullish: '#22C55E', neutral: '#94A3B8', risk: '#F59E0B', anomaly: '#EF4444'
+}
+
+function useLandingStats() {
+  const [stats, setStats] = useState<{ stx_moved_today?: number; most_active_protocol_today?: string; anomalies_24h?: number } | null>(null)
+
+  useEffect(() => {
+    fetch(`${API}/api/v1/stats`)
+      .then(r => r.json())
+      .then(data => setStats(data))
+      .catch(() => {})
+  }, [])
+
+  const stxMoved = stats?.stx_moved_today != null
+    ? stats.stx_moved_today >= 1_000_000
+      ? `${(stats.stx_moved_today / 1_000_000).toFixed(1)}M`
+      : `${Math.round(stats.stx_moved_today / 1000)}K`
+    : '—'
+
+  return [
+    { label: 'STX moved today', val: stxMoved, sub: 'across all protocols' },
+    { label: 'Most active protocol', val: stats?.most_active_protocol_today ?? '—', sub: 'by event volume' },
+    { label: 'Anomalies detected', val: stats?.anomalies_24h != null ? String(stats.anomalies_24h) : '—', sub: 'in the last 24 hours' },
+  ]
+}
+
+function useTickerEvents() {
+  const [ticker, setTicker] = useState(STATIC_TICKER)
+  const [previewEvents, setPreviewEvents] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch(`${API}/api/v1/feed?limit=10`)
+      .then(r => r.json())
+      .then(data => {
+        const evts = data.events ?? []
+        if (evts.length > 0) {
+          setTicker(
+            evts.slice(0, 8).map((e: any) => ({
+              signal: e.signal,
+              label: e.signal.charAt(0).toUpperCase() + e.signal.slice(1),
+              text: e.title,
+              val: `${fmtSTX(e.stx_amount)} STX`,
+            }))
+          )
+          setPreviewEvents(
+            evts.slice(0, 3).map((e: any) => ({
+              signal: e.signal,
+              title: e.title,
+              desc: e.description,
+              amount: `${fmtSTX(e.stx_amount)} STX`,
+              usd: e.usd_amount ? `$${e.usd_amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '',
+              ctx: e.context || '',
+              time: timeAgo(e.timestamp),
+            }))
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  return { ticker, previewEvents }
 }
 
 export default function LandingPage() {
   const { connected, connect } = useWallet()
   const { isMobile, isTablet } = useWindowSize()
-  const doubled = [...TICKER, ...TICKER]
+  const { ticker, previewEvents } = useTickerEvents()
+  const statCards = useLandingStats()
+  const doubled = [...ticker, ...ticker]
 
   return (
     <div style={{ background: 'var(--bg-base)', minHeight: '100vh' }}>
@@ -146,20 +208,21 @@ export default function LandingPage() {
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 32 }}>Real interpretations. Updated every 10 seconds from Stacks mainnet.</p>
 
         <div style={{ border: '1px solid var(--bg-border)', borderRadius: 12, overflow: 'hidden' }}>
-          {PREVIEW_EVENTS.map((e, i) => (
+          {previewEvents.map((e, i) => (
             <div key={i} style={{
-              borderLeft: `3px solid ${SIG_BORDER[e.signal]}`,
-              borderBottom: i < PREVIEW_EVENTS.length - 1 ? '1px solid var(--bg-border)' : 'none',
+              borderLeft: `3px solid ${SIG_BORDER[e.signal] ?? SIG_BORDER.neutral}`,
+              borderBottom: i < previewEvents.length - 1 ? '1px solid var(--bg-border)' : 'none',
               padding: isMobile ? '16px' : '20px 24px', background: 'var(--bg-base)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span style={{
-                  background: SIG_STYLES[e.signal].bg, color: SIG_STYLES[e.signal].color,
+                  background: (SIG_STYLES[e.signal] ?? SIG_STYLES.neutral).bg,
+                  color: (SIG_STYLES[e.signal] ?? SIG_STYLES.neutral).color,
                   padding: '3px 10px', borderRadius: 999, fontSize: 10, fontWeight: 600,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   display: 'inline-flex', alignItems: 'center', gap: 5
                 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: SIG_STYLES[e.signal].color, display: 'inline-block' }} />
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: (SIG_STYLES[e.signal] ?? SIG_STYLES.neutral).color, display: 'inline-block' }} />
                   {e.signal.charAt(0).toUpperCase() + e.signal.slice(1)}
                 </span>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{e.time}</span>
@@ -190,11 +253,7 @@ export default function LandingPage() {
         gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', 
         gap: 12 
       }}>
-        {[
-          { label: 'STX moved today', val: '4.2M', sub: 'across all protocols' },
-          { label: 'Most active protocol', val: 'ALEX', sub: '48% of today\'s volume' },
-          { label: 'Anomalies detected', val: '7', sub: 'in the last 24 hours' },
-        ].map(s => (
+        {statCards.map(s => (
           <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)', borderRadius: 10, padding: isMobile ? '20px' : '24px 28px' }}>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{s.label}</div>
             <div className="mono" style={{ fontSize: isMobile ? 28 : 32, fontWeight: 600, color: 'var(--text-primary)' }}>{s.val}</div>
