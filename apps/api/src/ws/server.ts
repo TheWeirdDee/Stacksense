@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { redisClient } from '../redis/client.js';
+import { notifyWalletSubscribers } from '../integrations/telegram.js';
 
 let wss: WebSocketServer;
 const inMemoryEvents: any[] = [];
@@ -74,6 +75,8 @@ export function broadcastEvent(event: any) {
       client.send(message);
     }
   });
+
+  notifyWalletSubscribers(event).catch(() => {});
 }
 
 export function getClientCount() {
