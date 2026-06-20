@@ -76,11 +76,14 @@ async function refreshStats() {
       };
     }));
 
+    const anomalies_24h = todayEvents.filter((e: any) => e.signal === 'anomaly').length;
+
     const stats = {
       events_last_10m: eventsLast10m,
       stx_moved_today: stxMovedToday,
       most_active_protocol_today: mostActive,
       total_events_today: todayEvents.length,
+      anomalies_24h,
       trending_signals: trending,
       last_updated: new Date().toISOString(),
     }
@@ -242,6 +245,25 @@ router.get('/', async (req, res) => {
     res.json(JSON.parse(statsStr));
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// GET /api/v1/stats/coverage — top unmatched contract calls (for rule expansion)
+router.get('/coverage', async (req, res) => {
+  try {
+    const keys = await redisClient.keys('coverage:miss:*');
+    const entries = await Promise.all(
+      keys.map(async key => {
+        const count = parseInt(await redisClient.get(key) ?? '0');
+        const label = key.replace('coverage:miss:', '');
+        const [contractId, functionName] = label.split('::');
+        return { contractId, functionName, count };
+      })
+    );
+    entries.sort((a, b) => b.count - a.count);
+    res.json({ gaps: entries.slice(0, 50) });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch coverage gaps' });
   }
 });
 
