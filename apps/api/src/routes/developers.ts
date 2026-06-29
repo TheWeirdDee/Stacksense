@@ -3,7 +3,7 @@ import { registerDeveloper, getDeveloperStats, trackGitHubActivity } from '../in
 
 const router = express.Router();
 
-// Register GitHub account to Stacks address
+ 
 router.post('/register', async (req, res) => {
   try {
     const { username, stacksAddress } = req.body;
