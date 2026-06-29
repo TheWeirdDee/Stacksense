@@ -45,7 +45,6 @@ ${event.description}
 🔗 [View on Explorer](${event.explorer_url})`;
 }
 
-// Send a Telegram DM to a specific chat ID (used for per-wallet subscriptions).
 export async function sendDirectAlert(chatId: string, event: any, label?: string) {
   if (!bot) return;
   const message = buildAlertMessage(event, label);
