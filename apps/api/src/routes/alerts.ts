@@ -21,7 +21,7 @@ interface WebhookAlert {
   secret: string;
 }
 
-// Create a new webhook alert
+ 
 router.post('/create', async (req, res) => {
   try {
     const { subscriberAddress, webhookUrl, filters } = req.body;
@@ -36,7 +36,6 @@ router.post('/create', async (req, res) => {
     }
 
     const webhookId = crypto.randomBytes(16).toString('hex');
-    // Per-webhook secret so receivers can verify the X-StackSense-Signature HMAC.
     const secret = crypto.randomBytes(24).toString('hex');
     const alert: WebhookAlert = {
       id: webhookId,
