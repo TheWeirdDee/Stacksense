@@ -12,8 +12,7 @@ interface CommitEvent {
   url: string;
 }
 
-// List of major Stacks ecosystem repositories to track
-const STACKS_ECOSYSTEM_REPOS = [
+ const STACKS_ECOSYSTEM_REPOS = [
   'stacks-network/stacks-blockchain',
   'stacks-network/stacks-core',
   'clarity-lang/clarity-lang',
