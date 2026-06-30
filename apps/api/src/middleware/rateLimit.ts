@@ -1,8 +1,4 @@
-/**
- * Middleware - Rate Limiting
- * Basic rate limiting middleware
- */
-
+ 
 import { Request, Response, NextFunction } from 'express';
 import { cacheIncrement, cacheGet, cacheSet } from '../utils/cache.js';
 import { REDIS_TTL } from '../constants.js';
