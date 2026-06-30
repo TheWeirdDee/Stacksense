@@ -187,10 +187,10 @@ export async function getWebhookUsage(subscriberAddress: string): Promise<number
 }
 
 // ─── Telegram per-wallet subscriptions ─────────────────────────────────────
-
 const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
 const TELEGRAM_CHAT_ID_RE = /^-?\d{1,20}$/;
-
+// POST /api/v1/alerts/telegram/subscribe
+// Body: { walletAddress: string, chatId: string, label?: string }
 router.post('/telegram/subscribe', async (req, res) => {
   const { walletAddress, chatId, label } = req.body;
   if (!walletAddress || !chatId) {
@@ -205,7 +205,6 @@ router.post('/telegram/subscribe', async (req, res) => {
   if (label && (typeof label !== 'string' || label.length > 100)) {
     return res.status(400).json({ error: 'label must be a string under 100 characters' });
   }
-
   const subId = crypto.randomBytes(12).toString('hex');
   const sub = {
     id: subId,
@@ -220,7 +219,6 @@ router.post('/telegram/subscribe', async (req, res) => {
     await redisClient.set(`tg:sub:${subId}`, JSON.stringify(sub), { EX: 60 * 60 * 24 * 90 });
     await redisClient.sAdd(`tg:wallet:${walletAddress}:subs`, subId);
     await redisClient.sAdd(`tg:chat:${chatId}:subs`, subId);
-
     await sendDirectAlert(chatId, {
       title: 'Wallet Alert Activated',
       description: `You will now receive alerts when ${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)} has significant activity on Stacks.`,
@@ -237,7 +235,6 @@ router.post('/telegram/subscribe', async (req, res) => {
     res.status(500).json({ error: 'Failed to create Telegram subscription' });
   }
 });
-
 router.delete('/telegram/unsubscribe/:subId', async (req, res) => {
   const { subId } = req.params;
   try {
@@ -251,13 +248,13 @@ router.delete('/telegram/unsubscribe/:subId', async (req, res) => {
     res.status(500).json({ error: 'Failed to unsubscribe' });
   }
 });
-
 router.get('/telegram/list/:chatId', async (req, res) => {
   const { chatId } = req.params;
   try {
     const subIds = await redisClient.sMembers(`tg:chat:${chatId}:subs`);
     const subs = await Promise.all(
       subIds.map(async (id: string) => {
+      subIds.map(async id => {
         const raw = await redisClient.get(`tg:sub:${id}`);
         return raw ? JSON.parse(raw) : null;
       })

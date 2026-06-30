@@ -11,7 +11,8 @@ import {
 } from '@/lib/contract'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import type { FeedEvent } from '@/lib/types'
-import { Star, Eye } from 'lucide-react'
+import { Star, Eye, Share2 } from 'lucide-react'
+import Link from 'next/link'
 import { useToast } from '@/components/Toast'
 
 interface Props {
@@ -41,20 +42,19 @@ export default function FeedCard({
 }: Props) {
   if (!event) return null
   const { isMobile } = useWindowSize()
-  const { toast } = useToast()
+  const { toast, dismiss } = useToast()
   const sig = getSignal(event.signal)
   const [tipState, setTipState] = useState<ActionState>('idle')
   const [voteState, setVoteState] = useState<'idle' | 'bullish' | 'bearish'>('idle')
   const [showFiat, setShowFiat] = useState(false)
 
-  // Live fiat valuation derived from the event's CoinGecko-priced USD amount.
   const unitPrice = event.stx_amount > 0 && event.usd_amount ? event.usd_amount / event.stx_amount : null
 
   const handleTip = () => {
     if (tipState !== 'idle') return
     setTipState('pending')
-    
-    const loadingToastId = toast(
+
+    const loadingId = toast(
       `Broadcasting tip of 1 STX for "${event.title}"...`,
       'loading',
       undefined,
@@ -64,16 +64,18 @@ export default function FeedCard({
     contractTipSignal(
       event.id,
       (txId) => {
+        dismiss(loadingId)
         setTipState('done')
         onTip?.()
         toast(
-          `🎉 Tip transaction broadcasted successfully!`,
+          `Tip transaction broadcasted successfully!`,
           'success',
           { label: 'View Tx', href: `https://explorer.stacks.co/txid/${txId}?chain=mainnet` },
           10000
         )
       },
       () => {
+        dismiss(loadingId)
         setTipState('idle')
         toast('Tip cancelled by user', 'info', undefined, 4000)
       }
@@ -86,7 +88,7 @@ export default function FeedCard({
     setVoteState(direction)
     const fn = direction === 'bullish' ? contractVoteBullish : contractVoteBearish
 
-    const loadingToastId = toast(
+    const loadingId = toast(
       `Broadcasting ${direction === 'bullish' ? 'bull' : 'bear'} vote for "${event.title}"...`,
       'loading',
       undefined,
@@ -96,15 +98,17 @@ export default function FeedCard({
     fn(
       event.id,
       (txId: string) => {
+        dismiss(loadingId)
         onVote?.(direction === 'bullish' ? 'bull' : 'bear')
         toast(
-          `🎉 Vote transaction broadcasted successfully!`,
+          `Vote transaction broadcasted successfully!`,
           'success',
           { label: 'View Tx', href: `https://explorer.stacks.co/txid/${txId}?chain=mainnet` },
           10000
         )
       },
       () => {
+        dismiss(loadingId)
         setVoteState('idle')
         toast('Vote cancelled by user', 'info', undefined, 4000)
       }
@@ -177,10 +181,19 @@ export default function FeedCard({
             </button>
           )}
 
+          <Link
+            href={`/event/${event.tx_id}`}
+            onClick={e => e.stopPropagation()}
+            style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}
+            title="Permalink"
+          >
+            <Share2 size={11} />
+          </Link>
           <a
             href={event.explorer_url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
             style={{ fontSize: 11, color: 'var(--brand-text)', textDecoration: 'none', flexShrink: 0 }}
           >
             Explorer ↗
@@ -250,6 +263,23 @@ export default function FeedCard({
             <span style={{ color: 'var(--bg-border)' }}>·</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>
               {event.context}
+            </span>
+          </>
+        )}
+        {event.is_anomaly && event.multiplier && event.multiplier > 1 && (
+          <>
+            <span style={{ color: 'var(--bg-border)' }}>·</span>
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#EF4444',
+              background: '#2E0F0F',
+              border: '1px solid #EF444444',
+              borderRadius: 4,
+              padding: '1px 6px',
+              fontFamily: 'JetBrains Mono, monospace',
+            }}>
+              {event.multiplier.toFixed(1)}× above baseline
             </span>
           </>
         )}
