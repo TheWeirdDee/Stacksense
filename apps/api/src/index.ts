@@ -17,6 +17,7 @@ import projectRoutes from './routes/project.js';
 import { rateLimit } from './middleware/rateLimit.js';
 import statusRoutes from './routes/status.js';
 import networkRoutes from './routes/network.js';
+import votesRoutes from './routes/votes.js';
 
 dotenv.config({ path: '../../.env' });
 dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/v1/subscription-contract', subscriptionContractRoutes);
 app.use('/api/v1/project', projectRoutes);
 app.use('/api/v1/status', statusRoutes);
 app.use('/api/v1/network', networkRoutes);
+app.use('/api/v1/votes', votesRoutes);
 
 async function updateSTXPrice() {
   try {
@@ -121,4 +123,3 @@ async function start() {
 }
 
 start().catch(console.error);
-// PR: auto-generated branch pr/api-integration
