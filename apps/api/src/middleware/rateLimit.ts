@@ -1,7 +1,5 @@
- 
 import { Request, Response, NextFunction } from 'express';
 import { cacheIncrement, cacheGet, cacheSet } from '../utils/cache.js';
-import { REDIS_TTL } from '../constants.js';
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -10,7 +8,7 @@ export interface RateLimitConfig {
 }
 
 const defaultConfig: RateLimitConfig = {
-  windowMs: 60 * 1000, // 1 minute
+  windowMs: 60 * 1000,
   maxRequests: 100,
   keyGenerator: (req) => req.ip || 'unknown',
 };
