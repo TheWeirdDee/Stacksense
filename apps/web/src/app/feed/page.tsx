@@ -44,6 +44,13 @@ export default function FeedPage() {
   const [signalFilter, setSignalFilter] = useState<string>(() => searchParams.get('signal') ?? 'All')
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(() => searchParams.get('protocol') || null)
   const [libraryFilter, setLibraryFilter] = useState<'all' | 'bookmarks' | 'watchlist'>('all')
+  const [minStx, setMinStx] = useState<number>(0)
+  const [maxStx, setMaxStx] = useState<number>(0)
+  const [tgChatId, setTgChatId] = useState('')
+  const [tgSubbing, setTgSubbing] = useState(false)
+  const [tgSubbedWallets, setTgSubbedWallets] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('stacksense-tg-subs') ?? '[]') } catch { return [] }
+  })
   const [bookmarkedTxs, setBookmarkedTxs] = useState<string[]>([])
   const [watchedWallets, setWatchedWallets] = useState<string[]>([])
   
@@ -117,9 +124,31 @@ export default function FeedPage() {
   useEffect(() => {
     fetch(`${API}/api/v1/feed?limit=50`)
       .then(r => r.json())
-      .then(data => {
-        setEvents(data.events ?? [])
+      .then(async data => {
+        const evts = data.events ?? []
+        setEvents(evts)
         setLoading(false)
+
+        if (evts.length > 0) {
+          const ids = evts.map((e: any) => e.id).join(',')
+          try {
+            const vr = await fetch(`${API}/api/v1/votes?ids=${ids}`)
+            if (vr.ok) {
+              const votesList: { eventId: string; bull: number; bear: number; tips: number }[] = await vr.json()
+              setLocalVotes(prev => {
+                const merged = { ...prev }
+                for (const v of votesList) {
+                  merged[v.eventId] = {
+                    bull: Math.max(prev[v.eventId]?.bull ?? 0, v.bull),
+                    bear: Math.max(prev[v.eventId]?.bear ?? 0, v.bear),
+                    tips: Math.max(prev[v.eventId]?.tips ?? 0, v.tips),
+                  }
+                }
+                return merged
+              })
+            }
+          } catch {}
+        }
       })
       .catch(() => {
         setLoading(false)
@@ -244,6 +273,18 @@ export default function FeedPage() {
         tips: prev[eventId]?.tips || 0,
       }
     }))
+    if (address) {
+      fetch(`${API}/api/v1/votes/${eventId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ direction, wallet: address }),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(v => {
+          if (v) setLocalVotes(prev => ({ ...prev, [eventId]: { bull: v.bull, bear: v.bear, tips: v.tips } }))
+        })
+        .catch(() => {})
+    }
   }
 
   const handleLocalTip = (eventId: string) => {
@@ -256,21 +297,35 @@ export default function FeedPage() {
         tips: (prev[eventId]?.tips || 0) + 1,
       }
     }))
+    if (address) {
+      fetch(`${API}/api/v1/votes/${eventId}/tip`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address }),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(v => {
+          if (v) setLocalVotes(prev => ({ ...prev, [eventId]: { bull: v.bull, bear: v.bear, tips: v.tips } }))
+        })
+        .catch(() => {})
+    }
   }
 
   const currentEvents = isMyActivity ? myEvents : events
   const filtered = currentEvents.filter(e => {
     const sigMatch = signalFilter === 'All' || e.signal === signalFilter.toLowerCase()
     const protoMatch = !selectedProtocol || e.protocol.toLowerCase() === selectedProtocol.toLowerCase()
-    
+    const minMatch = minStx === 0 || e.stx_amount >= minStx
+    const maxMatch = maxStx === 0 || e.stx_amount <= maxStx
+
     let libMatch = true
     if (libraryFilter === 'bookmarks') {
       libMatch = bookmarkedTxs.includes(e.tx_id)
     } else if (libraryFilter === 'watchlist') {
       libMatch = watchedWallets.includes(e.wallet_address)
     }
-    
-    return sigMatch && protoMatch && libMatch
+
+    return sigMatch && protoMatch && minMatch && maxMatch && libMatch
   })
 
   const statusColor = wsStatus === 'live' ? '#22C55E' : wsStatus === 'connecting' ? '#F59E0B' : '#EF4444'
@@ -345,24 +400,69 @@ export default function FeedPage() {
                       fontFamily: 'JetBrains Mono, monospace',
                     }}
                   >
-                    <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+                    <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
                       {addr.slice(0, 6)}...{addr.slice(-6)}
                     </span>
-                    <button
-                      onClick={() => handleRemoveWatchedWallet(addr)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                        fontSize: 10,
-                        padding: '2px 4px',
-                      }}
-                    >
-                      ✕
-                    </button>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {tgSubbedWallets.includes(addr) ? (
+                        <span style={{ fontSize: 10, color: '#29B6F6', padding: '1px 5px' }} title="Telegram alerts active">✈</span>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            const id = prompt('Enter your Telegram chat ID to receive alerts for this wallet.\n\nTo find it: message @userinfobot on Telegram and it will reply with your chat ID.')
+                            if (!id?.trim()) return
+                            setTgSubbing(true)
+                            fetch(`${API}/api/v1/alerts/telegram/subscribe`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ walletAddress: addr, chatId: id.trim() }),
+                            })
+                              .then(r => r.json())
+                              .then(data => {
+                                if (data.subId) {
+                                  const next = [...tgSubbedWallets, addr]
+                                  setTgSubbedWallets(next)
+                                  localStorage.setItem('stacksense-tg-subs', JSON.stringify(next))
+                                  alert('Telegram alert activated! You will receive a confirmation message shortly.')
+                                } else {
+                                  alert(data.error ?? 'Failed to subscribe')
+                                }
+                              })
+                              .catch(() => alert('Failed to connect to server'))
+                              .finally(() => setTgSubbing(false))
+                          }}
+                          title="Enable Telegram alerts for this wallet"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            fontSize: 11,
+                            padding: '1px 4px',
+                          }}
+                        >
+                          ✈
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleRemoveWatchedWallet(addr)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          fontSize: 10,
+                          padding: '2px 4px',
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 ))}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                ✈ = enable Telegram DM alerts for that wallet
               </div>
             </div>
             <div style={{ height: 1, background: 'var(--bg-border)' }} />
@@ -436,6 +536,60 @@ export default function FeedPage() {
         <div style={{ height: 1, background: 'var(--bg-border)' }} />
 
         <div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+            STX Range
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { label: 'Min STX', value: minStx, setter: setMinStx, placeholder: 'e.g. 1000' },
+              { label: 'Max STX', value: maxStx, setter: setMaxStx, placeholder: 'e.g. 500000' },
+            ].map(({ label, value, setter, placeholder }) => (
+              <div key={label}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
+                <input
+                  type="number"
+                  min={0}
+                  value={value === 0 ? '' : value}
+                  placeholder={placeholder}
+                  onChange={e => setter(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value) || 0))}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--bg-border)',
+                    borderRadius: 6,
+                    padding: '6px 10px',
+                    fontSize: 12,
+                    color: 'var(--text-primary)',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            ))}
+            {(minStx > 0 || maxStx > 0) && (
+              <button
+                onClick={() => { setMinStx(0); setMaxStx(0) }}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--bg-border)',
+                  color: 'var(--text-muted)',
+                  borderRadius: 6,
+                  padding: '5px 10px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                Clear range
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: 'var(--bg-border)' }} />
+
+        <div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
             Today
           </div>
@@ -478,7 +632,7 @@ export default function FeedPage() {
         })}
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 20, fontStyle: 'italic' }}>
-        Community votes reset on page refresh — on-chain persistence coming soon.
+        Votes are persisted server-side. On-chain settlement via contract is live.
       </div>
     </div>
   )
@@ -612,15 +766,34 @@ export default function FeedPage() {
                 >
                   Pulse Chart
                 </button>
-                {paused && buffered.length > 0 && <span style={{ fontSize: 11, color: 'var(--brand-text)' }}>{buffered.length} new</span>}
                 <button
                   onClick={paused ? resume : () => setPaused(true)}
                   style={{
-                    padding: '5px 14px', borderRadius: 6, border: '1px solid var(--bg-border)',
-                    background: 'transparent', color: paused ? 'var(--brand-text)' : 'var(--text-secondary)', fontSize: 12,
+                    padding: '5px 14px', borderRadius: 6,
+                    border: `1px solid ${paused ? '#F59E0B' : 'var(--bg-border)'}`,
+                    background: paused ? '#2E220A' : 'transparent',
+                    color: paused ? '#F59E0B' : 'var(--text-secondary)',
+                    fontSize: 12, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    transition: 'all 0.15s',
                   }}
                 >
-                  {paused ? `Resume${buffered.length > 0 ? ` (${buffered.length})` : ''}` : 'Pause'}
+                  {paused ? (
+                    <>
+                      <span style={{
+                        width: 7, height: 7, borderRadius: '50%',
+                        background: '#F59E0B',
+                        animation: 'pulse 1.2s ease-in-out infinite',
+                        display: 'inline-block',
+                      }} />
+                      {buffered.length > 0 ? `Resume (${buffered.length} buffered)` : 'Paused — Resume'}
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', animation: 'pulse 1.5s infinite', display: 'inline-block' }} />
+                      Pause
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -707,11 +880,48 @@ export default function FeedPage() {
               </div>
             )}
 
-            {!loading && !myLoading && filtered.length === 0 && !isMyActivity && (
-              <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No events match your filters</div>
-              </div>
-            )}
+            {!loading && !myLoading && filtered.length === 0 && !isMyActivity && (() => {
+              if (libraryFilter === 'bookmarks') {
+                return (
+                  <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 28, marginBottom: 12 }}>★</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>No bookmarks yet</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 280, margin: '0 auto' }}>
+                      Click the star icon on any feed card to bookmark a transaction for later review.
+                    </div>
+                    <button onClick={() => setLibraryFilter('all')} style={{ marginTop: 20, fontSize: 12, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      Back to all events →
+                    </button>
+                  </div>
+                )
+              }
+              if (libraryFilter === 'watchlist') {
+                return (
+                  <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 28, marginBottom: 12 }}>👁</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
+                      {watchedWallets.length === 0 ? 'No wallets in your watchlist' : 'No recent activity from watched wallets'}
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 300, margin: '0 auto' }}>
+                      {watchedWallets.length === 0
+                        ? 'Click the eye icon on any feed card to start watching a wallet address.'
+                        : 'The wallets you\'re watching haven\'t had any significant activity in the last 200 events.'}
+                    </div>
+                    <button onClick={() => setLibraryFilter('all')} style={{ marginTop: 20, fontSize: 12, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      Back to all events →
+                    </button>
+                  </div>
+                )
+              }
+              return (
+                <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No events match your filters</div>
+                  <button onClick={() => { setSignalFilter('All'); setSelectedProtocol(null); setMinStx(0); setMaxStx(0) }} style={{ marginTop: 12, fontSize: 12, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    Clear all filters →
+                  </button>
+                </div>
+              )
+            })()}
 
             {filtered.map(event => (
               <div key={event.id} onClick={() => setSelectedEvent(event)} style={{ cursor: 'pointer' }}>

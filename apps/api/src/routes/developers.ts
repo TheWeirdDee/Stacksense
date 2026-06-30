@@ -2,9 +2,7 @@ import express from 'express';
 import { registerDeveloper, getDeveloperStats, trackGitHubActivity } from '../integrations/github.js';
 
 const router = express.Router();
-
 const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
-
 router.post('/register', async (req, res) => {
   try {
     const { username, stacksAddress } = req.body;

@@ -16,10 +16,7 @@ export interface NpmDownloadStats {
   peakDailyDownloads: number;
 }
 
-/**
- * Fetch monthly download stats for an NPM package.
- * Uses the public npm downloads API — no auth required.
- */
+
 export async function getNpmDownloads(packageName: string): Promise<NpmDownloadStats> {
   try {
     const [monthlyRes, weeklyRes, rangeRes] = await Promise.all([
