@@ -1,7 +1,4 @@
-/**
- * Middleware - Authentication
- * API key authentication middleware
- */
+ 
 
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
