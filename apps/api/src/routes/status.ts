@@ -5,9 +5,7 @@ import { getUptimeSeconds, getPollerMetrics } from '../utils/metrics.js';
 
 const router = express.Router();
 
-// System diagnostics: Hiro poll latency, Redis health, WebSocket connections.
 router.get('/', async (req, res) => {
-  // Measure live Redis round-trip latency with a PING.
   let redisConnected = false;
   let redisLatencyMs: number | null = null;
   let cachedEvents = 0;
@@ -26,7 +24,6 @@ router.get('/', async (req, res) => {
   const poller = getPollerMetrics();
   const wsClients = getClientCount();
 
-  // Derive an overall health verdict.
   const pollStale =
     poller.lastPollAt === null || Date.now() - poller.lastPollAt > 60_000;
   const healthy = redisConnected && !pollStale;
