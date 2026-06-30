@@ -3,7 +3,8 @@ import { registerDeveloper, getDeveloperStats, trackGitHubActivity } from '../in
 
 const router = express.Router();
 
- 
+const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
+
 router.post('/register', async (req, res) => {
   try {
     const { username, stacksAddress } = req.body;
@@ -16,7 +17,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Invalid GitHub username' });
     }
 
-    if (typeof stacksAddress !== 'string' || !stacksAddress.startsWith('SP')) {
+    if (typeof stacksAddress !== 'string' || !STACKS_ADDR_RE.test(stacksAddress)) {
       return res.status(400).json({ error: 'Invalid Stacks address' });
     }
 
@@ -27,7 +28,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Get developer statistics
 router.get('/stats/:stacksAddress', async (req, res) => {
   try {
     const { stacksAddress } = req.params;
@@ -43,7 +43,6 @@ router.get('/stats/:stacksAddress', async (req, res) => {
   }
 });
 
-// Manually sync GitHub activity
 router.post('/sync/:username', async (req, res) => {
   try {
     const { username } = req.params;
@@ -59,4 +58,3 @@ router.post('/sync/:username', async (req, res) => {
 });
 
 export default router;
-// PR: auto-generated branch pr/developers-endpoints
