@@ -41,7 +41,6 @@ const TIERS: Record<string, SubscriptionTier> = {
   },
 };
 
-// Generate API key
 router.post('/api-keys/generate', async (req, res) => {
   try {
     const { tier = 'free', subscriberAddress, apiKey: providedApiKey, txId } = req.body;
@@ -77,7 +76,6 @@ router.post('/api-keys/generate', async (req, res) => {
 
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
 
-    // Store in Redis with tier info and expiry
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
@@ -95,7 +93,6 @@ router.post('/api-keys/generate', async (req, res) => {
       { EX: 2592000 } // 30 days
     );
 
-    // Store mapping for subscriber to key
     await redisClient.sAdd(`subscriber:${subscriberAddress}:keys`, keyHash);
 
     res.json({
@@ -110,7 +107,6 @@ router.post('/api-keys/generate', async (req, res) => {
   }
 });
 
-// Get API key metadata for a subscriber
 router.get('/api-key/:subscriberAddress', async (req, res) => {
   try {
     const { subscriberAddress } = req.params;
@@ -147,7 +143,6 @@ router.get('/api-key/:subscriberAddress', async (req, res) => {
   }
 });
 
-// Get usage stats for a subscriber
 router.get('/usage/:subscriberAddress', async (req, res) => {
   try {
     const { subscriberAddress } = req.params;
@@ -362,154 +357,6 @@ export function apiKeyMiddleware(req: express.Request, res: express.Response, ne
   next();
 }
 
-// Get masked API key for subscriber
-router.get('/api-key/:subscriberAddress', async (req, res) => {
-  try {
-    const { subscriberAddress } = req.params;
-    const apiKey = req.headers['x-api-key'] as string;
-
-    if (!apiKey) {
-      return res.status(401).json({ error: 'API key required to view your key' });
-    }
-
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-    const keyData = await redisClient.get(`api-key:${keyHash}`);
-
-    if (!keyData) {
-      return res.status(401).json({ error: 'Invalid API key' });
-    }
-
-    const parsed = JSON.parse(keyData);
-
-    if (parsed.subscriberAddress !== subscriberAddress) {
-      return res.status(403).json({ error: 'API key does not match subscriber' });
-    }
-
-    // Return masked key: show first 8 and last 6 chars, hide middle
-    const masked = apiKey.slice(0, 8) + '…' + apiKey.slice(-6);
-
-    res.json({
-      maskedKey: masked,
-      tier: parsed.tier,
-      createdAt: parsed.createdAt,
-      expiresAt: parsed.expiresAt,
-      requestsUsed: parsed.requestsUsed,
-      requestsLimit: TIERS[parsed.tier].monthlyRequests,
-    });
-  } catch (error) {
-    console.error('Get API key error:', error);
-    res.status(500).json({ error: 'Failed to retrieve API key' });
-  }
-});
-
-// Regenerate API key for subscriber
-router.post('/api-key/regenerate', async (req, res) => {
-  try {
-    const { subscriberAddress } = req.body;
-    const oldApiKey = req.headers['x-api-key'] as string;
-
-    if (!subscriberAddress || !oldApiKey) {
-      return res.status(400).json({ error: 'subscriberAddress and API key required' });
-    }
-
-    const oldKeyHash = crypto.createHash('sha256').update(oldApiKey).digest('hex');
-    const oldKeyData = await redisClient.get(`api-key:${oldKeyHash}`);
-
-    if (!oldKeyData) {
-      return res.status(401).json({ error: 'Invalid API key' });
-    }
-
-    const oldParsed = JSON.parse(oldKeyData);
-
-    if (oldParsed.subscriberAddress !== subscriberAddress) {
-      return res.status(403).json({ error: 'API key does not match subscriber' });
-    }
-
-    // Generate new key
-    const newApiKey = crypto.randomBytes(32).toString('hex');
-    const newKeyHash = crypto.createHash('sha256').update(newApiKey).digest('hex');
-
-    // Preserve tier, expiry, etc from old key
-    const expiryDate = new Date(oldParsed.expiresAt);
-    const newKeyData = {
-      tier: oldParsed.tier,
-      subscriberAddress,
-      createdAt: new Date().toISOString(),
-      expiresAt: expiryDate.toISOString(),
-      requestsUsed: 0, // Reset usage counter on regenerate
-      webhookUrl: oldParsed.webhookUrl,
-    };
-
-    // Store new key
-    await redisClient.set(`api-key:${newKeyHash}`, JSON.stringify(newKeyData), { EX: 2592000 });
-
-    // Add to subscriber keys
-    await redisClient.sAdd(`subscriber:${subscriberAddress}:keys`, newKeyHash);
-
-    // Remove old key
-    await redisClient.del(`api-key:${oldKeyHash}`);
-    await redisClient.sRem(`subscriber:${subscriberAddress}:keys`, oldKeyHash);
-
-    res.json({
-      newApiKey,
-      tier: oldParsed.tier,
-      expiresAt: expiryDate.toISOString(),
-      requestsLimit: TIERS[oldParsed.tier].monthlyRequests,
-      message: 'API key regenerated successfully. The old key has been invalidated.',
-    });
-  } catch (error) {
-    console.error('Regenerate API key error:', error);
-    res.status(500).json({ error: 'Failed to regenerate API key' });
-  }
-});
-
-// Get usage stats for subscriber
-router.get('/usage/:subscriberAddress', async (req, res) => {
-  try {
-    const { subscriberAddress } = req.params;
-    const apiKey = req.headers['x-api-key'] as string;
-
-    if (!apiKey) {
-      return res.status(401).json({ error: 'API key required' });
-    }
-
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-    const keyData = await redisClient.get(`api-key:${keyHash}`);
-
-    if (!keyData) {
-      return res.status(401).json({ error: 'Invalid API key' });
-    }
-
-    const parsed = JSON.parse(keyData);
-
-    if (parsed.subscriberAddress !== subscriberAddress) {
-      return res.status(403).json({ error: 'API key does not match subscriber' });
-    }
-
-    const tier = TIERS[parsed.tier];
-    const expiresAt = new Date(parsed.expiresAt);
-    const now = new Date();
-    const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    const percentUsed = Math.round((parsed.requestsUsed / tier.monthlyRequests) * 100);
-
-    res.json({
-      tier: parsed.tier,
-      requestsUsed: parsed.requestsUsed,
-      requestsLimit: tier.monthlyRequests,
-      percentUsed,
-      expiresAt: parsed.expiresAt,
-      daysRemaining: Math.max(0, daysRemaining),
-      isActive: expiresAt > now,
-      webhookEnabled: tier.webhookEnabled,
-      customFiltersEnabled: tier.customRules,
-    });
-  } catch (error) {
-    console.error('Get usage stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch usage stats' });
-  }
-});
-
-// Pricing info
 router.get('/pricing', (req, res) => {
   res.json({
     tiers: TIERS,
@@ -522,4 +369,3 @@ router.get('/pricing', (req, res) => {
 });
 
 export default router;
-// PR: auto-generated branch pr/subscriptions-api

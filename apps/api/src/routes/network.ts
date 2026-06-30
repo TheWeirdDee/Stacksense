@@ -22,7 +22,6 @@ async function cached<T>(key: string, ttlMs: number, fetcher: () => Promise<T>):
   return data;
 }
 
-// GET /api/v1/network/blocks — recent block metrics (times, tx counts).
 router.get('/blocks', async (req, res) => {
   try {
     const data = await cached('blocks', 8_000, async () => {

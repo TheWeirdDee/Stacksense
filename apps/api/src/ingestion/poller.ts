@@ -97,3 +97,4 @@ async function processTransaction(tx: any) {
     console.error(`[Poller] Error processing tx ${tx.tx_id}:`, error.message || error);
   }
 }
+}
