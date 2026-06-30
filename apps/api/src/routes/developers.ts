@@ -3,6 +3,7 @@ import { registerDeveloper, getDeveloperStats, trackGitHubActivity } from '../in
 
 const router = express.Router();
 const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
+const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
 router.post('/register', async (req, res) => {
   try {
     const { username, stacksAddress } = req.body;

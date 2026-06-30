@@ -186,7 +186,10 @@ export async function getWebhookUsage(subscriberAddress: string): Promise<number
   return parseInt(count || '0', 10);
 }
 
-// ─── Telegram per-wallet subscriptions ─────────────────────────────────────
+// ─── Telegram per-wallet subscriptions ────────────────────────────────────
+
+const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
+const TELEGRAM_CHAT_ID_RE = /^-?\d{1,20}$/;
 const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
 const TELEGRAM_CHAT_ID_RE = /^-?\d{1,20}$/;
 // POST /api/v1/alerts/telegram/subscribe
