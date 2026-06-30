@@ -34,8 +34,13 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch feed' });
   }
 });
-
-// GET /api/v1/feed/:txId — look up a single event by tx_id
+router.get('/:txId', async (req, res) => {
+  try {
+    const { txId } = req.params;
+    if (!/^0x[a-f0-9]{64}$/i.test(txId)) {
+      return res.status(400).json({ error: 'Invalid tx ID format' });
+    }
+ // GET /api/v1/feed/:txId — look up a single event by tx_id
 router.get('/:txId', async (req, res) => {
   try {
     const { txId } = req.params;
