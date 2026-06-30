@@ -10,7 +10,7 @@ const HIRO_API_KEY = process.env.HIRO_API_KEY;
 export type Archetype = 'Whale Wallet' | 'LP Farmer' | 'New Wallet' | 'DeFi User' | 'Active Wallet' | 'Unclassified Wallet';
 
 export async function getArchetype(address: string): Promise<string> {
-  if (!address || typeof address !== 'string' || !address.startsWith('SP')) {
+  if (!address || typeof address !== 'string' || !/^(SP|SM)[A-Z0-9]{28,40}$/.test(address)) {
     return 'Unclassified Wallet';
   }
   const cacheKey = `archetype:${address}`;
@@ -20,7 +20,7 @@ export async function getArchetype(address: string): Promise<string> {
   } catch {}
 
   const archetype = await classifyWallet(address);
-  
+
   try {
     await redisClient.set(cacheKey, archetype, { EX: 21600 });
   } catch {}
@@ -31,15 +31,11 @@ export async function getArchetype(address: string): Promise<string> {
 async function getWalletHistory(address: string): Promise<any[]> {
   try {
     const url = `${HIRO_API_BASE}/extended/v1/address/${address}/transactions?limit=50&unanchored=false`;
-    console.log(`[Archetype] Fetching history for ${address.slice(0, 8)}...`);
-    
     const headers: Record<string, string> = {};
     if (HIRO_API_KEY) headers['x-api-key'] = HIRO_API_KEY;
 
     const response = await axios.get(url, { headers, timeout: 5000 });
-    const results = response.data?.results || [];
-    console.log(`[Archetype] ${address.slice(0, 8)} has ${results.length} recent txns`);
-    return results;
+    return response.data?.results || [];
   } catch (e: any) {
     console.error(`[Archetype] Failed to fetch history for ${address.slice(0, 8)}:`, e?.message || e);
     return [];
@@ -83,7 +79,6 @@ async function classifyWallet(address: string): Promise<string> {
       archetype = 'Active Wallet';
     }
 
-    console.log(`[Archetype] ${address.slice(0, 8)}... → ${archetype} (${txCount} txns, ${stxBalance.toLocaleString()} STX)`);
     return archetype;
   } catch (e) {
     console.error('[Archetype] Classification failed:', e);
