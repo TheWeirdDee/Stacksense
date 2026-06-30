@@ -76,11 +76,14 @@ async function refreshStats() {
       };
     }));
 
+    const anomalies_24h = todayEvents.filter((e: any) => e.signal === 'anomaly').length;
+
     const stats = {
       events_last_10m: eventsLast10m,
       stx_moved_today: stxMovedToday,
       most_active_protocol_today: mostActive,
       total_events_today: todayEvents.length,
+      anomalies_24h,
       trending_signals: trending,
       last_updated: new Date().toISOString(),
     }
@@ -129,7 +132,6 @@ router.get('/leaderboard', async (req, res) => {
         const matchingContract = contracts.find(c => c.protocol.toLowerCase() === e.protocol.toLowerCase());
         if (matchingContract) {
           matchingContract.calls += 1;
-          if (Math.random() > 0.5) matchingContract.callers += 1;
           matchingContract.fees += 0.01;
         }
       }
@@ -191,7 +193,6 @@ router.get('/pulse', async (req, res) => {
     const eventsStr = await redisClient.lRange('events:recent', 0, -1);
     const events = eventsStr.map((e: string) => JSON.parse(e));
     
-    // Group events into 2-hour buckets for the last 24 hours
     const now = Date.now();
     const buckets: Record<string, { label: string, count: number, volume: number, totalFee: number }> = {};
     
@@ -242,6 +243,24 @@ router.get('/', async (req, res) => {
     res.json(JSON.parse(statsStr));
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+router.get('/coverage', async (req, res) => {
+  try {
+    const keys = await redisClient.keys('coverage:miss:*');
+    const entries = await Promise.all(
+      keys.map(async (key: string) => {
+        const count = parseInt(await redisClient.get(key) ?? '0');
+        const label = key.replace('coverage:miss:', '');
+        const [contractId, functionName] = label.split('::');
+        return { contractId, functionName, count };
+      })
+    );
+    entries.sort((a, b) => b.count - a.count);
+    res.json({ gaps: entries.slice(0, 50) });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch coverage gaps' });
   }
 });
 
