@@ -100,10 +100,10 @@ export async function matchTransaction(tx: any) {
 
   if (matchedRule) {
     console.log(`[Matcher] ✓ ${tx.tx_id.slice(0, 8)} → ${matchedRule.id} (${matchedRule.signal})`);
-  } else {
-    if (tx_type === 'contract_call') {
-      console.log(`[Matcher] ✗ No rule for: ${contract_id} :: ${function_name} (${stx_amount} STX)`);
-    }
+  } else if (tx_type === 'contract_call' && contract_id && function_name) {
+    const missKey = `coverage:miss:${contract_id}::${function_name}`;
+    redisClient.incr(missKey).catch(() => {});
+    redisClient.expire(missKey, 60 * 60 * 24 * 7).catch(() => {});
   }
   
   if (!matchedRule) {
