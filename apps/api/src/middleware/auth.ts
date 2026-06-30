@@ -1,9 +1,7 @@
- 
-
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { cacheGet } from '../utils/cache.js';
-import { validateApiKey, validateAddress } from '../utils/errors.js';
+import { validateApiKey } from '../utils/errors.js';
 
 // Keys are stored hashed (sha256) at generation time, so look them up by hash.
 function hashKey(apiKey: string): string {
@@ -75,7 +73,6 @@ export function optionalAuth(
   const apiKey = req.headers['x-api-key'] as string;
 
   if (apiKey && validateApiKey(apiKey)) {
-    // Attach if valid, otherwise continue without auth
     cacheGet<AuthRequest['apiKeyData']>(`api-key:${hashKey(apiKey)}`).then((data) => {
       if (data) {
         req.apiKeyData = data as AuthRequest['apiKeyData'];
