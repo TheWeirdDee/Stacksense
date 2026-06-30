@@ -1,8 +1,3 @@
-/**
- * Backend Utilities - Error Handling
- * Common error handling for Express endpoints
- */
-
 import { Response } from 'express';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../constants.js';
 
