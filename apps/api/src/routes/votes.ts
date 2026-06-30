@@ -3,9 +3,14 @@ import { redisClient } from '../redis/client.js';
 
 const router = express.Router();
 
-// GET /api/v1/votes/:eventId
+const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
+const EVENT_ID_RE = /^[a-zA-Z0-9_-]{1,100}$/;
+
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
+  if (!EVENT_ID_RE.test(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
+  }
   try {
     const [bull, bear, tips] = await Promise.all([
       redisClient.get(`vote:${eventId}:bull`),
@@ -23,16 +28,18 @@ router.get('/:eventId', async (req, res) => {
   }
 });
 
-// POST /api/v1/votes/:eventId/vote  { direction: 'bull' | 'bear', wallet: string }
 router.post('/:eventId/vote', async (req, res) => {
   const { eventId } = req.params;
   const { direction, wallet } = req.body;
 
+  if (!EVENT_ID_RE.test(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
+  }
   if (direction !== 'bull' && direction !== 'bear') {
     return res.status(400).json({ error: 'direction must be bull or bear' });
   }
-  if (!wallet || typeof wallet !== 'string') {
-    return res.status(400).json({ error: 'wallet address required' });
+  if (!wallet || typeof wallet !== 'string' || !STACKS_ADDR_RE.test(wallet)) {
+    return res.status(400).json({ error: 'Valid Stacks wallet address required' });
   }
 
   const dedupKey = `vote:${eventId}:wallet:${wallet}`;
@@ -44,7 +51,6 @@ router.post('/:eventId/vote', async (req, res) => {
 
     await Promise.all([
       redisClient.incr(`vote:${eventId}:${direction}`),
-      // wallet dedup key expires in 30 days
       redisClient.set(dedupKey, direction, { EX: 60 * 60 * 24 * 30 }),
     ]);
 
@@ -65,13 +71,15 @@ router.post('/:eventId/vote', async (req, res) => {
   }
 });
 
-// POST /api/v1/votes/:eventId/tip  { wallet: string }
 router.post('/:eventId/tip', async (req, res) => {
   const { eventId } = req.params;
   const { wallet } = req.body;
 
-  if (!wallet || typeof wallet !== 'string') {
-    return res.status(400).json({ error: 'wallet address required' });
+  if (!EVENT_ID_RE.test(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
+  }
+  if (!wallet || typeof wallet !== 'string' || !STACKS_ADDR_RE.test(wallet)) {
+    return res.status(400).json({ error: 'Valid Stacks wallet address required' });
   }
 
   try {
@@ -94,12 +102,11 @@ router.post('/:eventId/tip', async (req, res) => {
   }
 });
 
-// GET /api/v1/votes/batch?ids=id1,id2,...
 router.get('/', async (req, res) => {
   const idsParam = req.query.ids as string;
   if (!idsParam) return res.json([]);
 
-  const ids = idsParam.split(',').slice(0, 50);
+  const ids = idsParam.split(',').slice(0, 50).filter(id => EVENT_ID_RE.test(id));
   try {
     const results = await Promise.all(
       ids.map(async (eventId) => {
