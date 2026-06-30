@@ -104,6 +104,13 @@ export async function matchTransaction(tx: any) {
     const missKey = `coverage:miss:${contract_id}::${function_name}`;
     redisClient.incr(missKey).catch(() => {});
     redisClient.expire(missKey, 60 * 60 * 24 * 7).catch(() => {});
+  } else {
+    if (tx_type === 'contract_call' && contract_id && function_name) {
+      console.log(`[Matcher] ✗ No rule for: ${contract_id} :: ${function_name} (${stx_amount} STX)`);
+      const missKey = `coverage:miss:${contract_id}::${function_name}`;
+      redisClient.incr(missKey).catch(() => {});
+      redisClient.expire(missKey, 60 * 60 * 24 * 7).catch(() => {});
+    }
   }
   
   if (!matchedRule) {

@@ -245,12 +245,12 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
-
 router.get('/coverage', async (req, res) => {
   try {
     const keys = await redisClient.keys('coverage:miss:*');
     const entries = await Promise.all(
       keys.map(async (key: string) => {
+      keys.map(async key => {
         const count = parseInt(await redisClient.get(key) ?? '0');
         const label = key.replace('coverage:miss:', '');
         const [contractId, functionName] = label.split('::');
