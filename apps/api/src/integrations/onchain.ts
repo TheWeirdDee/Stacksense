@@ -24,10 +24,7 @@ export interface WalletOnchainStats {
   totalFeesUstx: number;
 }
 
-/**
- * Fetch transaction stats for a single contract (address.name).
- * Pages through up to 500 transactions to count unique callers + fees.
- */
+
 export async function getContractStats(
   address: string,
   name: string

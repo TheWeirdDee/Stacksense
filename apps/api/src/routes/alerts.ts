@@ -3,6 +3,7 @@ import axios from 'axios';
 import { redisClient } from '../redis/client.js';
 import crypto from 'crypto';
 import { checkWebhookUrl } from '../utils/ssrf.js';
+import { sendDirectAlert } from '../integrations/telegram.js';
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ interface WebhookAlert {
   secret: string;
 }
 
-// Create a new webhook alert
+ 
 router.post('/create', async (req, res) => {
   try {
     const { subscriberAddress, webhookUrl, filters } = req.body;
@@ -35,7 +36,6 @@ router.post('/create', async (req, res) => {
     }
 
     const webhookId = crypto.randomBytes(16).toString('hex');
-    // Per-webhook secret so receivers can verify the X-StackSense-Signature HMAC.
     const secret = crypto.randomBytes(24).toString('hex');
     const alert: WebhookAlert = {
       id: webhookId,
@@ -67,7 +67,6 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// List webhooks for subscriber
 router.get('/list/:subscriberAddress', async (req, res) => {
   try {
     const { subscriberAddress } = req.params;
@@ -90,7 +89,6 @@ router.get('/list/:subscriberAddress', async (req, res) => {
   }
 });
 
-// Disable webhook
 router.post('/disable/:webhookId', async (req, res) => {
   try {
     const { webhookId } = req.params;
@@ -111,10 +109,8 @@ router.post('/disable/:webhookId', async (req, res) => {
   }
 });
 
-// Internal: Broadcast alert to matching webhooks
 export async function broadcastToWebhooks(event: any) {
   try {
-    // Get all webhooks from Redis
     const keys = await redisClient.keys('webhook:*');
 
     for (const key of keys) {
@@ -125,16 +121,12 @@ export async function broadcastToWebhooks(event: any) {
 
       if (!alert.active) continue;
 
-      // Check if event matches filters
-      const matches = checkFilters(event, alert.filters);
-      if (!matches) continue;
+      if (!checkFilters(event, alert.filters)) continue;
 
-      // Send webhook (fire and forget)
       sendWebhook(alert.webhookUrl, event, alert.secret).catch((err) => {
         console.error(`[Webhook] Failed to send to ${alert.webhookUrl}:`, err.message);
       });
 
-      // Log the webhook delivery for audit/charging purposes
       await logWebhookDelivery(alert.subscriberAddress);
     }
   } catch (error) {
@@ -194,5 +186,83 @@ export async function getWebhookUsage(subscriberAddress: string): Promise<number
   return parseInt(count || '0', 10);
 }
 
+// ─── Telegram per-wallet subscriptions ─────────────────────────────────────
+const STACKS_ADDR_RE = /^(SP|SM)[A-Z0-9]{28,40}$/;
+const TELEGRAM_CHAT_ID_RE = /^-?\d{1,20}$/;
+// POST /api/v1/alerts/telegram/subscribe
+// Body: { walletAddress: string, chatId: string, label?: string }
+router.post('/telegram/subscribe', async (req, res) => {
+  const { walletAddress, chatId, label } = req.body;
+  if (!walletAddress || !chatId) {
+    return res.status(400).json({ error: 'walletAddress and chatId are required' });
+  }
+  if (!STACKS_ADDR_RE.test(walletAddress)) {
+    return res.status(400).json({ error: 'Invalid Stacks wallet address' });
+  }
+  if (!TELEGRAM_CHAT_ID_RE.test(String(chatId))) {
+    return res.status(400).json({ error: 'Invalid Telegram chat ID' });
+  }
+  if (label && (typeof label !== 'string' || label.length > 100)) {
+    return res.status(400).json({ error: 'label must be a string under 100 characters' });
+  }
+  const subId = crypto.randomBytes(12).toString('hex');
+  const sub = {
+    id: subId,
+    walletAddress,
+    chatId,
+    label: label || `Wallet ${walletAddress.slice(0, 8)}`,
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    await redisClient.set(`tg:sub:${subId}`, JSON.stringify(sub), { EX: 60 * 60 * 24 * 90 });
+    await redisClient.sAdd(`tg:wallet:${walletAddress}:subs`, subId);
+    await redisClient.sAdd(`tg:chat:${chatId}:subs`, subId);
+    await sendDirectAlert(chatId, {
+      title: 'Wallet Alert Activated',
+      description: `You will now receive alerts when ${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)} has significant activity on Stacks.`,
+      stx_amount: 0,
+      usd_amount: 0,
+      wallet_address: walletAddress,
+      wallet_archetype: 'Subscribed',
+      signal: 'neutral',
+      explorer_url: `https://explorer.stacks.co/address/${walletAddress}?chain=mainnet`,
+    });
+
+    res.json({ subId, message: 'Telegram alert subscription created' });
+  } catch {
+    res.status(500).json({ error: 'Failed to create Telegram subscription' });
+  }
+});
+router.delete('/telegram/unsubscribe/:subId', async (req, res) => {
+  const { subId } = req.params;
+  try {
+    const raw = await redisClient.get(`tg:sub:${subId}`);
+    if (!raw) return res.status(404).json({ error: 'Subscription not found' });
+    const sub = JSON.parse(raw);
+    sub.active = false;
+    await redisClient.set(`tg:sub:${subId}`, JSON.stringify(sub), { EX: 60 * 60 * 24 * 90 });
+    res.json({ message: 'Unsubscribed' });
+  } catch {
+    res.status(500).json({ error: 'Failed to unsubscribe' });
+  }
+});
+router.get('/telegram/list/:chatId', async (req, res) => {
+  const { chatId } = req.params;
+  try {
+    const subIds = await redisClient.sMembers(`tg:chat:${chatId}:subs`);
+    const subs = await Promise.all(
+      subIds.map(async (id: string) => {
+      subIds.map(async id => {
+        const raw = await redisClient.get(`tg:sub:${id}`);
+        return raw ? JSON.parse(raw) : null;
+      })
+    );
+    res.json({ subscriptions: subs.filter(Boolean).filter((s: any) => s.active) });
+  } catch {
+    res.status(500).json({ error: 'Failed to list subscriptions' });
+  }
+});
+
 export default router;
-// PR: auto-generated branch pr/alerts-webhooks
