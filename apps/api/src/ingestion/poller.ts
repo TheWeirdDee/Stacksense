@@ -14,23 +14,22 @@ const HIRO_API_KEY = process.env.HIRO_API_KEY;
 
 export async function startPoller() {
   await connectRedis();
-  
-  console.log('Starting Hiro API poller...');
-  
+
+  if (!HIRO_API_KEY) {
+    console.warn('[Poller] WARNING: HIRO_API_KEY is not set. API calls will be rate-limited.');
+  }
+  console.log('[Poller] Starting Hiro API poller...');
+
   setInterval(async () => {
     try {
       await pollTransactions();
     } catch (error) {
-      console.error('Error in poller:', error);
+      console.error('[Poller] Unhandled error in poll cycle:', error);
     }
   }, 10000);
 }
 
 async function pollTransactions() {
-  if (!process.env.HIRO_API_KEY) {
-    console.warn('[Poller] WARNING: HIRO_API_KEY is not set. API calls will be rate-limited.')
-  }
-
   const url = `${HIRO_API_BASE}/extended/v1/tx`;
   const params = {
     limit: 50,
@@ -71,8 +70,8 @@ async function pollTransactions() {
       console.log(`[Poller] Cycle: ${transactions.length} fetched | ${newCount} new | ${skippedCount} skipped | ${latencyMs}ms`);
     }
   } catch (error: any) {
-      recordPollError(error?.message || String(error));
-      console.error('[Poller] Fetch error:', error?.message || error);
+    recordPollError(error?.message || String(error));
+    console.error('[Poller] Fetch error:', error?.message || error);
   }
 }
 
@@ -80,24 +79,22 @@ async function processTransaction(tx: any) {
   try {
     const event = await matchTransaction(tx);
     if (event) {
-      console.log(`[Poller] ✓ Matched "${event.rule_id}" → ${event.signal.toUpperCase()} | ${event.stx_amount.toLocaleString()} STX`)
-      
+      console.log(`[Poller] ✓ Matched "${event.rule_id}" → ${event.signal.toUpperCase()} | ${event.stx_amount.toLocaleString()} STX`);
+
       await redisClient.lPush('events:recent', JSON.stringify(event));
       await redisClient.lTrim('events:recent', 0, 499);
-      
+
       broadcastEvent(event);
-      
-      // Broadcast to webhook subscribers
       await broadcastToWebhooks(event);
-      
+
       if ((event.is_anomaly && (event.multiplier ?? 0) >= 5.0) || event.wallet_archetype === 'Whale Wallet') {
         sendHighConvictionAlert(event);
       }
 
-      console.log(`[Poller] Broadcast to ${getClientCount()} WebSocket clients`)
+      console.log(`[Poller] Broadcast to ${getClientCount()} WebSocket clients`);
     }
   } catch (error: any) {
-    console.error(`Error processing tx ${tx.tx_id}:`, error.message || error);
+    console.error(`[Poller] Error processing tx ${tx.tx_id}:`, error.message || error);
   }
 }
-// PR: auto-generated branch pr/poller-webhooks
+}

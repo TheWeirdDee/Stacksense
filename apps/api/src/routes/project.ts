@@ -55,7 +55,6 @@ router.post('/register', async (req, res) => {
       EX: 60 * 60 * 24 * 365, // 1 year
     });
 
-    // Invalidate score cache so next GET re-fetches fresh
     await redisClient.del(SCORE_CACHE_KEY);
 
     res.json({ success: true, project });
@@ -68,13 +67,11 @@ router.post('/register', async (req, res) => {
 // ─── GET /api/v1/project/score ───────────────────────────────────────────────
 router.get('/score', async (req, res) => {
   try {
-    // Return cached score if fresh
     const cached = await redisClient.get(SCORE_CACHE_KEY);
     if (cached) {
       return res.json(JSON.parse(cached));
     }
 
-    // Load stored project config or fall back to defaults
     const projectStr = await redisClient.get(PROJECT_KEY);
     const project = projectStr
       ? JSON.parse(projectStr)
@@ -86,7 +83,6 @@ router.get('/score', async (req, res) => {
           stacksAddress: DEFAULT_CONTRACT_OWNER,
         };
 
-    // Fetch all 3 signal pillars in parallel
     const [githubStats, onchainStats, npmStats] = await Promise.all([
       getRepoStats(project.githubOwner, project.githubRepo),
       getWalletOnchainStats(project.stacksAddress, project.contracts),
@@ -176,7 +172,7 @@ router.get('/inspect', async (req, res) => {
   try {
     const { contractId } = req.query;
 
-    if (!contractId || typeof contractId !== 'string' || !contractId.includes('.')) {
+    if (!contractId || typeof contractId !== 'string' || !/^(SP|SM)[A-Z0-9]{28,40}\.[a-zA-Z0-9_-]{1,64}$/.test(contractId)) {
       return res.status(400).json({ error: 'A valid contractId (address.name) is required' });
     }
 
